@@ -10,7 +10,7 @@ exports.handler = async (event) => {
             "Access-Control-Allow-Headers": "Content-Type"
         },
         body: JSON.stringify({
-            message: "Hello from the backend! Your infrastructure is working.",
+            message: "Hello from the backend!! Your infrastructure is working.",
             timestamp: new Date().toISOString(),
             input: event.body ? JSON.parse(event.body) : null
         }),
