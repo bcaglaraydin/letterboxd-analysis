@@ -11,6 +11,7 @@ remote_state {
     encrypt        = true
     skip_bucket_root_access = true
     skip_bucket_enforced_tls = true
+    skip_bucket_ssencryption = true
   }
 }
 
