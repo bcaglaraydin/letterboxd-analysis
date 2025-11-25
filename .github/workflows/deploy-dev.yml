@@ -1,0 +1,112 @@
+name: Deploy Dev
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'infra/**'
+      - 'backend/**'
+      - 'frontend/**'
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: eu-west-1
+  TERRAFORM_VERSION: 1.5.7
+  TERRAGRUNT_VERSION: 0.54.12
+  NODE_VERSION: 18
+
+jobs:
+  deploy-infra:
+    name: Deploy Infrastructure
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-deploy-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+
+      - name: Setup Terragrunt
+        run: |
+          wget https://github.com/gruntwork-io/terragrunt/releases/download/v${{ env.TERRAGRUNT_VERSION }}/terragrunt_linux_amd64
+          chmod +x terragrunt_linux_amd64
+          sudo mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
+
+      - name: Deploy S3
+        working-directory: infra/envs/dev/s3
+        run: terragrunt apply -auto-approve
+
+      - name: Deploy DynamoDB
+        working-directory: infra/envs/dev/dynamodb
+        run: terragrunt apply -auto-approve
+
+      - name: Deploy Lambda
+        working-directory: infra/envs/dev/lambda
+        run: terragrunt apply -auto-approve
+
+      - name: Deploy API Gateway
+        working-directory: infra/envs/dev/api-gateway
+        run: terragrunt apply -auto-approve
+
+      - name: Get API Endpoint
+        id: api
+        working-directory: infra/envs/dev/api-gateway
+        run: |
+          ENDPOINT=$(terragrunt output -raw api_endpoint)
+          echo "api_endpoint=$ENDPOINT" >> $GITHUB_OUTPUT
+
+      - name: Deploy CloudFront
+        working-directory: infra/envs/dev/cloudfront
+        run: terragrunt apply -auto-approve
+
+    outputs:
+      api_endpoint: ${{ steps.api.outputs.api_endpoint }}
+
+  deploy-frontend:
+    name: Deploy Frontend
+    needs: deploy-infra
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build Frontend
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_API_URL: ${{ needs.deploy-infra.outputs.api_endpoint }}
+        run: npm run build
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-deploy-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Sync to S3
+        working-directory: frontend/out
+        run: |
+          aws s3 sync . s3://letterboxd-analysis-frontend-dev --delete
