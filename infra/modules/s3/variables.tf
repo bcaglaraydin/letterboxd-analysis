@@ -8,3 +8,9 @@ variable "website_enabled" {
   type        = bool
   default     = false
 }
+
+variable "cloudfront_distribution_arn" {
+  description = "ARN of the CloudFront distribution for OAC access"
+  type        = string
+  default     = ""
+}

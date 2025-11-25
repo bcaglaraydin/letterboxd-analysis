@@ -1,14 +1,16 @@
+resource "aws_cloudfront_origin_access_control" "this" {
+  name                              = "${var.s3_origin_id}-oac"
+  description                       = "OAC for ${var.s3_origin_id}"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
+}
+
 resource "aws_cloudfront_distribution" "this" {
   origin {
-    domain_name = var.s3_bucket_website_endpoint
-    origin_id   = var.s3_origin_id
-
-    custom_origin_config {
-      http_port              = 80
-      https_port             = 443
-      origin_protocol_policy = "http-only"
-      origin_ssl_protocols   = ["TLSv1.2"]
-    }
+    domain_name              = var.s3_bucket_regional_domain_name
+    origin_id                = var.s3_origin_id
+    origin_access_control_id = aws_cloudfront_origin_access_control.this.id
   }
 
   enabled             = true

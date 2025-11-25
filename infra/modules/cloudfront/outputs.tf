@@ -5,3 +5,7 @@ output "cloudfront_domain_name" {
 output "cloudfront_id" {
   value = aws_cloudfront_distribution.this.id
 }
+
+output "cloudfront_arn" {
+  value = aws_cloudfront_distribution.this.arn
+}
