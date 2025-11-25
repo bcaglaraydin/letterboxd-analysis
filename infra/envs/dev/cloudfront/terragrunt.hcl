@@ -6,11 +6,8 @@ terraform {
   source = "../../../modules/cloudfront"
 }
 
-dependency "s3" {
-  config_path = "../s3"
-}
-
 inputs = {
-  s3_bucket_website_endpoint = dependency.s3.outputs.website_endpoint
-  s3_origin_id               = "S3-${dependency.s3.outputs.bucket_id}"
+  # Hardcoded to break circular dependency
+  s3_bucket_regional_domain_name = "letterboxd-analysis-frontend-dev.s3.eu-west-1.amazonaws.com"
+  s3_origin_id                   = "S3-letterboxd-analysis-frontend-dev"
 }
