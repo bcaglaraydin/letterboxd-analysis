@@ -11,6 +11,8 @@ resource "aws_lambda_function" "this" {
   handler          = var.handler
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
   runtime          = var.runtime
+  memory_size      = var.memory_size
+  timeout          = var.timeout
 
   environment {
     variables = var.environment_variables
