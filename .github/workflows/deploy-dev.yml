@@ -53,6 +53,10 @@ jobs:
         working-directory: infra/envs/dev/dynamodb
         run: terragrunt apply -auto-approve
 
+      - name: Install Backend Dependencies
+        working-directory: backend
+        run: npm ci
+
       - name: Deploy Lambda
         working-directory: infra/envs/dev/lambda
         run: terragrunt apply -auto-approve
