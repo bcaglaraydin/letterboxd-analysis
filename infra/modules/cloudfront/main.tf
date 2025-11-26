@@ -33,6 +33,11 @@ resource "aws_cloudfront_distribution" "this" {
     min_ttl                = 0
     default_ttl            = 3600
     max_ttl                = 86400
+
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.url_rewrite.arn
+    }
   }
 
   custom_error_response {
@@ -58,4 +63,24 @@ resource "aws_cloudfront_distribution" "this" {
   viewer_certificate {
     cloudfront_default_certificate = true
   }
+}
+
+resource "aws_cloudfront_function" "url_rewrite" {
+  name    = "${var.s3_origin_id}-url-rewrite"
+  runtime = "cloudfront-js-1.0"
+  comment = "Rewrite URLs to append .html for static export"
+  publish = true
+  code    = <<EOF
+function handler(event) {
+    var request = event.request;
+    var uri = request.uri;
+
+    // Check if the URI is missing an extension
+    if (!uri.includes('.')) {
+        request.uri = uri + '.html';
+    }
+
+    return request;
+}
+EOF
 }
