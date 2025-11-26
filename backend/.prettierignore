@@ -1,0 +1,7 @@
+node_modules
+debug.html
+debug_film.html
+coverage
+dist
+.serverless
+.terraform
