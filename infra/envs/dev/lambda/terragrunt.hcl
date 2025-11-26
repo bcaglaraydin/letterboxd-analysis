@@ -14,6 +14,6 @@ inputs = {
   }
   memory_size = 1536
   timeout     = 600
-  runtime       = "nodejs18.x"
+  runtime       = "nodejs20.x"
   source_dir    = "${get_terragrunt_dir()}/../../../../backend"
 }
