@@ -104,7 +104,7 @@ async function scrapeUserFilms(username) {
           });
           return pageFilms;
         } catch (err) {
-          console.error(`Failed to fetch list page ${url}:`, err);
+          console.error(`Failed to fetch list page! ${url}:`, err);
           return [];
         }
       })
