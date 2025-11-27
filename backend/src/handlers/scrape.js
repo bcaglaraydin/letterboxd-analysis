@@ -20,6 +20,7 @@ exports.handler = async (event) => {
 
     // 2. Call Service
     const films = await scrapeUserFilms(username);
+    console.log(`Successfully scraped ${films.length} films for user ${username}`);
 
     return {
       statusCode: 200,
