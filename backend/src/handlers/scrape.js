@@ -1,11 +1,5 @@
 const { scrapeUserFilms } = require('../services/scraper');
 
-const responseHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type',
-  'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
-};
-
 exports.handler = async (event) => {
   console.log('Event:', JSON.stringify(event));
 
@@ -20,7 +14,6 @@ exports.handler = async (event) => {
     if (!username) {
       return {
         statusCode: 400,
-        headers: responseHeaders,
         body: JSON.stringify({ error: 'Username is required' }),
       };
     }
@@ -30,7 +23,6 @@ exports.handler = async (event) => {
 
     return {
       statusCode: 200,
-      headers: responseHeaders,
       body: JSON.stringify({
         films: films,
         total: films.length,
@@ -41,7 +33,6 @@ exports.handler = async (event) => {
     console.error('Error:', error);
     return {
       statusCode: 500,
-      headers: responseHeaders,
       body: JSON.stringify({ error: error.message }),
     };
   }
