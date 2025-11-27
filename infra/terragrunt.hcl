@@ -5,7 +5,7 @@ remote_state {
     if_exists = "overwrite_terragrunt"
   }
   config = {
-    bucket         = "terraform-REDACTED_AWS_ACCOUNT_ID-state"
+    bucket         = "terraform-${get_aws_account_id()}-state"
     key            = "${path_relative_to_include()}/terraform.tfstate"
     region         = "eu-west-1"
     encrypt        = true
