@@ -10,16 +10,20 @@ const HEADERS = {
 /**
  * Fetches a URL with exponential backoff retry logic.
  * @param {string} url - The URL to fetch.
+ * @param {object} options - Axios options (headers, etc.).
  * @param {number} retries - Number of retries (default 3).
  * @returns {Promise<string>} - The response data (HTML).
  */
-async function fetchWithRetry(url, retries = 3) {
+async function fetchWithRetry(url, options = {}, retries = 3) {
+  const mergedOptions = {
+    ...options,
+    headers: { ...HEADERS, ...options.headers },
+    timeout: 5000,
+  };
+
   for (let i = 0; i < retries; i++) {
     try {
-      const response = await axios.get(url, {
-        headers: HEADERS,
-        timeout: 5000,
-      });
+      const response = await axios.get(url, mergedOptions);
       return response.data;
     } catch (err) {
       if (i === retries - 1) throw err;
