@@ -2,6 +2,10 @@ include "root" {
   path = find_in_parent_folders()
 }
 
+include "common" {
+  path = "${get_terragrunt_dir()}/../common-lambda.hcl"
+}
+
 terraform {
   source = "../../../modules/lambda"
 }
@@ -13,7 +17,6 @@ dependency "films" {
 inputs = {
   function_name = "letterboxd-analysis-metrics-dev"
   handler       = "src/handlers/metrics.handler"
-  runtime       = "nodejs20.x"
   memory_size   = 1024
   timeout       = 30
   source_dir    = "${get_terragrunt_dir()}/../../../../backend"
