@@ -43,3 +43,33 @@ resource "aws_iam_role_policy_attachment" "lambda_logs" {
   role       = aws_iam_role.iam_for_lambda.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
+
+resource "aws_iam_role_policy_attachment" "custom_policies" {
+  count      = length(var.policy_arns)
+  role       = aws_iam_role.iam_for_lambda.name
+  policy_arn = var.policy_arns[count.index]
+}
+
+resource "time_sleep" "wait_for_iam" {
+  depends_on = [
+    aws_iam_role_policy.inline_policy,
+    aws_iam_role_policy_attachment.custom_policies
+  ]
+
+  create_duration = "30s"
+}
+
+resource "aws_lambda_event_source_mapping" "sqs" {
+  count            = var.sqs_event_source_arn != null ? 1 : 0
+  event_source_arn = var.sqs_event_source_arn
+  function_name    = aws_lambda_function.this.arn
+  batch_size       = 10
+  depends_on       = [time_sleep.wait_for_iam]
+}
+
+resource "aws_iam_role_policy" "inline_policy" {
+  count  = var.inline_policy_json != null ? 1 : 0
+  name   = "${var.function_name}-inline-policy"
+  role   = aws_iam_role.iam_for_lambda.id
+  policy = var.inline_policy_json
+}

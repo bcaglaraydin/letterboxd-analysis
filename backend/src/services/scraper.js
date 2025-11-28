@@ -36,6 +36,86 @@ async function fetchFilmStats(filmSlug) {
 }
 
 /**
+ * Scrapes the list of films from a user's Letterboxd profile.
+ * Does NOT fetch film details.
+ * @param {string} username - The Letterboxd username.
+ * @returns {Promise<Array>} - Array of film objects (slug, userRating).
+ */
+async function scrapeUserFilmsList(username) {
+  console.log(`Starting list scrape for user: ${username}`);
+  const baseUrl = `https://letterboxd.com/${username}/films/`;
+
+  // 1. Fetch Profile & Determine Pagination
+  const firstPageHtml = await fetchWithRetry(baseUrl);
+  const $ = cheerio.load(firstPageHtml);
+
+  // Check if user exists/has films
+  if ($('body').hasClass('error')) {
+    throw new Error('User not found or profile is private');
+  }
+
+  let totalPages = 1;
+  const pagination = $('.paginate-pages ul li.paginate-page').last();
+  if (pagination.length > 0) {
+    totalPages = parseInt(pagination.text().trim(), 10);
+  }
+  console.log(`Found ${totalPages} pages of films.`);
+
+  // 2. Fetch All List Pages Concurrently & Extract Basic Info
+  const pageUrls = [];
+  for (let i = 1; i <= totalPages; i++) {
+    pageUrls.push(`${baseUrl}page/${i}/`);
+  }
+
+  const listLimit = pLimit(5); // Limit concurrency for list pages
+  const filmBasicInfos = await Promise.all(
+    pageUrls.map((url) =>
+      listLimit(async () => {
+        try {
+          const html = await fetchWithRetry(url);
+          const $ = cheerio.load(html);
+          const pageFilms = [];
+
+          $('.griditem').each((_, el) => {
+            const $el = $(el);
+            const $component = $el.find('.react-component');
+
+            const filmSlug = $component.attr('data-item-slug');
+
+            // Extract User Rating from Unicode stars
+            // Look for <span class="rating">★★★★</span> inside .poster-viewingdata
+            let userRating = null;
+            const ratingText = $el.find('.poster-viewingdata .rating').text().trim();
+
+            if (ratingText) {
+              // Count stars: ★ = 1, ½ = 0.5
+              const fullStars = (ratingText.match(/★/g) || []).length;
+              const halfStars = (ratingText.match(/½/g) || []).length;
+              userRating = fullStars + halfStars * 0.5;
+            }
+
+            if (filmSlug) {
+              pageFilms.push({
+                slug: filmSlug,
+                userRating,
+              });
+            }
+          });
+          return pageFilms;
+        } catch (err) {
+          console.error(`Failed to fetch list page ${url}:`, err);
+          return [];
+        }
+      })
+    )
+  );
+
+  const allFilmsBasic = filmBasicInfos.flat();
+  console.log(`Extracted ${allFilmsBasic.length} films from list pages.`);
+  return allFilmsBasic;
+}
+
+/**
  * Scrapes all films from a user's Letterboxd films page.
  * @param {string} username - The Letterboxd username.
  * @returns {Promise<Array>} - Array of film objects.
@@ -224,4 +304,82 @@ function parseJsonLd($film, slug) {
   return {};
 }
 
-module.exports = { scrapeUserFilms };
+/**
+ * Scrapes detailed information for a single film.
+ * @param {string} slug - The film slug.
+ * @param {string} url - The film URL.
+ * @returns {Promise<object>} - Film details object.
+ */
+async function scrapeFilmDetails(slug, url) {
+  try {
+    // Fetch Details Page
+    const html = await fetchWithRetry(url);
+    const $film = cheerio.load(html);
+
+    // --- JSON-LD Extraction ---
+    const jsonLd = parseJsonLd($film, slug);
+
+    const title = jsonLd.name || $film('meta[property="og:title"]').attr('content') || slug;
+    const year =
+      jsonLd.releasedEvent?.startDate ||
+      $film('meta[property="og:title"]')
+        .attr('content')
+        ?.match(/\((\d{4})\)$/)?.[1] ||
+      '';
+    const director = jsonLd.director?.map((d) => d.name).join(', ') || '';
+    const cast = jsonLd.actors?.map((a) => a.name) || [];
+    const studios = jsonLd.productionCompany?.map((c) => c.name) || [];
+    const genres = jsonLd.genre || [];
+    const ratingCount = jsonLd.aggregateRating?.ratingCount || 0;
+    const averageRating = jsonLd.aggregateRating?.ratingValue || 0;
+    const posterUrl = jsonLd.image || $film('meta[property="og:image"]').attr('content');
+
+    // --- HTML Extraction ---
+    // Runtime
+    let runtime = null;
+    const footerText = $film('.text-link.text-footer').text();
+    const runtimeMatch = footerText.match(/(\d+)\s*mins/);
+    if (runtimeMatch) {
+      runtime = parseInt(runtimeMatch[1], 10);
+    }
+
+    // Backdrop
+    const backdropUrl = $film('#backdrop').attr('data-backdrop');
+
+    // Plot
+    const plot =
+      $film('.review.body-text .truncate').text().trim() ||
+      $film('.review.body-text').text().trim();
+
+    // Fetch Stats (Watched Count)
+    const stats = await fetchFilmStats(slug);
+
+    return {
+      slug,
+      url,
+      title,
+      year,
+      director,
+      cast,
+      studios,
+      genres,
+      runtime,
+      backdropUrl,
+      plot,
+      posterUrl,
+      averageRating,
+      ratingCount,
+      watchedCount: stats.watchedCount,
+      scrapedAt: new Date().toISOString(),
+    };
+  } catch (err) {
+    console.error(`Failed to fetch film details for ${url}:`, err);
+    throw err;
+  }
+}
+
+module.exports = {
+  scrapeUserFilms,
+  scrapeUserFilmsList,
+  scrapeFilmDetails,
+};
