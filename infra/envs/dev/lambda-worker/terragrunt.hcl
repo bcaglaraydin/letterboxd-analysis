@@ -16,6 +16,19 @@ dependency "sqs" {
 
 dependency "films" {
   config_path = "../dynamodb/films"
+}
+
+inputs = {
+  function_name = "letterboxd-analysis-worker-dev"
+  handler       = "src/handlers/worker.handler"
+  memory_size   = 1024
+  timeout       = 300
+  source_dir    = "${get_terragrunt_dir()}/../../../../backend"
+
+  environment_variables = {
+    NODE_ENV    = "development"
+    FILMS_TABLE = dependency.films.outputs.table_name
+  }
 
   sqs_event_source_arn = dependency.sqs.outputs.queue_arn
 
