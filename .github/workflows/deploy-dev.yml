@@ -53,12 +53,24 @@ jobs:
         working-directory: infra/envs/dev/dynamodb
         run: terragrunt apply -auto-approve
 
+      - name: Deploy SQS
+        working-directory: infra/envs/dev/sqs
+        run: terragrunt apply -auto-approve
+
       - name: Install Backend Dependencies
         working-directory: backend
         run: npm ci
 
-      - name: Deploy Lambda
+      - name: Deploy Coordinator Lambda
         working-directory: infra/envs/dev/lambda
+        run: terragrunt apply -auto-approve
+
+      - name: Deploy Worker Lambda
+        working-directory: infra/envs/dev/lambda-worker
+        run: terragrunt apply -auto-approve
+
+      - name: Deploy Metrics Lambda
+        working-directory: infra/envs/dev/lambda-metrics
         run: terragrunt apply -auto-approve
 
       - name: Deploy API Gateway
