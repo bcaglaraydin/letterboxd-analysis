@@ -78,6 +78,10 @@ jobs:
         working-directory: infra/envs/dev/api-gateway
         run: terragrunt apply -auto-approve
 
+      - name: Deploy Monitoring
+        working-directory: infra/envs/dev/monitoring
+        run: terragrunt apply -auto-approve
+
       - name: Get API Endpoint
         id: api
         working-directory: infra/envs/dev/api-gateway
