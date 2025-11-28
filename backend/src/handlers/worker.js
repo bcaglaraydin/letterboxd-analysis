@@ -33,8 +33,8 @@ exports.handler = async (event) => {
         await putItem(FILMS_TABLE, filmDetails);
         console.log(`Stored film: ${slug}`);
       } catch (error) {
-        console.error(`Error processing message: ${record.body}`, error);
-        // In a real system, we might want to throw here to trigger SQS retry/DLQ
+        console.error(`Error processing message ${record.messageId}:`, error);
+        // TODO: Throw error to trigger SQS retry/DLQ if permanent failure is unlikely
         // For now, we log and continue to avoid blocking the batch
       }
     })

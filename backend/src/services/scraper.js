@@ -2,13 +2,15 @@ const cheerio = require('cheerio');
 const pLimit = require('p-limit');
 const { fetchWithRetry } = require('../utils/http');
 
+const BASE_URL = 'https://letterboxd.com';
+
 /**
  * Fetches film statistics (e.g., watched count) from the CSI endpoint.
  * @param {string} filmSlug - The slug of the film.
  * @returns {Promise<object>} - Object containing stats like watchedCount.
  */
 async function fetchFilmStats(filmSlug) {
-  const statsUrl = `https://letterboxd.com/csi/film/${filmSlug}/stats/`;
+  const statsUrl = `${BASE_URL}/csi/film/${filmSlug}/stats/`;
   try {
     const html = await fetchWithRetry(statsUrl, {
       headers: { 'x-requested-with': 'XMLHttpRequest' },
@@ -43,7 +45,7 @@ async function fetchFilmStats(filmSlug) {
  */
 async function scrapeUserFilmsList(username) {
   console.log(`Starting list scrape for user: ${username}`);
-  const baseUrl = `https://letterboxd.com/${username}/films/`;
+  const baseUrl = `${BASE_URL}/${username}/films/`;
 
   // 1. Fetch Profile & Determine Pagination
   const firstPageHtml = await fetchWithRetry(baseUrl);

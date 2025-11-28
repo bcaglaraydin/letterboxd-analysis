@@ -34,25 +34,47 @@ async function batchWrite(tableName, items) {
   // DynamoDB BatchWrite limit is 25
   const batchSize = 25;
   for (let i = 0; i < items.length; i += batchSize) {
-    const batch = items.slice(i, i + batchSize);
-    const putRequests = batch.map((item) => ({
-      PutRequest: {
-        Item: item,
-      },
-    }));
+    let batch = items.slice(i, i + batchSize);
+    let attempt = 0;
 
-    const command = new BatchWriteCommand({
-      RequestItems: {
-        [tableName]: putRequests,
-      },
-    });
+    while (batch.length > 0 && attempt < 3) {
+      const putRequests = batch.map((item) => ({
+        PutRequest: {
+          Item: item,
+        },
+      }));
 
-    try {
-      await docClient.send(command);
-      console.log(`Wrote batch of ${batch.length} items to ${tableName}.`);
-    } catch (error) {
-      console.error(`Error batch writing to ${tableName}:`, error);
-      throw error;
+      const command = new BatchWriteCommand({
+        RequestItems: {
+          [tableName]: putRequests,
+        },
+      });
+
+      try {
+        const response = await docClient.send(command);
+
+        if (response.UnprocessedItems && response.UnprocessedItems[tableName]) {
+          const unprocessed = response.UnprocessedItems[tableName];
+          console.warn(`BatchWrite: ${unprocessed.length} items unprocessed. Retrying...`);
+          // Extract the original items from the PutRequest objects to retry
+          batch = unprocessed.map((req) => req.PutRequest.Item);
+          attempt++;
+          await new Promise((resolve) => setTimeout(resolve, 1000 * attempt)); // Exponential backoffish
+        } else {
+          batch = []; // All done
+        }
+
+        if (attempt === 0) {
+          console.log(`Wrote batch of ${putRequests.length} items to ${tableName}.`);
+        }
+      } catch (error) {
+        console.error(`Error batch writing to ${tableName}:`, error);
+        throw error;
+      }
+    }
+
+    if (batch.length > 0) {
+      console.error(`Failed to write ${batch.length} items to ${tableName} after 3 attempts.`);
     }
   }
 }
@@ -74,23 +96,41 @@ async function batchGet(tableName, keys) {
   let allItems = [];
 
   for (let i = 0; i < keys.length; i += batchSize) {
-    const batchKeys = keys.slice(i, i + batchSize);
-    const command = new BatchGetCommand({
-      RequestItems: {
-        [tableName]: {
-          Keys: batchKeys,
-        },
-      },
-    });
+    let batchKeys = keys.slice(i, i + batchSize);
+    let attempt = 0;
 
-    try {
-      const response = await docClient.send(command);
-      if (response.Responses && response.Responses[tableName]) {
-        allItems = allItems.concat(response.Responses[tableName]);
+    while (batchKeys.length > 0 && attempt < 3) {
+      const command = new BatchGetCommand({
+        RequestItems: {
+          [tableName]: {
+            Keys: batchKeys,
+          },
+        },
+      });
+
+      try {
+        const response = await docClient.send(command);
+        if (response.Responses && response.Responses[tableName]) {
+          allItems = allItems.concat(response.Responses[tableName]);
+        }
+
+        if (response.UnprocessedKeys && response.UnprocessedKeys[tableName]) {
+          const unprocessed = response.UnprocessedKeys[tableName];
+          console.warn(`BatchGet: ${unprocessed.Keys.length} keys unprocessed. Retrying...`);
+          batchKeys = unprocessed.Keys;
+          attempt++;
+          await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
+        } else {
+          batchKeys = [];
+        }
+      } catch (error) {
+        console.error(`Error batch getting from ${tableName}:`, error);
+        throw error;
       }
-    } catch (error) {
-      console.error(`Error batch getting from ${tableName}:`, error);
-      throw error;
+    }
+
+    if (batchKeys.length > 0) {
+      console.error(`Failed to get batch from ${tableName} after 3 attempts.`);
     }
   }
   return allItems;
