@@ -1,6 +1,7 @@
 name: Deploy Dev
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
@@ -50,7 +51,7 @@ jobs:
         run: terragrunt apply -auto-approve
 
       - name: Deploy DynamoDB
-        working-directory: infra/envs/dev/dynamodb
+        working-directory: infra/envs/dev/dynamodb/films
         run: terragrunt apply -auto-approve
 
       - name: Deploy SQS
