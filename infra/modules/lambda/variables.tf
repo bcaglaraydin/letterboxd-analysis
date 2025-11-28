@@ -46,3 +46,9 @@ variable "inline_policy_json" {
   type        = string
   default     = null
 }
+
+variable "log_retention_days" {
+  description = "Number of days to retain logs in CloudWatch"
+  type        = number
+  default     = 7
+}
