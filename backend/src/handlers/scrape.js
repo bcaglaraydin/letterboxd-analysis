@@ -9,8 +9,16 @@ exports.handler = async (event) => {
   try {
     // 1. Parse Input
     let body = {};
-    if (event.body) {
-      body = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
+    try {
+      if (event.body) {
+        body = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
+      }
+    } catch (parseError) {
+      console.error('Failed to parse event body:', parseError);
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Invalid JSON in request body' }),
+      };
     }
     const username = body.username;
 
