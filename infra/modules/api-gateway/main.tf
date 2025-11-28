@@ -15,23 +15,29 @@ resource "aws_apigatewayv2_stage" "this" {
 }
 
 resource "aws_apigatewayv2_integration" "this" {
+  for_each = var.integrations
+
   api_id           = aws_apigatewayv2_api.this.id
   integration_type = "AWS_PROXY"
 
-  integration_uri    = var.lambda_invoke_arn
+  integration_uri    = each.value.lambda_invoke_arn
   integration_method = "POST"
 }
 
 resource "aws_apigatewayv2_route" "this" {
+  for_each = var.integrations
+
   api_id    = aws_apigatewayv2_api.this.id
-  route_key = "POST /"
-  target    = "integrations/${aws_apigatewayv2_integration.this.id}"
+  route_key = each.value.route_key
+  target    = "integrations/${aws_apigatewayv2_integration.this[each.key].id}"
 }
 
 resource "aws_lambda_permission" "api_gw" {
-  statement_id  = "AllowExecutionFromAPIGateway"
+  for_each = var.integrations
+
+  statement_id  = "AllowExecutionFromAPIGateway-${each.key}"
   action        = "lambda:InvokeFunction"
-  function_name = var.lambda_function_name
+  function_name = each.value.lambda_function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.this.execution_arn}/*/*"
 }
