@@ -16,6 +16,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.940.0",
+    "@aws-sdk/client-sqs": "^3.940.0",
+    "@aws-sdk/lib-dynamodb": "^3.940.0",
     "axios": "^1.13.2",
     "cheerio": "^1.0.0-rc.12",
     "cors": "^2.8.5",
