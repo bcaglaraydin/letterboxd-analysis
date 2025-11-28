@@ -2,6 +2,10 @@ include "root" {
   path = find_in_parent_folders()
 }
 
+include "common" {
+  path = "${get_terragrunt_dir()}/../common-lambda.hcl"
+}
+
 terraform {
   source = "../../../modules/lambda"
 }
@@ -19,7 +23,6 @@ inputs = {
   }
   memory_size = 1536
   timeout     = 600
-  runtime       = "nodejs20.x"
   source_dir    = "${get_terragrunt_dir()}/../../../../backend"
 
   inline_policy_json = jsonencode({
