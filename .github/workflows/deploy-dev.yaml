@@ -27,14 +27,14 @@ env:
 jobs:
   deploy-s3:
     name: Deploy S3
-    uses: ./.github/workflows/terragrunt-apply.yml
+    uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/s3
     secrets: inherit
 
   deploy-dynamodb:
     name: Deploy DynamoDB
-    uses: ./.github/workflows/terragrunt-apply.yml
+    uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/dynamodb/films
       output_key: table_name
@@ -42,7 +42,7 @@ jobs:
 
   deploy-sqs:
     name: Deploy SQS
-    uses: ./.github/workflows/terragrunt-apply.yml
+    uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/sqs
       output_key: queue_name
@@ -51,7 +51,7 @@ jobs:
   deploy-lambda-coord:
     name: Deploy Lambda Coord
     needs: [deploy-s3, deploy-dynamodb, deploy-sqs]
-    uses: ./.github/workflows/terragrunt-apply.yml
+    uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/lambda
       install_backend_deps: true
@@ -60,7 +60,7 @@ jobs:
   deploy-lambda-worker:
     name: Deploy Lambda Worker
     needs: [deploy-s3, deploy-dynamodb, deploy-sqs]
-    uses: ./.github/workflows/terragrunt-apply.yml
+    uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/lambda-worker
       install_backend_deps: true
@@ -69,7 +69,7 @@ jobs:
   deploy-lambda-metrics:
     name: Deploy Lambda Metrics
     needs: [deploy-s3, deploy-dynamodb, deploy-sqs]
-    uses: ./.github/workflows/terragrunt-apply.yml
+    uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/lambda-metrics
       install_backend_deps: true
@@ -78,7 +78,7 @@ jobs:
   deploy-gateway:
     name: Deploy Gateway
     needs: [deploy-lambda-coord, deploy-lambda-worker, deploy-lambda-metrics]
-    uses: ./.github/workflows/terragrunt-apply.yml
+    uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/api-gateway
       output_key: api_endpoint
@@ -87,7 +87,7 @@ jobs:
   deploy-monitoring:
     name: Deploy Monitoring
     needs: deploy-gateway
-    uses: ./.github/workflows/terragrunt-apply.yml
+    uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/monitoring
     secrets: inherit
@@ -95,7 +95,7 @@ jobs:
   deploy-cloudfront:
     name: Deploy CloudFront
     needs: deploy-gateway
-    uses: ./.github/workflows/terragrunt-apply.yml
+    uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/cloudfront
     secrets: inherit
@@ -103,7 +103,7 @@ jobs:
   verify-backend:
     name: Verify Backend
     needs: [deploy-sqs, deploy-dynamodb, deploy-gateway]
-    uses: ./.github/workflows/verify-dev.yml
+    uses: ./.github/workflows/verify-dev.yaml
     with:
       api_url: ${{ needs.deploy-gateway.outputs.terragrunt_output }}
       sqs_queue_name: ${{ needs.deploy-sqs.outputs.terragrunt_output }}
