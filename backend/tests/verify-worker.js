@@ -1,15 +1,19 @@
 import 'dotenv/config';
 import { sendMessageBatch } from '../src/services/sqsQueueService.js';
-import { getItem } from '../src/services/dynamoDbService.js';
+import { getItem, deleteItem } from '../src/services/dynamoDbService.js';
 
 const SQS_QUEUE_URL = process.env.SQS_QUEUE_URL;
 const FILMS_TABLE = process.env.FILMS_TABLE;
 
-async function verify() {
+async function run() {
   const slug = 'dune-2021';
   console.log(`Verifying Step 2 for film: ${slug}`);
 
   try {
+    // 0. Clean up existing item to force re-scrape
+    console.log('Deleting existing item from DynamoDB...');
+    await deleteItem(FILMS_TABLE, { slug });
+
     // 1. Send Message to SQS
     console.log('Sending message to SQS...');
     await sendMessageBatch(SQS_QUEUE_URL, [{ slug }]);
@@ -26,6 +30,7 @@ async function verify() {
         console.log('Film found in DynamoDB!');
         console.log('Title:', film.title);
         console.log('Director:', film.director);
+        console.log('Themes:', film.themes);
         console.log('Scraped At:', film.scrapedAt);
         console.log('Film:', film);
         break;
@@ -46,4 +51,4 @@ async function verify() {
   }
 }
 
-verify();
+run();
