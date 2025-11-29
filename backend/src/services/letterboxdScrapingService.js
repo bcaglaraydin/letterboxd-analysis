@@ -148,7 +148,7 @@ export async function scrapeUserFilms(username) {
     pageUrls.push(`${baseUrl}page/${i}/`);
   }
 
-  const listLimit = pLimit(5); // Limit concurrency for list pages
+  const listLimit = pLimit(parseInt(process.env.SCRAPING_CONCURRENCY_LIST || '5', 10)); // Limit concurrency for list pages
   const filmBasicInfos = await Promise.all(
     pageUrls.map((url) =>
       listLimit(async () => {
@@ -201,7 +201,7 @@ export async function scrapeUserFilms(username) {
   }
 
   // 3. Fetch Film Details & Stats Concurrently
-  const filmLimit = pLimit(15); // Limit concurrency for film details
+  const filmLimit = pLimit(parseInt(process.env.SCRAPING_CONCURRENCY_FILM || '15', 10)); // Limit concurrency for film details
   const films = await Promise.all(
     allFilmsBasic.map((film) =>
       filmLimit(async () => {
