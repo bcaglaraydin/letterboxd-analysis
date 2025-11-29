@@ -1,5 +1,5 @@
-const { scrapeFilmDetails } = require('../services/scraper');
-const { putItem, getItem } = require('../services/dynamo');
+const { scrapeFilmDetails } = require('../services/letterboxdScrapingService');
+const { putItem, getItem } = require('../services/dynamoDbService');
 
 const FILMS_TABLE = process.env.FILMS_TABLE;
 

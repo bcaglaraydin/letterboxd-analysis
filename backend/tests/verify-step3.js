@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const API_URL = 'https://mpnd4bu9jg.execute-api.eu-west-1.amazonaws.com';
+const API_URL = process.env.API_URL || 'http://localhost:4000';
 
 async function verifyStep3() {
   console.log('Verifying Step 3: Metrics Lambda...');

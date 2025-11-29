@@ -1,5 +1,5 @@
-const { scrapeUserFilmsList } = require('../services/scraper');
-const { sendMessageBatch } = require('../services/queue');
+const { scrapeUserFilmsList } = require('../services/letterboxdScrapingService');
+const { sendMessageBatch } = require('../services/sqsQueueService');
 
 const SQS_QUEUE_URL = process.env.SQS_QUEUE_URL;
 
@@ -50,7 +50,7 @@ exports.handler = async (event) => {
 
     if (FILMS_TABLE) {
       try {
-        const { batchGet } = require('../services/dynamo');
+        const { batchGet } = require('../services/dynamoDbService');
         const existingItems = await batchGet(FILMS_TABLE, uniqueSlugs);
         const existingSlugs = new Set(existingItems.map((item) => item.slug));
 

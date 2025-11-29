@@ -1,3 +1,3 @@
-const { handler } = require('./handlers/scrape');
+const { handler } = require('./handlers/triggerFilmScrapingHandler');
 
 exports.handler = handler;

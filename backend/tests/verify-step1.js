@@ -1,4 +1,4 @@
-const { scrapeUserFilmsList } = require('./src/services/scraper');
+const { scrapeUserFilmsList } = require('../src/services/letterboxdScrapingService');
 
 async function verify() {
   const username = 'bcaglaraydin'; // Or any public user
