@@ -6,7 +6,7 @@ on:
       api_url:
         required: false
         type: string
-      sqs_queue_url:
+      sqs_queue_name:
         required: false
         type: string
       films_table:
@@ -58,7 +58,11 @@ jobs:
           if [ -n "${{ inputs.api_url }}" ]; then
             echo "Using inputs..."
             echo "API_URL=${{ inputs.api_url }}" >> $GITHUB_ENV
-            echo "SQS_QUEUE_URL=${{ inputs.sqs_queue_url }}" >> $GITHUB_ENV
+            
+            # Construct SQS URL from name
+            QUEUE_URL="https://sqs.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.AWS_ACCOUNT_ID }}/${{ inputs.sqs_queue_name }}"
+            echo "SQS_QUEUE_URL=$QUEUE_URL" >> $GITHUB_ENV
+            
             echo "FILMS_TABLE=${{ inputs.films_table }}" >> $GITHUB_ENV
           else
             echo "Fetching from Terragrunt..."

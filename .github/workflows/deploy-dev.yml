@@ -25,12 +25,9 @@ env:
   NODE_VERSION: 22
 
 jobs:
-  infra-base:
-    name: Deploy Base Infra
+  deploy-s3:
+    name: Deploy S3
     runs-on: ubuntu-22.04
-    outputs:
-      sqs_queue_url: ${{ steps.sqs.outputs.url }}
-      films_table: ${{ steps.dynamodb.outputs.name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -49,11 +46,33 @@ jobs:
           wget https://github.com/gruntwork-io/terragrunt/releases/download/v${{ env.TERRAGRUNT_VERSION }}/terragrunt_linux_amd64
           chmod +x terragrunt_linux_amd64
           sudo mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
-      
       - name: Deploy S3
         working-directory: infra/envs/dev/s3
         run: terragrunt apply -auto-approve
-      
+
+  deploy-dynamodb:
+    name: Deploy DynamoDB
+    runs-on: ubuntu-22.04
+    outputs:
+      table_name: ${{ steps.dynamodb.outputs.name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-deploy-role
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+      - name: Setup Terragrunt
+        run: |
+          wget https://github.com/gruntwork-io/terragrunt/releases/download/v${{ env.TERRAGRUNT_VERSION }}/terragrunt_linux_amd64
+          chmod +x terragrunt_linux_amd64
+          sudo mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
       - name: Deploy DynamoDB
         working-directory: infra/envs/dev/dynamodb/films
         run: terragrunt apply -auto-approve
@@ -62,17 +81,40 @@ jobs:
         working-directory: infra/envs/dev/dynamodb/films
         run: echo "name=$(terragrunt output -raw table_name)" >> $GITHUB_OUTPUT
 
+  deploy-sqs:
+    name: Deploy SQS
+    runs-on: ubuntu-22.04
+    outputs:
+      queue_name: ${{ steps.sqs.outputs.name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-deploy-role
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+      - name: Setup Terragrunt
+        run: |
+          wget https://github.com/gruntwork-io/terragrunt/releases/download/v${{ env.TERRAGRUNT_VERSION }}/terragrunt_linux_amd64
+          chmod +x terragrunt_linux_amd64
+          sudo mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
       - name: Deploy SQS
         working-directory: infra/envs/dev/sqs
         run: terragrunt apply -auto-approve
       - name: Get SQS Output
         id: sqs
         working-directory: infra/envs/dev/sqs
-        run: echo "url=$(terragrunt output -raw queue_url)" >> $GITHUB_OUTPUT
+        run: echo "name=$(terragrunt output -raw queue_name)" >> $GITHUB_OUTPUT
 
-  infra-compute:
-    name: Deploy Compute
-    needs: infra-base
+  deploy-lambda-coord:
+    name: Deploy Lambda Coord
+    needs: [deploy-s3, deploy-dynamodb, deploy-sqs]
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
@@ -95,20 +137,71 @@ jobs:
       - name: Install Backend Dependencies
         working-directory: backend
         run: npm ci
-      
       - name: Deploy Coordinator Lambda
         working-directory: infra/envs/dev/lambda
         run: terragrunt apply -auto-approve
+
+  deploy-lambda-worker:
+    name: Deploy Lambda Worker
+    needs: [deploy-s3, deploy-dynamodb, deploy-sqs]
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-deploy-role
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+      - name: Setup Terragrunt
+        run: |
+          wget https://github.com/gruntwork-io/terragrunt/releases/download/v${{ env.TERRAGRUNT_VERSION }}/terragrunt_linux_amd64
+          chmod +x terragrunt_linux_amd64
+          sudo mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
+      - name: Install Backend Dependencies
+        working-directory: backend
+        run: npm ci
       - name: Deploy Worker Lambda
         working-directory: infra/envs/dev/lambda-worker
         run: terragrunt apply -auto-approve
+
+  deploy-lambda-metrics:
+    name: Deploy Lambda Metrics
+    needs: [deploy-s3, deploy-dynamodb, deploy-sqs]
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-deploy-role
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+      - name: Setup Terragrunt
+        run: |
+          wget https://github.com/gruntwork-io/terragrunt/releases/download/v${{ env.TERRAGRUNT_VERSION }}/terragrunt_linux_amd64
+          chmod +x terragrunt_linux_amd64
+          sudo mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
+      - name: Install Backend Dependencies
+        working-directory: backend
+        run: npm ci
       - name: Deploy Metrics Lambda
         working-directory: infra/envs/dev/lambda-metrics
         run: terragrunt apply -auto-approve
 
   infra-gateway:
     name: Deploy Gateway
-    needs: infra-compute
+    needs: [deploy-lambda-coord, deploy-lambda-worker, deploy-lambda-metrics]
     runs-on: ubuntu-22.04
     outputs:
       api_endpoint: ${{ steps.api.outputs.endpoint }}
@@ -171,12 +264,12 @@ jobs:
 
   verify-backend:
     name: Verify Backend
-    needs: [infra-base, infra-gateway]
+    needs: [deploy-sqs, deploy-dynamodb, infra-gateway]
     uses: ./.github/workflows/verify-dev.yml
     with:
       api_url: ${{ needs.infra-gateway.outputs.api_endpoint }}
-      sqs_queue_url: ${{ needs.infra-base.outputs.sqs_queue_url }}
-      films_table: ${{ needs.infra-base.outputs.films_table }}
+      sqs_queue_name: ${{ needs.deploy-sqs.outputs.queue_name }}
+      films_table: ${{ needs.deploy-dynamodb.outputs.table_name }}
     secrets: inherit
 
   deploy-frontend:
