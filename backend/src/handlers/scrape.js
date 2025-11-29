@@ -40,17 +40,49 @@ exports.handler = async (event) => {
       };
     }
 
-    // 2. Send to SQS (Background Metadata Fetch)
-    const sqsMessages = films.map((film) => ({
-      slug: film.slug,
-    }));
+    // 2. Filter Existing Films (Optimization)
+    // Check DynamoDB to see which films we already have metadata for (and are not expired)
+    const uniqueSlugs = [...new Set(films.map((f) => f.slug))].map((slug) => ({ slug }));
 
-    try {
-      await sendMessageBatch(SQS_QUEUE_URL, sqsMessages);
-      console.log(`Queued ${sqsMessages.length} tasks to SQS`);
-    } catch (err) {
-      console.error('Failed to queue SQS messages:', err);
-      // We continue even if SQS fails, so the user still gets their list
+    // We need FILMS_TABLE env var
+    const FILMS_TABLE = process.env.FILMS_TABLE;
+    let filmsToQueue = films;
+
+    if (FILMS_TABLE) {
+      try {
+        const { batchGet } = require('../services/dynamo');
+        const existingItems = await batchGet(FILMS_TABLE, uniqueSlugs);
+        const existingSlugs = new Set(existingItems.map((item) => item.slug));
+
+        filmsToQueue = films.filter((film) => !existingSlugs.has(film.slug));
+        console.log(
+          `Filtered ${existingItems.length} existing films. Queuing ${filmsToQueue.length} new/expired films.`
+        );
+      } catch (dbError) {
+        console.error(
+          'Failed to check DynamoDB for existing films, defaulting to queue all:',
+          dbError
+        );
+      }
+    } else {
+      console.warn('FILMS_TABLE env var missing, skipping optimization.');
+    }
+
+    if (filmsToQueue.length === 0) {
+      console.log('All films already exist in DB. Skipping SQS.');
+    } else {
+      // 3. Send to SQS (Background Metadata Fetch)
+      const sqsMessages = filmsToQueue.map((film) => ({
+        slug: film.slug,
+      }));
+
+      try {
+        await sendMessageBatch(SQS_QUEUE_URL, sqsMessages);
+        console.log(`Queued ${sqsMessages.length} tasks to SQS`);
+      } catch (err) {
+        console.error('Failed to queue SQS messages:', err);
+        // We continue even if SQS fails, so the user still gets their list
+      }
     }
 
     // 3. Return List to Frontend

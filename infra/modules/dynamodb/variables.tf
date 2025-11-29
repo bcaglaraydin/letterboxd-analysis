@@ -13,3 +13,9 @@ variable "range_key" {
   type        = string
   default     = null
 }
+
+variable "ttl_attribute" {
+  description = "Attribute name for TTL (optional)"
+  type        = string
+  default     = null
+}

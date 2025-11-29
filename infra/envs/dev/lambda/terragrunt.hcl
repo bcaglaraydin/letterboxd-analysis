@@ -14,12 +14,17 @@ dependency "sqs" {
   config_path = "../sqs"
 }
 
+dependency "dynamodb" {
+  config_path = "../dynamodb/films"
+}
+
 inputs = {
   function_name = "letterboxd-analysis-backend-dev"
   handler       = "src/index.handler"
   environment_variables = {
     NODE_ENV      = "development"
     SQS_QUEUE_URL = dependency.sqs.outputs.queue_url
+    FILMS_TABLE   = dependency.dynamodb.outputs.table_name
   }
   memory_size = 1024
   timeout     = 600
@@ -34,6 +39,14 @@ inputs = {
         ]
         Effect   = "Allow"
         Resource = dependency.sqs.outputs.queue_arn
+      },
+      {
+        Action = [
+          "dynamodb:BatchGetItem",
+          "dynamodb:GetItem"
+        ]
+        Effect   = "Allow"
+        Resource = dependency.dynamodb.outputs.table_arn
       }
     ]
   })
