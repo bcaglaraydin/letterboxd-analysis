@@ -1,0 +1,78 @@
+name: Terragrunt Apply
+
+on:
+  workflow_call:
+    inputs:
+      working_directory:
+        required: true
+        type: string
+      output_key:
+        required: false
+        type: string
+      install_backend_deps:
+        required: false
+        type: boolean
+        default: false
+    outputs:
+      terragrunt_output:
+        description: "The value of the requested output key"
+        value: ${{ jobs.apply.outputs.terragrunt_output }}
+
+env:
+  AWS_REGION: eu-west-1
+  TERRAFORM_VERSION: 1.5.7
+  TERRAGRUNT_VERSION: 0.54.12
+  NODE_VERSION: 22
+
+jobs:
+  apply:
+    name: Apply
+    runs-on: ubuntu-22.04
+    outputs:
+      terragrunt_output: ${{ steps.output.outputs.value }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-deploy-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+
+      - name: Setup Terragrunt
+        run: |
+          wget https://github.com/gruntwork-io/terragrunt/releases/download/v${{ env.TERRAGRUNT_VERSION }}/terragrunt_linux_amd64
+          chmod +x terragrunt_linux_amd64
+          sudo mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
+
+      - name: Setup Node.js
+        if: ${{ inputs.install_backend_deps }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install Backend Dependencies
+        if: ${{ inputs.install_backend_deps }}
+        working-directory: backend
+        run: npm ci
+
+      - name: Terragrunt Apply
+        working-directory: ${{ inputs.working_directory }}
+        run: terragrunt apply -auto-approve
+
+      - name: Get Output
+        id: output
+        if: ${{ inputs.output_key != '' }}
+        working-directory: ${{ inputs.working_directory }}
+        run: |
+          VALUE=$(terragrunt output -raw ${{ inputs.output_key }})
+          echo "value=$VALUE" >> $GITHUB_OUTPUT
