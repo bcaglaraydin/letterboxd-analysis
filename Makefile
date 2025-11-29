@@ -1,4 +1,4 @@
-.PHONY: install dev dev-backend dev-frontend
+.PHONY: install dev dev-backend dev-frontend format
 
 install:
 	npm install
@@ -13,3 +13,9 @@ dev-backend:
 
 dev-frontend:
 	cd frontend && npm run dev
+
+format:
+	terraform fmt -recursive infra/
+	cd backend && npm run format
+	cd frontend && npm run format
+	cd backend && npx prettier --write "../**/*.{yml,yaml,md}" --ignore-path ../.gitignore

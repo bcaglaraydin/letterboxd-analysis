@@ -15,7 +15,7 @@ function ResultsContent() {
   const searchParams = useSearchParams();
   const username1 = searchParams.get("username");
   const username2 = searchParams.get("username2");
-  
+
   // We'll store metrics directly since that's what we display
   const [metricsData, setMetricsData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -44,12 +44,12 @@ function ResultsContent() {
           });
           if (!res.ok) throw new Error(`Failed to scrape films for ${u}`);
           return { username: u, data: await res.json() };
-        })
+        }),
       );
 
       // Check if any found films
       const validUsers = scrapeResults.filter(
-        (r) => r.data.films && r.data.films.length > 0
+        (r) => r.data.films && r.data.films.length > 0,
       );
 
       if (validUsers.length === 0) {
@@ -59,7 +59,7 @@ function ResultsContent() {
       }
 
       setStatus(
-        `Found films for ${validUsers.map((u) => u.username).join(", ")}. Computing metrics...`
+        `Found films for ${validUsers.map((u) => u.username).join(", ")}. Computing metrics...`,
       );
 
       // 2. Compute Metrics
@@ -115,23 +115,27 @@ function ResultsContent() {
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex items-center gap-4">
-             <Button onClick={fetchData} disabled={loading}>
+            <Button onClick={fetchData} disabled={loading}>
               {loading ? "Analyzing..." : "Retry Analysis"}
             </Button>
-            {status && <p className="text-sm text-muted-foreground">{status}</p>}
+            {status && (
+              <p className="text-sm text-muted-foreground">{status}</p>
+            )}
           </div>
           {error && <p className="text-red-500">{error}</p>}
         </CardContent>
       </Card>
 
       {usersMetrics.length > 0 && (
-        <div className={`grid gap-8 ${usersMetrics.length > 1 ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
+        <div
+          className={`grid gap-8 ${usersMetrics.length > 1 ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1"}`}
+        >
           {usersMetrics.map((userMetric: any) => (
             <div key={userMetric.username} className="flex flex-col gap-4">
               <h2 className="text-2xl font-semibold text-center border-b pb-2">
                 {userMetric.username}
               </h2>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle>Average Rating</CardTitle>
