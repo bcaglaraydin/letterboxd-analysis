@@ -27,6 +27,7 @@ async function verify() {
         console.log('Title:', film.title);
         console.log('Director:', film.director);
         console.log('Scraped At:', film.scrapedAt);
+        console.log('Film:', film);
         break;
       }
       await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2s
