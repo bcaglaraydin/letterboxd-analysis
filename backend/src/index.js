@@ -1,3 +1,3 @@
-const { handler } = require('./handlers/triggerFilmScrapingHandler');
+import { handler as scrapeHandler } from './handlers/triggerFilmScrapingHandler.js';
 
-exports.handler = handler;
+export const handler = scrapeHandler;

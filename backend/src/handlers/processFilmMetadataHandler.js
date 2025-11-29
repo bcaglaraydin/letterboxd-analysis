@@ -1,9 +1,9 @@
-const { scrapeFilmDetails } = require('../services/letterboxdScrapingService');
-const { putItem, getItem } = require('../services/dynamoDbService');
+import { scrapeFilmDetails } from '../services/letterboxdScrapingService.js';
+import { putItem, getItem } from '../services/dynamoDbService.js';
 
 const FILMS_TABLE = process.env.FILMS_TABLE;
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
   console.log(`Worker received ${event.Records.length} messages`);
 
   const results = await Promise.all(

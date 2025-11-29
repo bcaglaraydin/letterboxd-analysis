@@ -1,17 +1,17 @@
-const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const {
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import {
   DynamoDBDocumentClient,
   PutCommand,
   BatchWriteCommand,
   QueryCommand,
   BatchGetCommand,
   GetCommand,
-} = require('@aws-sdk/lib-dynamodb');
+} from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient();
 const docClient = DynamoDBDocumentClient.from(client);
 
-async function putItem(tableName, item) {
+export async function putItem(tableName, item) {
   const command = new PutCommand({
     TableName: tableName,
     Item: item,
@@ -19,7 +19,7 @@ async function putItem(tableName, item) {
   return docClient.send(command);
 }
 
-async function getItem(tableName, key) {
+export async function getItem(tableName, key) {
   const command = new GetCommand({
     TableName: tableName,
     Key: key,
@@ -28,7 +28,7 @@ async function getItem(tableName, key) {
   return response.Item;
 }
 
-async function batchWrite(tableName, items) {
+export async function batchWrite(tableName, items) {
   if (!items || items.length === 0) return;
 
   // DynamoDB BatchWrite limit is 25
@@ -79,7 +79,7 @@ async function batchWrite(tableName, items) {
   }
 }
 
-async function query(tableName, keyConditionExpression, expressionAttributeValues) {
+export async function query(tableName, keyConditionExpression, expressionAttributeValues) {
   const command = new QueryCommand({
     TableName: tableName,
     KeyConditionExpression: keyConditionExpression,
@@ -89,7 +89,7 @@ async function query(tableName, keyConditionExpression, expressionAttributeValue
   return response.Items;
 }
 
-async function batchGet(tableName, keys) {
+export async function batchGet(tableName, keys) {
   if (!keys || keys.length === 0) return [];
 
   const batchSize = 100; // BatchGet limit is 100
@@ -135,5 +135,3 @@ async function batchGet(tableName, keys) {
   }
   return allItems;
 }
-
-module.exports = { putItem, getItem, batchWrite, query, batchGet };

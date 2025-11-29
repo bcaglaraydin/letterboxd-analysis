@@ -1,19 +1,8 @@
-// Mock Env Vars for Local Dev (Replace with actual values if needed)
-if (!process.env.SQS_QUEUE_URL) {
-  process.env.SQS_QUEUE_URL =
-    'https://sqs.eu-west-1.amazonaws.com/REDACTED_AWS_ACCOUNT_ID/letterboxd-film-scrape-queue-dev';
-}
-if (!process.env.FILMS_TABLE) {
-  process.env.FILMS_TABLE = 'Films';
-}
-if (!process.env.AWS_REGION) {
-  process.env.AWS_REGION = 'eu-west-1';
-}
-
-const express = require('express');
-const cors = require('cors');
-const { handler: scrapeHandler } = require('./src/handlers/triggerFilmScrapingHandler');
-const { handler: metricsHandler } = require('./src/handlers/retrieveMetricsHandler');
+import 'dotenv/config'; // Load env vars
+import express from 'express';
+import cors from 'cors';
+import { handler as scrapeHandler } from './src/handlers/triggerFilmScrapingHandler.js';
+import { handler as metricsHandler } from './src/handlers/retrieveMetricsHandler.js';
 
 const app = express();
 const PORT = 4000;

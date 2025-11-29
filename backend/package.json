@@ -2,6 +2,7 @@
   "name": "letterboxd-analysis-backend",
   "version": "1.0.0",
   "description": "Backend for Letterboxd Analysis",
+  "type": "module",
   "engines": {
     "node": ">=20"
   },
@@ -11,7 +12,9 @@
     "local": "node local-run.js",
     "start:local": "node server.js",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "author": "",
   "license": "ISC",
@@ -22,6 +25,7 @@
     "axios": "^1.13.2",
     "cheerio": "^1.0.0-rc.12",
     "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "p-limit": "^3.1.0"
   },

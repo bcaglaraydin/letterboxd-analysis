@@ -1,4 +1,4 @@
-const { handler } = require('./src/index');
+import { handler } from './src/index.js';
 
 const username = process.argv[2] || 'bcaglaraydin';
 

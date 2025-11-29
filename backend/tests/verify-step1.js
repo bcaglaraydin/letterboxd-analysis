@@ -1,4 +1,5 @@
-const { scrapeUserFilmsList } = require('../src/services/letterboxdScrapingService');
+import 'dotenv/config';
+import { scrapeUserFilmsList } from '../src/services/letterboxdScrapingService.js';
 
 async function verify() {
   const username = 'bcaglaraydin'; // Or any public user

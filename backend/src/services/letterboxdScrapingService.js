@@ -1,6 +1,6 @@
-const cheerio = require('cheerio');
-const pLimit = require('p-limit');
-const { fetchWithRetry } = require('../utils/http');
+import cheerio from 'cheerio';
+import pLimit from 'p-limit';
+import { fetchWithRetry } from '../utils/http.js';
 
 const BASE_URL = 'https://letterboxd.com';
 
@@ -43,7 +43,7 @@ async function fetchFilmStats(filmSlug) {
  * @param {string} username - The Letterboxd username.
  * @returns {Promise<Array>} - Array of film objects (slug, userRating).
  */
-async function scrapeUserFilmsList(username) {
+export async function scrapeUserFilmsList(username) {
   console.log(`Starting list scrape for user: ${username}`);
   const baseUrl = `${BASE_URL}/${username}/films/`;
 
@@ -122,7 +122,7 @@ async function scrapeUserFilmsList(username) {
  * @param {string} username - The Letterboxd username.
  * @returns {Promise<Array>} - Array of film objects.
  */
-async function scrapeUserFilms(username) {
+export async function scrapeUserFilms(username) {
   console.log(`Starting scrape for user: ${username}`);
   const baseUrl = `https://letterboxd.com/${username}/films/`;
 
@@ -312,7 +312,7 @@ function parseJsonLd($film, slug) {
  * @param {string} url - The film URL.
  * @returns {Promise<object>} - Film details object.
  */
-async function scrapeFilmDetails(slug, url) {
+export async function scrapeFilmDetails(slug, url) {
   try {
     // Fetch Details Page
     const html = await fetchWithRetry(url);
@@ -379,9 +379,3 @@ async function scrapeFilmDetails(slug, url) {
     throw err;
   }
 }
-
-module.exports = {
-  scrapeUserFilms,
-  scrapeUserFilmsList,
-  scrapeFilmDetails,
-};

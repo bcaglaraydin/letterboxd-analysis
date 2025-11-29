@@ -7,6 +7,9 @@ export default [
   js.configs.recommended,
   eslintConfigPrettier,
   {
+    ignores: ['node_modules/', 'dist/', 'coverage/', 'debug_artifacts/'],
+  },
+  {
     plugins: {
       prettier: prettierPlugin,
     },

@@ -1,9 +1,10 @@
-const { scrapeUserFilmsList } = require('../services/letterboxdScrapingService');
-const { sendMessageBatch } = require('../services/sqsQueueService');
+import { scrapeUserFilmsList } from '../services/letterboxdScrapingService.js';
+import { sendMessageBatch } from '../services/sqsQueueService.js';
+import { batchGet } from '../services/dynamoDbService.js';
 
 const SQS_QUEUE_URL = process.env.SQS_QUEUE_URL;
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
   console.log('Event:', JSON.stringify(event));
 
   try {
@@ -50,7 +51,6 @@ exports.handler = async (event) => {
 
     if (FILMS_TABLE) {
       try {
-        const { batchGet } = require('../services/dynamoDbService');
         const existingItems = await batchGet(FILMS_TABLE, uniqueSlugs);
         const existingSlugs = new Set(existingItems.map((item) => item.slug));
 
