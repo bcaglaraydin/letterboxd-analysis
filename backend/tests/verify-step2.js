@@ -1,5 +1,5 @@
-const { sendMessageBatch } = require('./src/services/queue');
-const { getItem } = require('./src/services/dynamo');
+const { sendMessageBatch } = require('../src/services/sqsQueueService');
+const { getItem } = require('../src/services/dynamoDbService');
 
 const SQS_QUEUE_URL = 'https://sqs.eu-west-1.amazonaws.com/617969167018/film-scrape-queue';
 const FILMS_TABLE = 'Films';

@@ -12,8 +12,8 @@ if (!process.env.AWS_REGION) {
 
 const express = require('express');
 const cors = require('cors');
-const { handler: scrapeHandler } = require('./src/handlers/scrape');
-const { handler: metricsHandler } = require('./src/handlers/metrics');
+const { handler: scrapeHandler } = require('./src/handlers/triggerFilmScrapingHandler');
+const { handler: metricsHandler } = require('./src/handlers/retrieveMetricsHandler');
 
 const app = express();
 const PORT = 4000;

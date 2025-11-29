@@ -1,4 +1,4 @@
-const { batchGet } = require('../services/dynamo');
+const { batchGet } = require('../services/dynamoDbService');
 
 const FILMS_TABLE = process.env.FILMS_TABLE;
 
