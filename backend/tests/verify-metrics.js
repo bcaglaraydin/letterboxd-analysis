@@ -45,12 +45,14 @@ async function verifyStep3() {
       }
     } else {
       console.error('FAILURE: No metrics returned.');
+      process.exit(1);
     }
   } catch (error) {
     console.error('Verification failed:', error.message);
     if (error.response) {
       console.error('Response data:', error.response.data);
     }
+    process.exit(1);
   }
 }
 
