@@ -1,4 +1,4 @@
-import cheerio from 'cheerio';
+import { load } from 'cheerio';
 import pLimit from 'p-limit';
 import { fetchWithRetry } from '../utils/http.js';
 
@@ -15,7 +15,7 @@ async function fetchFilmStats(filmSlug) {
     const html = await fetchWithRetry(statsUrl, {
       headers: { 'x-requested-with': 'XMLHttpRequest' },
     });
-    const $ = cheerio.load(html);
+    const $ = load(html);
 
     // Extract "Watched by" count from the tooltip title or label
     // Selector: .production-statistic.-watches .tooltip
@@ -49,7 +49,7 @@ export async function scrapeUserFilmsList(username) {
 
   // 1. Fetch Profile & Determine Pagination
   const firstPageHtml = await fetchWithRetry(baseUrl);
-  const $ = cheerio.load(firstPageHtml);
+  const $ = load(firstPageHtml);
 
   // Check if user exists/has films
   if ($('body').hasClass('error')) {
@@ -75,7 +75,7 @@ export async function scrapeUserFilmsList(username) {
       listLimit(async () => {
         try {
           const html = await fetchWithRetry(url);
-          const $ = cheerio.load(html);
+          const $ = load(html);
           const pageFilms = [];
 
           $('.griditem').each((_, el) => {
@@ -128,7 +128,7 @@ export async function scrapeUserFilms(username) {
 
   // 1. Fetch Profile & Determine Pagination
   const firstPageHtml = await fetchWithRetry(baseUrl);
-  const $ = cheerio.load(firstPageHtml);
+  const $ = load(firstPageHtml);
 
   // Check if user exists/has films
   if ($('body').hasClass('error')) {
@@ -154,7 +154,7 @@ export async function scrapeUserFilms(username) {
       listLimit(async () => {
         try {
           const html = await fetchWithRetry(url);
-          const $ = cheerio.load(html);
+          const $ = load(html);
           const pageFilms = [];
 
           $('.griditem').each((_, el) => {
@@ -208,7 +208,7 @@ export async function scrapeUserFilms(username) {
         try {
           // Fetch Details Page
           const html = await fetchWithRetry(film.url);
-          const $film = cheerio.load(html);
+          const $film = load(html);
 
           // --- JSON-LD Extraction ---
           const jsonLd = parseJsonLd($film, film.slug);
@@ -316,7 +316,7 @@ export async function scrapeFilmDetails(slug, url) {
   try {
     // Fetch Details Page
     const html = await fetchWithRetry(url);
-    const $film = cheerio.load(html);
+    const $film = load(html);
 
     // --- JSON-LD Extraction ---
     const jsonLd = parseJsonLd($film, slug);
