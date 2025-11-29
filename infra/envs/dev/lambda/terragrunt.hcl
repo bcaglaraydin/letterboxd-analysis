@@ -21,7 +21,7 @@ inputs = {
     NODE_ENV      = "development"
     SQS_QUEUE_URL = dependency.sqs.outputs.queue_url
   }
-  memory_size = 1536
+  memory_size = 1024
   timeout     = 600
   source_dir    = "${get_terragrunt_dir()}/../../../../backend"
 

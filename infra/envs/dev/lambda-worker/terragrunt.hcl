@@ -21,7 +21,7 @@ dependency "films" {
 inputs = {
   function_name = "letterboxd-analysis-worker-dev"
   handler       = "src/handlers/worker.handler"
-  memory_size   = 1024
+  memory_size   = 512
   timeout       = 300
   source_dir    = "${get_terragrunt_dir()}/../../../../backend"
 
@@ -31,6 +31,8 @@ inputs = {
   }
 
   sqs_event_source_arn = dependency.sqs.outputs.queue_arn
+  sqs_batch_size       = 50
+  sqs_batch_window     = 5
 
   policy_arns = [
     "arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole"
