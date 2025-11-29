@@ -2,6 +2,16 @@ name: Verify Dev Backend
 
 on:
   workflow_call:
+    inputs:
+      api_url:
+        required: false
+        type: string
+      sqs_queue_url:
+        required: false
+        type: string
+      films_table:
+        required: false
+        type: string
   workflow_dispatch:
 
 permissions:
@@ -16,7 +26,6 @@ env:
 
 jobs:
   verify-backend:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     name: Verify Backend Health
     runs-on: ubuntu-22.04
     steps:
@@ -30,12 +39,14 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Setup Terraform
+        if: ${{ inputs.api_url == '' }}
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
           terraform_wrapper: false
 
       - name: Setup Terragrunt
+        if: ${{ inputs.api_url == '' }}
         run: |
           wget https://github.com/gruntwork-io/terragrunt/releases/download/v${{ env.TERRAGRUNT_VERSION }}/terragrunt_linux_amd64
           chmod +x terragrunt_linux_amd64
@@ -44,20 +55,28 @@ jobs:
       - name: Fetch Infrastructure Outputs
         id: infra
         run: |
-          # API Endpoint
-          cd infra/envs/dev/api-gateway
-          API_URL=$(terragrunt output -raw api_endpoint)
-          echo "API_URL=$API_URL" >> $GITHUB_ENV
-          
-          # SQS Queue URL
-          cd ../sqs
-          SQS_QUEUE_URL=$(terragrunt output -raw queue_url)
-          echo "SQS_QUEUE_URL=$SQS_QUEUE_URL" >> $GITHUB_ENV
-          
-          # DynamoDB Table Name
-          cd ../dynamodb/films
-          FILMS_TABLE=$(terragrunt output -raw table_name)
-          echo "FILMS_TABLE=$FILMS_TABLE" >> $GITHUB_ENV
+          if [ -n "${{ inputs.api_url }}" ]; then
+            echo "Using inputs..."
+            echo "API_URL=${{ inputs.api_url }}" >> $GITHUB_ENV
+            echo "SQS_QUEUE_URL=${{ inputs.sqs_queue_url }}" >> $GITHUB_ENV
+            echo "FILMS_TABLE=${{ inputs.films_table }}" >> $GITHUB_ENV
+          else
+            echo "Fetching from Terragrunt..."
+            # API Endpoint
+            cd infra/envs/dev/api-gateway
+            API_URL=$(terragrunt output -raw api_endpoint)
+            echo "API_URL=$API_URL" >> $GITHUB_ENV
+            
+            # SQS Queue URL
+            cd ../sqs
+            SQS_QUEUE_URL=$(terragrunt output -raw queue_url)
+            echo "SQS_QUEUE_URL=$SQS_QUEUE_URL" >> $GITHUB_ENV
+            
+            # DynamoDB Table Name
+            cd ../dynamodb/films
+            FILMS_TABLE=$(terragrunt output -raw table_name)
+            echo "FILMS_TABLE=$FILMS_TABLE" >> $GITHUB_ENV
+          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

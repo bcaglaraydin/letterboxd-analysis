@@ -86,24 +86,41 @@ jobs:
         working-directory: infra/envs/dev/monitoring
         run: terragrunt apply -auto-approve
 
-      - name: Get API Endpoint
-        id: api
-        working-directory: infra/envs/dev/api-gateway
+      - name: Get Infrastructure Outputs
+        id: infra_outputs
         run: |
+          # API Endpoint
+          cd infra/envs/dev/api-gateway
           ENDPOINT=$(terragrunt output -raw api_endpoint)
           echo "api_endpoint=$ENDPOINT" >> $GITHUB_OUTPUT
+          
+          # SQS Queue URL
+          cd ../sqs
+          SQS=$(terragrunt output -raw queue_url)
+          echo "sqs_queue_url=$SQS" >> $GITHUB_OUTPUT
+          
+          # DynamoDB Table Name
+          cd ../dynamodb/films
+          TABLE=$(terragrunt output -raw table_name)
+          echo "films_table=$TABLE" >> $GITHUB_OUTPUT
 
       - name: Deploy CloudFront
         working-directory: infra/envs/dev/cloudfront
         run: terragrunt apply -auto-approve
 
     outputs:
-      api_endpoint: ${{ steps.api.outputs.api_endpoint }}
+      api_endpoint: ${{ steps.infra_outputs.outputs.api_endpoint }}
+      sqs_queue_url: ${{ steps.infra_outputs.outputs.sqs_queue_url }}
+      films_table: ${{ steps.infra_outputs.outputs.films_table }}
 
   verify-backend:
     name: Verify Backend
     needs: deploy-infra
     uses: ./.github/workflows/verify-dev.yml
+    with:
+      api_url: ${{ needs.deploy-infra.outputs.api_endpoint }}
+      sqs_queue_url: ${{ needs.deploy-infra.outputs.sqs_queue_url }}
+      films_table: ${{ needs.deploy-infra.outputs.films_table }}
     secrets: inherit
 
   deploy-frontend:
