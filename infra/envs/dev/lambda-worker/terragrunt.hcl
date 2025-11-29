@@ -28,8 +28,8 @@ inputs = {
   environment_variables = {
     NODE_ENV                  = "development"
     FILMS_TABLE               = dependency.films.outputs.table_name
-    SCRAPING_CONCURRENCY_LIST = "5"
-    SCRAPING_CONCURRENCY_FILM = "15"
+    SCRAPING_CONCURRENCY_LIST = "10"
+    SCRAPING_CONCURRENCY_FILM = "10"
   }
 
   sqs_event_source_arn = dependency.sqs.outputs.queue_arn
