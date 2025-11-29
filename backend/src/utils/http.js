@@ -14,11 +14,16 @@ const HEADERS = {
  * @param {number} retries - Number of retries (default 3).
  * @returns {Promise<string>} - The response data (HTML).
  */
+const https = require('https');
+
+const agent = new https.Agent({ keepAlive: true });
+
 async function fetchWithRetry(url, options = {}, retries = 3) {
   const mergedOptions = {
     ...options,
     headers: { ...HEADERS, ...options.headers },
     timeout: 5000,
+    httpsAgent: agent,
   };
 
   for (let i = 0; i < retries; i++) {
