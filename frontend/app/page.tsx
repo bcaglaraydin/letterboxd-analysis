@@ -14,12 +14,17 @@ import {
 
 export default function Home() {
   const [username, setUsername] = useState("");
+  const [username2, setUsername2] = useState("");
   const router = useRouter();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (username.trim()) {
-      router.push(`/results?username=${encodeURIComponent(username.trim())}`);
+      let url = `/results?username=${encodeURIComponent(username.trim())}`;
+      if (username2.trim()) {
+        url += `&username2=${encodeURIComponent(username2.trim())}`;
+      }
+      router.push(url);
     }
   };
 
@@ -31,15 +36,21 @@ export default function Home() {
             Letterboxd Analysis
           </CardTitle>
           <CardDescription className="text-center">
-            Enter a Letterboxd username to analyze their movie taste.
+            Enter a Letterboxd username (or two!) to analyze their movie taste.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <Input
-              placeholder="Username (e.g. berdan)"
+              placeholder="Username 1 (e.g. bcaglaraydin)"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+            <Input
+              placeholder="Username 2 (Optional)"
+              value={username2}
+              onChange={(e) => setUsername2(e.target.value)}
             />
             <Button type="submit" className="w-full">
               Analyze
