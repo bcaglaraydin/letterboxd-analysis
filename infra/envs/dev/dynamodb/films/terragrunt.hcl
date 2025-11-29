@@ -8,5 +8,6 @@ terraform {
 
 inputs = {
   table_name = "Films"
-  hash_key   = "slug"
+  hash_key      = "slug"
+  ttl_attribute = "ttl"
 }

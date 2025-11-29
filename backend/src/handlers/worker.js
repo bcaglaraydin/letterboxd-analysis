@@ -29,8 +29,9 @@ exports.handler = async (event) => {
         console.log(`Scraping details for: ${slug}`);
         const filmDetails = await scrapeFilmDetails(slug, url);
 
-        // 3. Store in DynamoDB
-        await putItem(FILMS_TABLE, filmDetails);
+        // 3. Store in DynamoDB with TTL (24 hours)
+        const ttl = Math.floor(Date.now() / 1000) + 24 * 60 * 60;
+        await putItem(FILMS_TABLE, { ...filmDetails, ttl });
         console.log(`Stored film: ${slug}`);
       } catch (error) {
         console.error(`Error processing message ${record.messageId}:`, error);
