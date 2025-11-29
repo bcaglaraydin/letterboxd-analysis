@@ -35,6 +35,18 @@ variable "sqs_event_source_arn" {
   default     = null
 }
 
+variable "sqs_batch_size" {
+  description = "The batch size for the SQS event source mapping"
+  type        = number
+  default     = 10
+}
+
+variable "sqs_batch_window" {
+  description = "The maximum amount of time to gather records before invoking the function, in seconds"
+  type        = number
+  default     = 0
+}
+
 variable "policy_arns" {
   description = "List of IAM policy ARNs to attach to the Lambda execution role"
   type        = list(string)

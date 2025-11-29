@@ -17,7 +17,7 @@ dependency "films" {
 inputs = {
   function_name = "letterboxd-analysis-metrics-dev"
   handler       = "src/handlers/metrics.handler"
-  memory_size   = 1024
+  memory_size   = 512
   timeout       = 30
   source_dir    = "${get_terragrunt_dir()}/../../../../backend"
 
