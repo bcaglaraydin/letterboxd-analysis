@@ -1,27 +1,35 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function Home() {
-  const [username, setUsername] = useState("")
-  const router = useRouter()
+  const [username, setUsername] = useState("");
+  const router = useRouter();
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (username.trim()) {
-      router.push(`/results?username=${encodeURIComponent(username.trim())}`)
+      router.push(`/results?username=${encodeURIComponent(username.trim())}`);
     }
-  }
+  };
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-slate-50 dark:bg-slate-950">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">Letterboxd Analysis</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">
+            Letterboxd Analysis
+          </CardTitle>
           <CardDescription className="text-center">
             Enter a Letterboxd username to analyze their movie taste.
           </CardDescription>
@@ -40,5 +48,5 @@ export default function Home() {
         </CardContent>
       </Card>
     </main>
-  )
+  );
 }
