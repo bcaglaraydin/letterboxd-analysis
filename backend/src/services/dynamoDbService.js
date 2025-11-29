@@ -6,6 +6,7 @@ import {
   QueryCommand,
   BatchGetCommand,
   GetCommand,
+  DeleteCommand,
 } from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient();
@@ -26,6 +27,14 @@ export async function getItem(tableName, key) {
   });
   const response = await docClient.send(command);
   return response.Item;
+}
+
+export async function deleteItem(tableName, key) {
+  const command = new DeleteCommand({
+    TableName: tableName,
+    Key: key,
+  });
+  return docClient.send(command);
 }
 
 export async function batchWrite(tableName, items) {

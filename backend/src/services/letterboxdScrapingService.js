@@ -245,6 +245,15 @@ export async function scrapeUserFilms(username) {
             $film('.review.body-text .truncate').text().trim() ||
             $film('.review.body-text').text().trim();
 
+          // Themes
+          const themes = [];
+          $film('a[href^="/films/theme/"], a[href^="/films/mini-theme/"]').each((_, el) => {
+            const themeName = $film(el).text().trim();
+            if (themeName && themeName !== 'Show All…') {
+              themes.push(themeName);
+            }
+          });
+
           // Fetch Stats (Watched Count)
           const stats = await fetchFilmStats(film.slug);
 
@@ -257,6 +266,7 @@ export async function scrapeUserFilms(username) {
             cast,
             studios,
             genres,
+            themes,
             runtime,
             backdropUrl,
             plot,
@@ -353,6 +363,15 @@ export async function scrapeFilmDetails(slug, url) {
       $film('.review.body-text .truncate').text().trim() ||
       $film('.review.body-text').text().trim();
 
+    // Themes
+    const themes = [];
+    $film('a[href^="/films/theme/"], a[href^="/films/mini-theme/"]').each((_, el) => {
+      const themeName = $film(el).text().trim();
+      if (themeName && themeName !== 'Show All…') {
+        themes.push(themeName);
+      }
+    });
+
     // Fetch Stats (Watched Count)
     const stats = await fetchFilmStats(slug);
 
@@ -365,6 +384,7 @@ export async function scrapeFilmDetails(slug, url) {
       cast,
       studios,
       genres,
+      themes,
       runtime,
       backdropUrl,
       plot,
