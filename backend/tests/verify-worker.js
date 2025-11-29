@@ -35,11 +35,13 @@ async function verify() {
 
     if (!film) {
       console.error('\nVerification failed: Film not found in DynamoDB after 30s.');
+      process.exit(1);
     } else {
       console.log('\nVerification SUCCESS!');
     }
   } catch (error) {
     console.error('\nVerification failed with error:', error);
+    process.exit(1);
   }
 }
 

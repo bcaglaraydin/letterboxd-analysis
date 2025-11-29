@@ -14,7 +14,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "verify": "node tests/verify-scraping.js && node tests/verify-worker.js && node tests/verify-metrics.js"
   },
   "author": "",
   "license": "ISC",
