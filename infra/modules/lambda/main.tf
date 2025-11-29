@@ -2,6 +2,16 @@ data "archive_file" "lambda_zip" {
   type        = "zip"
   source_dir  = var.source_dir
   output_path = "${path.module}/lambda.zip"
+  excludes    = [
+    "tests",
+    ".git",
+    ".vscode",
+    ".github",
+    "README.md",
+    "package-lock.json",
+    "node_modules/.cache",
+    "coverage"
+  ]
 }
 
 resource "aws_lambda_function" "this" {
@@ -70,6 +80,7 @@ resource "aws_lambda_event_source_mapping" "sqs" {
   function_name    = aws_lambda_function.this.arn
   batch_size                         = var.sqs_batch_size
   maximum_batching_window_in_seconds = var.sqs_batch_window
+  function_response_types            = ["ReportBatchItemFailures"]
   depends_on       = [time_sleep.wait_for_iam]
 }
 

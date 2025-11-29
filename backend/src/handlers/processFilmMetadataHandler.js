@@ -6,7 +6,9 @@ const FILMS_TABLE = process.env.FILMS_TABLE;
 export const handler = async (event) => {
   console.log(`Worker received ${event.Records.length} messages`);
 
-  const results = await Promise.all(
+  const batchItemFailures = [];
+
+  await Promise.all(
     event.Records.map(async (record) => {
       try {
         const body = JSON.parse(record.body);
@@ -35,14 +37,10 @@ export const handler = async (event) => {
         console.log(`Stored film: ${slug}`);
       } catch (error) {
         console.error(`Error processing message ${record.messageId}:`, error);
-        // TODO: Throw error to trigger SQS retry/DLQ if permanent failure is unlikely
-        // For now, we log and continue to avoid blocking the batch
+        batchItemFailures.push({ itemIdentifier: record.messageId });
       }
     })
   );
 
-  return {
-    statusCode: 200,
-    body: JSON.stringify({ message: 'Worker processed batch', count: results.length }),
-  };
+  return { batchItemFailures };
 };
