@@ -1,4 +1,4 @@
-const { SQSClient, SendMessageBatchCommand } = require('@aws-sdk/client-sqs');
+import { SQSClient, SendMessageBatchCommand } from '@aws-sdk/client-sqs';
 
 const sqsClient = new SQSClient();
 
@@ -7,7 +7,7 @@ const sqsClient = new SQSClient();
  * @param {string} queueUrl - The URL of the SQS queue.
  * @param {Array} messages - Array of message objects (must be JSON serializable).
  */
-async function sendMessageBatch(queueUrl, messages) {
+export async function sendMessageBatch(queueUrl, messages) {
   if (!messages || messages.length === 0) return;
 
   // SQS Batch limit is 10
@@ -33,5 +33,3 @@ async function sendMessageBatch(queueUrl, messages) {
     }
   }
 }
-
-module.exports = { sendMessageBatch };

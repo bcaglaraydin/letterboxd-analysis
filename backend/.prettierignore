@@ -1,6 +1,7 @@
 node_modules
 debug.html
 debug_film.html
+debug_artifacts/
 coverage
 dist
 .serverless

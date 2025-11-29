@@ -1,8 +1,8 @@
-const { batchGet } = require('../services/dynamoDbService');
+import { batchGet } from '../services/dynamoDbService.js';
 
 const FILMS_TABLE = process.env.FILMS_TABLE;
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
   console.log('Metrics event:', JSON.stringify(event));
 
   try {

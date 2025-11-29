@@ -1,8 +1,9 @@
-const { sendMessageBatch } = require('../src/services/sqsQueueService');
-const { getItem } = require('../src/services/dynamoDbService');
+import 'dotenv/config';
+import { sendMessageBatch } from '../src/services/sqsQueueService.js';
+import { getItem } from '../src/services/dynamoDbService.js';
 
-const SQS_QUEUE_URL = 'https://sqs.eu-west-1.amazonaws.com/617969167018/film-scrape-queue';
-const FILMS_TABLE = 'Films';
+const SQS_QUEUE_URL = process.env.SQS_QUEUE_URL;
+const FILMS_TABLE = process.env.FILMS_TABLE;
 
 async function verify() {
   const slug = 'dune-2021';

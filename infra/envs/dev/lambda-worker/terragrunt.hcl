@@ -20,7 +20,7 @@ dependency "films" {
 
 inputs = {
   function_name = "letterboxd-analysis-worker-dev"
-  handler       = "src/handlers/worker.handler"
+  handler       = "src/handlers/processFilmMetadataHandler.handler"
   memory_size   = 1024
   timeout       = 300
   source_dir    = "${get_terragrunt_dir()}/../../../../backend"
