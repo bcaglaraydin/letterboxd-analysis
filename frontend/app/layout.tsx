@@ -3,14 +3,14 @@ import { Playfair_Display, DM_Sans } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
-const playfair = Playfair_Display({ 
-  subsets: ["latin"], 
+const playfair = Playfair_Display({
+  subsets: ["latin"],
   variable: "--font-serif",
   display: "swap",
 });
 
-const dmSans = DM_Sans({ 
-  subsets: ["latin"], 
+const dmSans = DM_Sans({
+  subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
 });

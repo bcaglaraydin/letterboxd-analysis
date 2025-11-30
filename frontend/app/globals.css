@@ -8,41 +8,41 @@
     --background: 48 20% 93%;
     /* Soft Black Foreground */
     --foreground: 30 6% 16%;
-    
+
     --card: 48 20% 93%;
     --card-foreground: 30 6% 16%;
     --popover: 48 20% 93%;
     --popover-foreground: 30 6% 16%;
-    
+
     /* Deep Sage Primary */
     --primary: 132 11% 33%;
     --primary-foreground: 48 20% 93%;
-    
+
     /* Warm Grey Secondary */
     --secondary: 30 6% 90%;
     --secondary-foreground: 30 6% 16%;
-    
+
     --muted: 30 6% 90%;
     --muted-foreground: 30 4% 45%;
-    
+
     /* Terracotta Accent */
     --accent: 28 67% 44%;
     --accent-foreground: 48 20% 93%;
-    
+
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    
+
     --border: 30 6% 85%;
     --input: 30 6% 85%;
     --ring: 132 11% 33%;
     --radius: 0.5rem;
-    
+
     /* Chart Colors (Earthy) */
     --chart-1: 132 11% 33%; /* Sage */
-    --chart-2: 28 67% 44%;  /* Terracotta */
-    --chart-3: 35 40% 50%;  /* Ochre */
+    --chart-2: 28 67% 44%; /* Terracotta */
+    --chart-3: 35 40% 50%; /* Ochre */
     --chart-4: 180 15% 35%; /* Slate Blue */
-    --chart-5: 15 30% 40%;  /* Rust */
+    --chart-5: 15 30% 40%; /* Rust */
   }
 
   .dark {
@@ -50,34 +50,34 @@
     --background: 30 4% 11%;
     /* Warm White Foreground */
     --foreground: 48 15% 90%;
-    
+
     --card: 30 4% 11%;
     --card-foreground: 48 15% 90%;
     --popover: 30 4% 11%;
     --popover-foreground: 48 15% 90%;
-    
+
     /* Sage Primary */
     --primary: 132 11% 40%;
     --primary-foreground: 30 4% 11%;
-    
+
     /* Dark Warm Grey Secondary */
     --secondary: 30 4% 18%;
     --secondary-foreground: 48 15% 90%;
-    
+
     --muted: 30 4% 18%;
     --muted-foreground: 30 4% 60%;
-    
+
     /* Terracotta Accent */
     --accent: 28 67% 50%;
     --accent-foreground: 48 15% 90%;
-    
+
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    
+
     --border: 30 4% 20%;
     --input: 30 4% 20%;
     --ring: 132 11% 40%;
-    
+
     --chart-1: 132 11% 40%;
     --chart-2: 28 67% 50%;
     --chart-3: 35 40% 60%;
@@ -93,7 +93,7 @@
   body {
     @apply bg-background text-foreground relative;
   }
-  
+
   /* Grain Texture Overlay */
   body::before {
     content: "";

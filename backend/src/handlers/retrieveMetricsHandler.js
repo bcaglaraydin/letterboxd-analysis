@@ -88,12 +88,12 @@ export const handler = async (event) => {
       // 5. Calculate User Stats (using all films we have info for)
       const allFilmsWithMeta = userFilms.map((f) => {
         const meta = metadataMap.get(f.slug) || {};
-        return { 
-          ...f, 
-          ...meta, 
+        return {
+          ...f,
+          ...meta,
           userRating: f.userRating, // Preserve user's rating
           poster: meta.posterUrl || f.posterUrl, // Prefer high-res poster from meta, fallback to list poster
-          title: meta.title || f.title || f.slug // Prefer meta title, then list title, then slug
+          title: meta.title || f.title || f.slug, // Prefer meta title, then list title, then slug
         };
       });
 
@@ -115,14 +115,15 @@ export const handler = async (event) => {
           ...f,
           communityRating: f.averageRating,
         }));
-      
+
       const { guiltyPleasures, controversialPicks } = findGuiltyPleasure(candidates);
 
       const stats = {
         totalMovies: userFilms.length, // Use userFilms.length as basicStats doesn't return totalMovies
         averageRating: basicStats.average, // basicStats returns 'average', not 'averageRating'
         ratingDistribution: ratingDist,
-        generosity: { // Construct generosity object from basicStats
+        generosity: {
+          // Construct generosity object from basicStats
           median: basicStats.median,
           average: basicStats.average,
           stdDev: basicStats.stdDev,
@@ -130,7 +131,7 @@ export const handler = async (event) => {
         communityComparison: commStats,
         communityRatingDistribution: commDist,
         guiltyPleasures,
-        controversialPicks
+        controversialPicks,
       };
 
       return {
