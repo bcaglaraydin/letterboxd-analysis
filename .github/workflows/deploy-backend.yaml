@@ -1,4 +1,4 @@
-name: Deploy Dev
+name: Deploy Backend
 
 on:
   workflow_dispatch:
@@ -8,7 +8,6 @@ on:
     paths:
       - "infra/**"
       - "backend/**"
-      - "frontend/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -22,7 +21,6 @@ env:
   AWS_REGION: eu-west-1
   TERRAFORM_VERSION: 1.5.7
   TERRAGRUNT_VERSION: 0.54.12
-  NODE_VERSION: 22
 
 jobs:
   deploy-s3:
@@ -98,6 +96,7 @@ jobs:
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/cloudfront
+      output_key: cloudfront_id
     secrets: inherit
 
   verify-backend:
@@ -109,39 +108,3 @@ jobs:
       sqs_queue_name: ${{ needs.deploy-sqs.outputs.terragrunt_output }}
       films_table: ${{ needs.deploy-dynamodb.outputs.terragrunt_output }}
     secrets: inherit
-
-  deploy-frontend:
-    name: Deploy Frontend
-    needs: [deploy-gateway, verify-backend]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install Dependencies
-        working-directory: frontend
-        run: npm ci
-
-      - name: Build Frontend
-        working-directory: frontend
-        env:
-          NEXT_PUBLIC_API_URL: ${{ needs.deploy-gateway.outputs.terragrunt_output }}
-        run: npm run build
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-deploy-role
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Sync to S3
-        working-directory: frontend/out
-        run: |
-          aws s3 sync . s3://letterboxd-analysis-frontend-dev --delete
