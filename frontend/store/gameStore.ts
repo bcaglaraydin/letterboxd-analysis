@@ -80,14 +80,14 @@ export const useGameStore = create<GameState>((set, get) => ({
   userStats: null,
 
   theme: {
-    name: "Deep Space",
-    bgGradient: "from-indigo-900/40 via-slate-950 to-slate-950",
-    accentColor: "bg-indigo-600",
-    accentText: "text-indigo-300",
-    orb1Color: "bg-blue-600/20",
-    orb2Color: "bg-purple-600/20",
-    sliderColor: "bg-indigo-500",
-    buttonColor: "bg-indigo-600 hover:bg-indigo-500",
+    name: "Natural",
+    bgGradient: "from-primary/5 via-background to-background",
+    accentColor: "bg-accent",
+    accentText: "text-accent",
+    orb1Color: "bg-primary/20",
+    orb2Color: "bg-accent/20",
+    sliderColor: "bg-primary",
+    buttonColor: "bg-primary hover:bg-primary/90 text-primary-foreground",
   },
 
   setMovies: (movies) => set({ movies }),

@@ -48,11 +48,11 @@ export const PostGameScreen = () => {
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="inline-block px-4 py-1 rounded-full bg-white/10 border border-white/20 text-sm font-medium tracking-widest uppercase text-slate-300"
+          className="inline-block px-4 py-1 rounded-full bg-secondary border border-border text-sm font-medium tracking-widest uppercase text-muted-foreground"
         >
           Analysis Complete
         </motion.div>
-        <h1 className="text-5xl md:text-7xl font-serif text-white">
+        <h1 className="text-5xl md:text-7xl font-serif text-foreground">
           Your Taste Profile
         </h1>
       </div>
@@ -60,7 +60,7 @@ export const PostGameScreen = () => {
       {/* Main Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Final Score */}
-        <div className="md:col-span-1 bg-white/5 border border-white/10 rounded-3xl p-8 flex flex-col items-center justify-center text-center space-y-4 relative overflow-hidden group">
+        <div className="md:col-span-1 bg-card border border-border rounded-3xl p-8 flex flex-col items-center justify-center text-center space-y-4 relative overflow-hidden group shadow-sm">
           <div
             className={cn(
               "absolute inset-0 opacity-10 transition-opacity group-hover:opacity-20",
@@ -73,10 +73,10 @@ export const PostGameScreen = () => {
               theme.bgGradient,
             )}
           >
-            <Trophy size={40} className="text-white" />
+            <Trophy size={40} className="text-primary-foreground" />
           </div>
           <div className="relative z-10">
-            <div className="text-sm text-slate-400 uppercase tracking-widest">
+            <div className="text-sm text-muted-foreground uppercase tracking-widest">
               Game Score
             </div>
             <div className={cn("text-6xl font-serif", theme.accentText)}>
@@ -86,8 +86,8 @@ export const PostGameScreen = () => {
         </div>
 
         {/* Rating Distribution */}
-        <div className="md:col-span-2 bg-white/5 border border-white/10 rounded-3xl p-8 space-y-6 relative overflow-hidden">
-          <div className="flex items-center gap-2 text-slate-300 relative z-10">
+        <div className="md:col-span-2 bg-card border border-border rounded-3xl p-8 space-y-6 relative overflow-hidden shadow-sm">
+          <div className="flex items-center gap-2 text-muted-foreground relative z-10">
             <BarChart size={20} />
             <h3 className="font-medium uppercase tracking-widest text-sm">
               Rating Distribution
@@ -101,7 +101,7 @@ export const PostGameScreen = () => {
                 className="flex-1 flex flex-col items-center gap-2 group h-full justify-end"
               >
                 {/* Bar Track */}
-                <div className="w-full h-full bg-white/5 rounded-t-sm relative flex items-end overflow-hidden">
+                <div className="w-full h-full bg-secondary rounded-t-sm relative flex items-end overflow-hidden">
                   {/* Actual Bar */}
                   <div
                     className={cn(
@@ -113,12 +113,12 @@ export const PostGameScreen = () => {
                 </div>
 
                 {/* Tooltip */}
-                <div className="absolute -top-8 bg-black/80 px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-white/10 pointer-events-none">
+                <div className="absolute -top-8 bg-popover text-popover-foreground px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-border pointer-events-none shadow-sm">
                   {data.count} films ({data.label})
                 </div>
 
                 {/* X-Axis Label */}
-                <div className="text-[10px] text-slate-500 h-4 font-medium">
+                <div className="text-[10px] text-muted-foreground h-4 font-medium">
                   {i % 2 !== 0 ? data.label : ""}
                 </div>
               </div>
@@ -130,8 +130,8 @@ export const PostGameScreen = () => {
       {/* Deep Dive Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Generosity Analysis */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-6">
-          <div className="flex items-center justify-between text-slate-300">
+        <div className="bg-card border border-border rounded-2xl p-6 space-y-6 shadow-sm">
+          <div className="flex items-center justify-between text-muted-foreground">
             <div className="flex items-center gap-2">
               <Activity size={20} />
               <h3 className="font-medium uppercase tracking-widest text-sm">
@@ -141,37 +141,37 @@ export const PostGameScreen = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl bg-white/5 space-y-1">
-              <div className="text-xs text-slate-400 uppercase tracking-wider">
+            <div className="p-4 rounded-xl bg-secondary/50 space-y-1">
+              <div className="text-xs text-muted-foreground uppercase tracking-wider">
                 Average
               </div>
-              <div className="text-2xl font-serif text-white">
+              <div className="text-2xl font-serif text-foreground">
                 {generosity.average.toFixed(2)}
               </div>
             </div>
-            <div className="p-4 rounded-xl bg-white/5 space-y-1">
-              <div className="text-xs text-slate-400 uppercase tracking-wider">
+            <div className="p-4 rounded-xl bg-secondary/50 space-y-1">
+              <div className="text-xs text-muted-foreground uppercase tracking-wider">
                 Median
               </div>
-              <div className="text-2xl font-serif text-white">
+              <div className="text-2xl font-serif text-foreground">
                 {generosity.median.toFixed(2)}
               </div>
             </div>
           </div>
 
-          <div className="pt-4 border-t border-white/5 space-y-2">
+          <div className="pt-4 border-t border-border space-y-2">
             <div className="flex justify-between items-center">
-              <span className="text-slate-400 text-sm">Verdict</span>
+              <span className="text-muted-foreground text-sm">Verdict</span>
               <span
                 className={cn(
                   "text-lg font-medium",
-                  isGenerous ? "text-emerald-400" : "text-rose-400",
+                  isGenerous ? "text-primary" : "text-destructive",
                 )}
               >
                 {generosityLabel}
               </span>
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <p className="text-xs text-muted-foreground leading-relaxed">
               Compares your median rating to your average. If Median &gt;
               Average, you tend to rate higher than the mathematical mean.
             </p>
@@ -179,8 +179,8 @@ export const PostGameScreen = () => {
         </div>
 
         {/* Community Comparison */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-6">
-          <div className="flex items-center gap-2 text-slate-300">
+        <div className="bg-card border border-border rounded-2xl p-6 space-y-6 shadow-sm">
+          <div className="flex items-center gap-2 text-muted-foreground">
             <Users size={20} />
             <h3 className="font-medium uppercase tracking-widest text-sm">
               Vs. Community
@@ -192,50 +192,50 @@ export const PostGameScreen = () => {
               {/* Bar Comparison */}
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
-                  <User size={16} className="text-slate-400" />
-                  <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                  <User size={16} className="text-muted-foreground" />
+                  <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-emerald-500"
+                      className="h-full bg-primary"
                       style={{
                         width: `${(communityComparison.averageUserRating / 5) * 100}%`,
                       }}
                     />
                   </div>
-                  <span className="text-sm font-bold w-12 text-right">
+                  <span className="text-sm font-bold w-12 text-right text-foreground">
                     {communityComparison.averageUserRating.toFixed(1)}
                   </span>
                 </div>
                 <div className="flex items-center gap-4">
-                  <Users size={16} className="text-slate-400" />
-                  <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                  <Users size={16} className="text-muted-foreground" />
+                  <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-blue-500"
+                      className="h-full bg-chart-4"
                       style={{
                         width: `${(communityComparison.averageCommunityRating / 5) * 100}%`,
                       }}
                     />
                   </div>
-                  <span className="text-sm font-bold w-12 text-right">
+                  <span className="text-sm font-bold w-12 text-right text-foreground">
                     {communityComparison.averageCommunityRating.toFixed(1)}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="pt-4 border-t border-white/5 text-center space-y-2">
-              <p className="text-slate-300">
+            <div className="pt-4 border-t border-border text-center space-y-2">
+              <p className="text-foreground">
                 You are{" "}
                 <span
                   className={cn(
                     "font-bold",
-                    isCommunityGenerous ? "text-emerald-400" : "text-rose-400",
+                    isCommunityGenerous ? "text-primary" : "text-destructive",
                   )}
                 >
                   {communityLabel}
                 </span>{" "}
                 than the average viewer.
               </p>
-              <p className="text-xs text-slate-500 leading-relaxed">
+              <p className="text-xs text-muted-foreground leading-relaxed">
                 Compares your average rating for these specific films against
                 the global Letterboxd community average.
               </p>

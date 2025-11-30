@@ -30,17 +30,22 @@ export const GameBackground: React.FC<GameBackgroundProps> = ({
         )}
       />
 
-      {/* Floating Orbs (Generic positions, dynamic colors) */}
+      {/* Organic Blobs (Watercolor effect) */}
       <div
         className={cn(
-          "absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] transition-all duration-700",
+          "absolute top-0 left-0 w-96 h-96 bg-primary/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob",
           theme.orb1Color,
         )}
       />
       <div
         className={cn(
-          "absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full blur-[100px] transition-all duration-700",
+          "absolute top-0 right-0 w-96 h-96 bg-accent/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000",
           theme.orb2Color,
+        )}
+      />
+      <div
+        className={cn(
+          "absolute -bottom-32 left-20 w-96 h-96 bg-secondary/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000",
         )}
       />
 

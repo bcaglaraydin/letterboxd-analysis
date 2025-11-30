@@ -69,7 +69,7 @@ export const StarRating: React.FC<StarRatingProps> = ({
           >
             {/* Empty Star Background */}
             <Star
-              className="absolute inset-0 w-full h-full text-white/20"
+              className="absolute inset-0 w-full h-full text-muted-foreground/20"
               strokeWidth={1.5}
             />
 

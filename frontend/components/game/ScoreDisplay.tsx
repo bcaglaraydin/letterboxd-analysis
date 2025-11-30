@@ -15,7 +15,8 @@ export const ScoreDisplay = () => {
   const maxPossible = history.length * 20;
   const ratio = maxPossible > 0 ? displayScore / maxPossible : 0;
   const hue = Math.min(120, Math.max(0, ratio * 120)); // 0 (Red) -> 120 (Green)
-  const scoreColorStyle = { color: `hsl(${hue}, 80%, 60%)` };
+  // Darker HSL for visibility on light background
+  const scoreColorStyle = { color: `hsl(${hue}, 70%, 35%)` };
 
   // Animate score counting up (Slower, satisfying tick)
   useEffect(() => {
@@ -41,23 +42,23 @@ export const ScoreDisplay = () => {
   }, [score]);
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[100] flex justify-between items-start p-8 pointer-events-none mix-blend-difference text-white">
+    <div className="fixed top-0 left-0 right-0 z-[100] flex justify-between items-start p-8 pointer-events-none text-foreground">
       {/* Round Indicator (Top Left) */}
       <div className="flex flex-col items-start gap-1">
-        <span className="text-[10px] uppercase tracking-[0.3em] font-bold opacity-60">
+        <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground">
           Sequence
         </span>
         <div className="flex items-baseline gap-2 font-light">
           <span className="text-3xl font-serif">
             {currentRound.toString().padStart(2, "0")}
           </span>
-          <span className="text-sm opacity-40">/ {totalRounds}</span>
+          <span className="text-sm text-muted-foreground">/ {totalRounds}</span>
         </div>
       </div>
 
       {/* Score Counter (Top Right) */}
       <div className="relative flex flex-col items-end gap-1">
-        <span className="text-[10px] uppercase tracking-[0.3em] font-bold opacity-60">
+        <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground">
           Total Score
         </span>
         <span
