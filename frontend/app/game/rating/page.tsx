@@ -59,21 +59,27 @@ export default function RatingGamePage() {
     <GameBackground>
       <ScoreDisplay />
 
-      <GameContainer>
+      <GameContainer className="h-[100dvh] md:h-auto md:min-h-screen overflow-hidden md:overflow-visible flex flex-col md:block pt-0 md:pt-24">
+        {/* Header Spacer for ScoreDisplay - Mobile Only */}
+        <div className="h-24 shrink-0 md:hidden" />
+
         {/* Main Game Area */}
-        <div className="w-full max-w-sm mx-auto space-y-8">
+        <div className="w-full max-w-sm mx-auto flex flex-col md:block flex-1 min-h-0 pb-6 md:pb-0 md:space-y-8">
           {currentMovie && (
-            <MovieCard
-              key={currentMovie.movieId}
-              title={currentMovie.title}
-              year={parseInt(currentMovie.releaseYear) || 0}
-              director={"Unknown Director"}
-              posterUrl={currentMovie.poster || ""}
-            />
+            <div className="flex-1 min-h-0 relative flex flex-col justify-center mb-4 md:mb-6 md:h-auto md:block">
+              <MovieCard
+                key={currentMovie.movieId}
+                title={currentMovie.title}
+                year={parseInt(currentMovie.releaseYear) || 0}
+                director={"Unknown Director"}
+                posterUrl={currentMovie.poster || ""}
+                className="h-full md:h-auto"
+              />
+            </div>
           )}
 
-          <div className="space-y-6 text-center">
-            <h3 className="text-lg font-medium text-muted-foreground uppercase tracking-widest">
+          <div className="shrink-0 space-y-4 text-center z-10 md:space-y-6">
+            <h3 className="text-sm md:text-lg font-medium text-muted-foreground uppercase tracking-widest">
               What did you rate this movie?
             </h3>
             <div className="flex flex-col items-center gap-2">
@@ -88,7 +94,7 @@ export default function RatingGamePage() {
 
             <button
               onClick={handleSubmit}
-              className="w-full py-4 bg-primary hover:bg-primary/90 border border-transparent rounded-xl text-sm font-medium tracking-widest uppercase transition-colors text-primary-foreground shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform duration-200"
+              className="w-full py-3 md:py-4 bg-primary hover:bg-primary/90 border border-transparent rounded-xl text-sm font-medium tracking-widest uppercase transition-colors text-primary-foreground shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform duration-200"
             >
               Reveal Rating
             </button>
