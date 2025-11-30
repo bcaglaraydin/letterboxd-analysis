@@ -42,23 +42,21 @@ export const ScoreDisplay = () => {
   }, [score]);
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[100] flex justify-between items-start p-4 md:p-8 pointer-events-none text-foreground">
+    <div className="absolute top-0 left-0 w-full p-4 md:p-8 flex justify-between items-start z-20 pointer-events-none text-foreground">
       {/* Round Indicator (Top Left) */}
-      <div className="flex flex-col items-start gap-1">
-        <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground">
-          Sequence
-        </span>
-        <div className="flex items-baseline gap-2 font-light">
-          <span className="text-3xl font-serif">
-            {currentRound.toString().padStart(2, "0")}
+      {/* Round Indicator (Top Left) */}
+      <div className="flex flex-col items-start gap-0">
+        <div className="flex items-baseline gap-1 font-light">
+          <span className="text-2xl font-serif">
+            {currentRound}
           </span>
           <span className="text-sm text-muted-foreground">/ {totalRounds}</span>
         </div>
       </div>
 
       {/* Score Counter (Top Right) */}
-      <div className="relative flex flex-col items-end gap-1">
-        <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground">
+      <div className="relative flex flex-col items-end gap-0">
+        <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground mb-[-4px]">
           Total Score
         </span>
         <span

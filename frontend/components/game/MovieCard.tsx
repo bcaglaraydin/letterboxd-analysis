@@ -31,7 +31,7 @@ export const MovieCard = ({
       <div
         className={cn(
           "relative group flex-1 min-h-0 w-full flex justify-center items-center md:block md:flex-none md:aspect-[2/3] md:rounded-2xl md:overflow-hidden md:shadow-2xl md:shadow-black/50 md:bg-black/10",
-          layout === "below" ? "mb-2 md:mb-6" : "",
+          layout === "below" ? "mb-1 md:mb-6" : "",
         )}
       >
         {/* Placeholder / Loading State */}
