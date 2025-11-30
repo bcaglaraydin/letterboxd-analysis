@@ -83,11 +83,7 @@ export default function RatingGamePage() {
             <h3 className="text-sm md:text-xl font-bold text-primary uppercase tracking-widest drop-shadow-sm">
               What did you rate this movie?
             </h3>
-            <div className="flex flex-col items-center gap-2">
-              <span className="text-5xl md:text-6xl font-light tracking-tighter text-foreground">
-                {currentRating.toFixed(1)}
-              </span>
-            </div>
+            {/* Rating Number Removed for Space */}
 
             <div className="flex justify-center">
               <StarRating value={currentRating} onChange={setCurrentRating} />
