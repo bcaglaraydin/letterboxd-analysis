@@ -46,10 +46,39 @@ export const StarRating: React.FC<StarRatingProps> = ({
     onChange(hoverValue);
   };
 
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (readOnly) return;
+    
+    // Prevent scrolling while rating
+    // e.preventDefault(); // React synthetic events might not support this directly in all cases, better to use touch-action: none in CSS
+
+    const touch = e.touches[0];
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    
+    // Calculate 0-5 based on width
+    // Clamp between 0 and 5
+    let rawValue = (x / rect.width) * 5;
+    rawValue = Math.max(0, Math.min(5, rawValue));
+    
+    // Round to nearest 0.5
+    const roundedValue = Math.round(rawValue * 2) / 2;
+    
+    setHoverValue(roundedValue);
+  };
+
+  const handleTouchEnd = () => {
+    if (readOnly || hoverValue === null) return;
+    onChange(hoverValue);
+    setHoverValue(null);
+  };
+
   return (
     <div
-      className={cn("flex items-center gap-1", className)}
+      className={cn("flex items-center gap-1 touch-none", className)} // Added touch-none
       onMouseLeave={handleMouseLeave}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       {[0, 1, 2, 3, 4].map((index) => {
         const starValue = index + 1;
