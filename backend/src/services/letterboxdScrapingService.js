@@ -84,6 +84,7 @@ export async function scrapeUserFilmsList(username) {
 
             const filmSlug = $component.attr('data-item-slug');
             const posterUrl = $component.attr('data-poster-url'); // e.g., /film/dune-2021/image-150/
+            const title = $component.find('img').attr('alt') || filmSlug; // Extract title from img alt
 
             // Extract User Rating from Unicode stars
             // Look for <span class="rating">★★★★</span> inside .poster-viewingdata
@@ -100,6 +101,7 @@ export async function scrapeUserFilmsList(username) {
             if (filmSlug) {
               pageFilms.push({
                 slug: filmSlug,
+                title,
                 posterUrl: posterUrl ? `https://a.ltrbxd.com${posterUrl}` : null,
                 userRating,
               });

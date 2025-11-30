@@ -87,3 +87,30 @@ export function calculateCommunityComparison(films) {
     averageCommunityRating: parseFloat((commSum / validFilms.length).toFixed(2)),
   };
 }
+
+/**
+ * Finds the "Guilty Pleasure" movie (User High, Community Low).
+ * Priority: User Rating >= 3 AND Maximize (User - Community) diff.
+ * @param {Array} movies - Array of movie objects with { userRating, communityRating }.
+ * @returns {Object|null} - The guilty pleasure movie object or null.
+ */
+export function findGuiltyPleasure(movies) {
+  if (!movies || movies.length === 0) return null;
+
+  const getDiff = (m) => m.userRating - m.communityRating;
+
+  // 1. Gold: User liked it (>= 3) AND liked it more than community
+  const gold = movies.filter((m) => m.userRating >= 3 && getDiff(m) > 0);
+  if (gold.length > 0) {
+    return gold.sort((a, b) => getDiff(b) - getDiff(a))[0];
+  }
+
+  // 2. Silver: User liked it more than community (even if rating < 3)
+  const silver = movies.filter((m) => getDiff(m) > 0);
+  if (silver.length > 0) {
+    return silver.sort((a, b) => getDiff(b) - getDiff(a))[0];
+  }
+
+  // No match found (User didn't rate anything higher than community)
+  return null;
+}
