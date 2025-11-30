@@ -15,7 +15,7 @@ export const GameContainer: React.FC<GameContainerProps> = ({
   return (
     <div
       className={cn(
-        "flex-1 flex flex-col items-center justify-center p-6 w-full max-w-7xl mx-auto",
+        "flex-1 flex flex-col items-center justify-start md:justify-center p-0 md:p-6 w-full max-w-7xl mx-auto",
         className,
       )}
     >

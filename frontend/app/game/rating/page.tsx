@@ -57,10 +57,10 @@ export default function RatingGamePage() {
   }
 
   return (
-    <GameBackground className="h-[100dvh] overflow-hidden md:h-auto md:overflow-visible">
+    <GameBackground className="h-[100dvh] !min-h-0 overflow-hidden md:h-auto md:min-h-screen md:overflow-visible">
       <ScoreDisplay />
 
-      <GameContainer className="h-[100dvh] md:h-auto md:min-h-screen overflow-hidden md:overflow-visible flex flex-col md:block pt-0 md:pt-24">
+      <GameContainer className="h-full md:h-auto md:min-h-screen overflow-hidden md:overflow-visible flex flex-col md:block pt-0 md:pt-24">
         {/* Header Spacer for ScoreDisplay - Mobile Only */}
         <div className="h-24 shrink-0 md:hidden" />
 
