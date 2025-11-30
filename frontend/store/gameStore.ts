@@ -3,6 +3,7 @@ import { create } from "zustand";
 export interface Movie {
   movieId: string;
   title: string;
+  director: string;
   poster: string | null;
   userRating: number;
   communityRating: number;

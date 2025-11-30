@@ -71,7 +71,7 @@ export default function RatingGamePage() {
                 key={currentMovie.movieId}
                 title={currentMovie.title}
                 year={parseInt(currentMovie.releaseYear) || 0}
-                director={"Unknown Director"}
+                director={currentMovie.director || "Unknown Director"}
                 posterUrl={currentMovie.poster || ""}
                 className="h-full md:h-auto"
               />

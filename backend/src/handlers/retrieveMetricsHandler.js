@@ -59,7 +59,8 @@ export const handler = async (event) => {
       const gameMoviesWithMetadata = await Promise.all(
         gameMovies.map(async (film) => {
           let meta = metadataMap.get(film.slug);
-          if (!meta) {
+          // Re-scrape if metadata is missing or looks like a failed scrape (year is '????')
+          if (!meta || !meta.year || meta.year === '????') {
             console.log(`Scraping missing metadata for game movie: ${film.slug}`);
             try {
               const url = `https://letterboxd.com/film/${film.slug}/`;
@@ -77,6 +78,7 @@ export const handler = async (event) => {
             releaseYear: meta.year,
             runtimeMinutes: meta.runtime,
             title: meta.title,
+            director: meta.director,
             poster: meta.posterUrl || film.posterUrl,
           };
         })
