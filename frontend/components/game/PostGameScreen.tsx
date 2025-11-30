@@ -21,12 +21,8 @@ export const PostGameScreen = () => {
 
   // --- Logic Helpers ---
 
-  // 1. Guilty Pleasure: User rated High, Community rated Low.
-  // We sort by (User - Community) diff descending.
-  const guiltyPleasure = [...movies].sort(
-    (a, b) =>
-      (b.userRating - b.communityRating) - (a.userRating - a.communityRating)
-  )[0];
+  // 1. Guilty Pleasure: Now computed on backend
+  const guiltyPleasure = userStats.guiltyPleasure;
 
   // 2. Histogram Data
   // We need to map the `ratingDistribution` (keys "0.5-1.0", etc.) to simple labels.
@@ -210,68 +206,70 @@ export const PostGameScreen = () => {
       </motion.div>
     </div>,
 
-    // Step 3: Guilty Pleasure (or Top Pick if no guilty pleasure)
-    <div key="guilty" className="flex flex-col items-center justify-center min-h-[100dvh] w-full text-center p-4 md:p-6 relative overflow-hidden">
-      {/* Background Poster Blur */}
-      <div 
-        className="absolute inset-0 opacity-20 bg-cover bg-center blur-xl scale-110 transition-transform duration-[20s] ease-linear animate-slow-zoom"
-        style={{ backgroundImage: `url(${guiltyPleasure.poster || ""})` }}
-      />
-      <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px]" />
+    // Step 3: Guilty Pleasure (Conditional)
+    guiltyPleasure ? (
+      <div key="guilty" className="flex flex-col items-center justify-center min-h-[100dvh] w-full text-center p-4 md:p-6 relative overflow-hidden">
+        {/* Background Poster Blur */}
+        <div 
+          className="absolute inset-0 opacity-20 bg-cover bg-center blur-xl scale-110 transition-transform duration-[20s] ease-linear animate-slow-zoom"
+          style={{ backgroundImage: `url(${guiltyPleasure.poster || ""})` }}
+        />
+        <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px]" />
 
-      <motion.div 
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="relative z-10 max-w-4xl w-full grid md:grid-cols-2 gap-6 md:gap-12 items-center"
-      >
-        {/* Mobile: Poster First, then Text */}
-        <div className="order-1 md:order-2 flex justify-center">
-          <motion.div 
-            whileHover={{ scale: 1.05, rotate: -2 }}
-            className="relative rounded-xl overflow-hidden shadow-2xl shadow-black/50 border-4 border-white/10 w-32 md:w-72 aspect-[2/3]"
-          >
-            <img src={guiltyPleasure.poster || ""} alt={guiltyPleasure.title} className="w-full h-full object-cover" />
-            <div className="absolute top-2 right-2 md:top-4 md:right-4 bg-primary text-primary-foreground font-bold rounded-full w-8 h-8 md:w-12 md:h-12 flex items-center justify-center shadow-lg border-2 border-white/20 text-sm md:text-lg">
-              {guiltyPleasure.userRating}
-            </div>
-          </motion.div>
-        </div>
+        <motion.div 
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="relative z-10 max-w-4xl w-full grid md:grid-cols-2 gap-6 md:gap-12 items-center"
+        >
+          {/* Mobile: Poster First, then Text */}
+          <div className="order-1 md:order-2 flex justify-center">
+            <motion.div 
+              whileHover={{ scale: 1.05, rotate: -2 }}
+              className="relative rounded-xl overflow-hidden shadow-2xl shadow-black/50 border-4 border-white/10 w-32 md:w-72 aspect-[2/3]"
+            >
+              <img src={guiltyPleasure.poster || ""} alt={guiltyPleasure.title} className="w-full h-full object-cover" />
+              <div className="absolute top-2 right-2 md:top-4 md:right-4 bg-primary text-primary-foreground font-bold rounded-full w-8 h-8 md:w-12 md:h-12 flex items-center justify-center shadow-lg border-2 border-white/20 text-sm md:text-lg">
+                {guiltyPleasure.userRating}
+              </div>
+            </motion.div>
+          </div>
 
-        <div className="order-2 md:order-1 space-y-4 md:space-y-6 text-center md:text-left">
-          <div className="inline-flex items-center gap-2 bg-pink-500/20 text-pink-300 px-3 py-1 rounded-full text-[10px] md:text-sm font-bold uppercase tracking-widest border border-pink-500/20">
-            <Heart size={12} className="fill-current" /> 
-            {guiltyPleasure.userRating > guiltyPleasure.communityRating ? "Guilty Pleasure" : "Controversial Pick"}
-          </div>
-          
-          <h2 className="text-2xl md:text-5xl font-serif font-bold leading-none text-foreground">
-            {guiltyPleasure.userRating > guiltyPleasure.communityRating 
-              ? "You loved it. They didn't."
-              : "You went against the grain."}
-          </h2>
-          
-          <p className="text-sm md:text-lg text-muted-foreground">
-            While the community gave <span className="font-bold text-foreground">{guiltyPleasure.title}</span> a {guiltyPleasure.communityRating}, you saw it differently.
-          </p>
-          
-          <div className="grid grid-cols-2 gap-3 md:gap-4 pt-2">
-            <div className="bg-card/80 backdrop-blur p-3 md:p-4 rounded-xl border border-border text-center shadow-sm">
-              <div className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest mb-1">You</div>
-              <div className="text-2xl md:text-4xl font-serif font-bold text-primary">{guiltyPleasure.userRating}</div>
+          <div className="order-2 md:order-1 space-y-4 md:space-y-6 text-center md:text-left">
+            <div className="inline-flex items-center gap-2 bg-pink-500/20 text-pink-300 px-3 py-1 rounded-full text-[10px] md:text-sm font-bold uppercase tracking-widest border border-pink-500/20">
+              <Heart size={12} className="fill-current" /> 
+              {guiltyPleasure.userRating > guiltyPleasure.communityRating ? "Guilty Pleasure" : "Controversial Pick"}
             </div>
-            <div className="bg-muted/50 backdrop-blur p-3 md:p-4 rounded-xl border border-white/5 text-center">
-              <div className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest mb-1">Them</div>
-              <div className="text-2xl md:text-4xl font-serif font-bold text-muted-foreground">{guiltyPleasure.communityRating}</div>
+            
+            <h2 className="text-2xl md:text-5xl font-serif font-bold leading-none text-foreground">
+              {guiltyPleasure.userRating > guiltyPleasure.communityRating 
+                ? "You loved it. They didn't."
+                : "You went against the grain."}
+            </h2>
+            
+            <p className="text-sm md:text-lg text-muted-foreground">
+              While the community gave <span className="font-bold text-foreground">{guiltyPleasure.title}</span> a {guiltyPleasure.communityRating}, you saw it differently.
+            </p>
+            
+            <div className="grid grid-cols-2 gap-3 md:gap-4 pt-2">
+              <div className="bg-card/80 backdrop-blur p-3 md:p-4 rounded-xl border border-border text-center shadow-sm">
+                <div className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest mb-1">You</div>
+                <div className="text-2xl md:text-4xl font-serif font-bold text-primary">{guiltyPleasure.userRating}</div>
+              </div>
+              <div className="bg-muted/50 backdrop-blur p-3 md:p-4 rounded-xl border border-white/5 text-center">
+                <div className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest mb-1">Them</div>
+                <div className="text-2xl md:text-4xl font-serif font-bold text-muted-foreground">{guiltyPleasure.communityRating}</div>
+              </div>
             </div>
           </div>
+        </motion.div>
+        
+        <div className="pt-6 md:pt-8 z-20 shrink-0">
+          <button onClick={nextStep} className="bg-card/80 hover:bg-card backdrop-blur px-6 py-3 rounded-full flex items-center gap-2 transition-colors text-foreground border border-border shadow-lg touch-manipulation whitespace-nowrap">
+            See Summary <ArrowRight size={16} />
+          </button>
         </div>
-      </motion.div>
-      
-      <div className="pt-6 md:pt-8 z-20 shrink-0">
-        <button onClick={nextStep} className="bg-card/80 hover:bg-card backdrop-blur px-6 py-3 rounded-full flex items-center gap-2 transition-colors text-foreground border border-border shadow-lg touch-manipulation whitespace-nowrap">
-          See Summary <ArrowRight size={16} />
-        </button>
       </div>
-    </div>,
+    ) : null,
 
     // Step 4: Summary
     <div key="summary" className="flex flex-col items-center justify-center min-h-[100dvh] p-4 py-12 md:py-20 w-full">
@@ -314,7 +312,7 @@ export const PostGameScreen = () => {
         </div>
       </motion.div>
     </div>
-  ];
+  ].filter(Boolean);
 
   return (
     <div className="w-full h-full min-h-[100dvh] bg-background text-foreground overflow-hidden fixed inset-0 z-50">

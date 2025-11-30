@@ -4,6 +4,7 @@ import {
   calculateRatingDistribution,
   calculateBasicStats,
   calculateCommunityComparison,
+  findGuiltyPleasure,
 } from '../services/statsService.js';
 
 const FILMS_TABLE = process.env.FILMS_TABLE;
@@ -87,7 +88,13 @@ export const handler = async (event) => {
       // 5. Calculate User Stats (using all films we have info for)
       const allFilmsWithMeta = userFilms.map((f) => {
         const meta = metadataMap.get(f.slug) || {};
-        return { ...f, averageRating: meta.averageRating };
+        return { 
+          ...f, 
+          ...meta, 
+          userRating: f.userRating, // Preserve user's rating
+          poster: meta.posterUrl || f.posterUrl, // Prefer high-res poster from meta, fallback to list poster
+          title: meta.title || f.title || f.slug // Prefer meta title, then list title, then slug
+        };
       });
 
       const userRatings = userFilms.map((f) => f.userRating).filter((r) => r !== null);
@@ -115,6 +122,17 @@ export const handler = async (event) => {
             },
             communityComparison: commStats,
             communityRatingDistribution: commDist,
+            guiltyPleasure: (() => {
+              const candidates = allFilmsWithMeta
+                .filter((f) => f.averageRating)
+                .map((f) => ({
+                  ...f,
+                  communityRating: f.averageRating,
+                  title: f.title || f.slug,
+                  poster: f.posterUrl,
+                }));
+              return findGuiltyPleasure(candidates);
+            })(),
           },
           movies: gameMoviesWithMetadata,
         }),
