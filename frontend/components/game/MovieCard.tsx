@@ -27,15 +27,16 @@ export const MovieCard = ({
   return (
     <div className={cn("w-full flex flex-col h-full", className)}>
       {/* Poster Image */}
+      {/* Poster Image */}
       <div
         className={cn(
-          "relative rounded-2xl overflow-hidden shadow-2xl shadow-black/50 group flex-1 min-h-0 md:flex-none md:aspect-[2/3] bg-black/10",
+          "relative group flex-1 min-h-0 w-full flex justify-center items-center md:block md:flex-none md:aspect-[2/3] md:rounded-2xl md:overflow-hidden md:shadow-2xl md:shadow-black/50 md:bg-black/10",
           layout === "below" ? "mb-2 md:mb-6" : "",
         )}
       >
         {/* Placeholder / Loading State */}
         {!isLoaded && (
-          <div className="absolute inset-0 bg-muted animate-pulse z-10" />
+          <div className="absolute inset-0 bg-muted animate-pulse z-10 md:rounded-2xl" />
         )}
 
         {/* Actual Image */}
@@ -43,7 +44,7 @@ export const MovieCard = ({
           src={posterUrl}
           alt={`Poster for ${title}`}
           className={cn(
-            "w-full h-full object-contain md:object-cover transition-opacity duration-500",
+            "max-w-full max-h-full w-auto h-auto rounded-2xl shadow-2xl shadow-black/50 transition-opacity duration-500 md:w-full md:h-full md:object-cover md:rounded-none md:shadow-none",
             isLoaded ? "opacity-100" : "opacity-0",
           )}
           onLoad={() => setIsLoaded(true)}
