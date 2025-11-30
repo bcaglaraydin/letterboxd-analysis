@@ -35,14 +35,15 @@ export const ScoreDisplay = () => {
       }, 50); // 50ms per point
 
       return () => clearInterval(timer);
-    }, 1000); // Wait 1s for flying animation
+      return () => clearInterval(timer);
+    }, 600); // Wait 0.6s for faster flying animation
 
     return () => clearTimeout(startTimeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [score]);
 
   return (
-    <div className="absolute top-0 left-0 w-full p-4 md:p-8 flex justify-between items-start z-20 pointer-events-none text-foreground">
+    <div className="absolute top-0 left-0 w-full p-4 md:p-8 flex justify-between items-start z-[60] pointer-events-none text-foreground">
       {/* Round Indicator (Top Left) */}
       {/* Round Indicator (Top Left) */}
       <div className="flex flex-col items-start gap-0">

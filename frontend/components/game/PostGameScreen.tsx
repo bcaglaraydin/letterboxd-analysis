@@ -8,7 +8,11 @@ import { cn } from "@/lib/utils";
 
 export const PostGameScreen = () => {
   const { movies, userStats, resetGame } = useGameStore();
+  // 1. Guilty Pleasure & Controversial Picks State
   const [step, setStep] = useState(0);
+  const [gpIndex, setGpIndex] = useState(0);
+  const [cpIndex, setCpIndex] = useState(0);
+  const [viewingControversial, setViewingControversial] = useState(false);
 
   // Safety check if stats aren't ready
   if (!userStats || movies.length === 0) return null;
@@ -16,13 +20,46 @@ export const PostGameScreen = () => {
   const nextStep = () => setStep((prev) => prev + 1);
   const reset = () => {
     setStep(0);
+    setGpIndex(0);
+    setCpIndex(0);
+    setViewingControversial(false);
     resetGame();
   };
 
   // --- Logic Helpers ---
 
-  // 1. Guilty Pleasure: Now computed on backend
-  const guiltyPleasure = userStats.guiltyPleasure;
+  const guiltyPleasures = userStats.guiltyPleasures || [];
+  const controversialPicks = userStats.controversialPicks || [];
+  
+  // Determine what we are currently showing
+  // If we are in the "Guilty Pleasure" step (step 3), we decide content based on `viewingControversial`
+  const currentList = viewingControversial ? controversialPicks : guiltyPleasures;
+  const currentIndex = viewingControversial ? cpIndex : gpIndex;
+  const currentMovie = currentList[currentIndex];
+  
+  // Handlers for "Next" logic within the step
+  const handleShowAnother = () => {
+    if (viewingControversial) {
+      if (cpIndex < controversialPicks.length - 1) setCpIndex(prev => prev + 1);
+    } else {
+      if (gpIndex < guiltyPleasures.length - 1) setGpIndex(prev => prev + 1);
+    }
+  };
+
+  const handleContinue = () => {
+    // If we are viewing GPs and have CPs, switch to CPs
+    if (!viewingControversial && controversialPicks.length > 0) {
+      setViewingControversial(true);
+    } else {
+      // Otherwise go to next main step (Summary)
+      nextStep();
+    }
+  };
+
+  const hasMoreInCurrentList = currentIndex < currentList.length - 1;
+  const isLastOfEverything = viewingControversial 
+    ? !hasMoreInCurrentList 
+    : !hasMoreInCurrentList && controversialPicks.length === 0;
 
   // 2. Histogram Data
   // We need to map the `ratingDistribution` (keys "0.5-1.0", etc.) to simple labels.
@@ -206,17 +243,19 @@ export const PostGameScreen = () => {
       </motion.div>
     </div>,
 
-    // Step 3: Guilty Pleasure (Conditional)
-    guiltyPleasure ? (
+    // Step 3: Guilty Pleasures & Controversial Picks
+    (guiltyPleasures.length > 0 || controversialPicks.length > 0) ? (
       <div key="guilty" className="flex flex-col items-center justify-center min-h-[100dvh] w-full text-center p-4 md:p-6 relative overflow-hidden">
         {/* Background Poster Blur */}
         <div 
+          key={currentMovie?.poster} // Force re-render for animation
           className="absolute inset-0 opacity-20 bg-cover bg-center blur-xl scale-110 transition-transform duration-[20s] ease-linear animate-slow-zoom"
-          style={{ backgroundImage: `url(${guiltyPleasure.poster || ""})` }}
+          style={{ backgroundImage: `url(${currentMovie?.poster || ""})` }}
         />
         <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px]" />
 
         <motion.div 
+          key={currentMovie?.movieId || currentMovie?.title} // Animate transition between movies
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           className="relative z-10 max-w-4xl w-full grid md:grid-cols-2 gap-6 md:gap-12 items-center"
@@ -227,45 +266,85 @@ export const PostGameScreen = () => {
               whileHover={{ scale: 1.05, rotate: -2 }}
               className="relative rounded-xl overflow-hidden shadow-2xl shadow-black/50 border-4 border-white/10 w-32 md:w-72 aspect-[2/3]"
             >
-              <img src={guiltyPleasure.poster || ""} alt={guiltyPleasure.title} className="w-full h-full object-cover" />
+              <img src={currentMovie?.poster || ""} alt={currentMovie?.title} className="w-full h-full object-cover" />
               <div className="absolute top-2 right-2 md:top-4 md:right-4 bg-primary text-primary-foreground font-bold rounded-full w-8 h-8 md:w-12 md:h-12 flex items-center justify-center shadow-lg border-2 border-white/20 text-sm md:text-lg">
-                {guiltyPleasure.userRating}
+                {currentMovie?.userRating}
               </div>
             </motion.div>
           </div>
 
           <div className="order-2 md:order-1 space-y-4 md:space-y-6 text-center md:text-left">
-            <div className="inline-flex items-center gap-2 bg-pink-500/20 text-pink-300 px-3 py-1 rounded-full text-[10px] md:text-sm font-bold uppercase tracking-widest border border-pink-500/20">
-              <Heart size={12} className="fill-current" /> 
-              {guiltyPleasure.userRating > guiltyPleasure.communityRating ? "Guilty Pleasure" : "Controversial Pick"}
+            {/* Transition Message: Show ONLY on the first Controversial Pick */}
+            {viewingControversial && cpIndex === 0 && (
+              <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-sm text-muted-foreground italic"
+              >
+                You also have some <span className="text-amber-400 font-bold">Controversial Picks</span> that you loved more than most...
+              </motion.p>
+            )}
+
+            <div className={cn(
+              "inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] md:text-sm font-bold uppercase tracking-widest shadow-lg",
+              !viewingControversial 
+                ? "bg-rose-600 text-white border border-rose-400" 
+                : "bg-amber-600 text-white border border-amber-400"
+            )}>
+              <Heart size={14} className="fill-current" /> 
+              {!viewingControversial ? "Guilty Pleasure" : "Controversial Pick"}
             </div>
             
             <h2 className="text-2xl md:text-5xl font-serif font-bold leading-none text-foreground">
-              {guiltyPleasure.userRating > guiltyPleasure.communityRating 
+              {!viewingControversial 
                 ? "You loved it. They didn't."
-                : "You went against the grain."}
+                : "You saw something they missed."}
             </h2>
             
             <p className="text-sm md:text-lg text-muted-foreground">
-              While the community gave <span className="font-bold text-foreground">{guiltyPleasure.title}</span> a {guiltyPleasure.communityRating}, you saw it differently.
+              While the community gave <span className="font-bold text-foreground">{currentMovie?.title}</span> a {currentMovie?.communityRating}, you saw it differently.
             </p>
             
             <div className="grid grid-cols-2 gap-3 md:gap-4 pt-2">
               <div className="bg-card/80 backdrop-blur p-3 md:p-4 rounded-xl border border-border text-center shadow-sm">
                 <div className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest mb-1">You</div>
-                <div className="text-2xl md:text-4xl font-serif font-bold text-primary">{guiltyPleasure.userRating}</div>
+                <div className="text-2xl md:text-4xl font-serif font-bold text-primary">{currentMovie?.userRating}</div>
               </div>
               <div className="bg-muted/50 backdrop-blur p-3 md:p-4 rounded-xl border border-white/5 text-center">
                 <div className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest mb-1">Them</div>
-                <div className="text-2xl md:text-4xl font-serif font-bold text-muted-foreground">{guiltyPleasure.communityRating}</div>
+                <div className="text-2xl md:text-4xl font-serif font-bold text-muted-foreground">{currentMovie?.communityRating}</div>
               </div>
             </div>
           </div>
         </motion.div>
         
-        <div className="pt-6 md:pt-8 z-20 shrink-0">
-          <button onClick={nextStep} className="bg-card/80 hover:bg-card backdrop-blur px-6 py-3 rounded-full flex items-center gap-2 transition-colors text-foreground border border-border shadow-lg touch-manipulation whitespace-nowrap">
-            See Summary <ArrowRight size={16} />
+        <div className="pt-6 md:pt-8 z-20 shrink-0 flex flex-col items-center gap-3">
+          {/* "Show Another" / "That was all" - Only if list has multiple items */}
+          {currentList.length > 1 && (
+            hasMoreInCurrentList ? (
+              <button 
+                onClick={handleShowAnother}
+                className="text-xs md:text-sm text-muted-foreground hover:text-foreground underline underline-offset-4 transition-colors"
+              >
+                Do you want to see another one?
+              </button>
+            ) : (
+              <motion.div 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }}
+                className="text-xs md:text-sm text-muted-foreground italic"
+              >
+                That was all!
+              </motion.div>
+            )
+          )}
+
+          {/* Continue Button - Goes to next phase OR summary */}
+          <button 
+            onClick={handleContinue} 
+            className="bg-card/80 hover:bg-card backdrop-blur px-6 py-3 rounded-full flex items-center gap-2 transition-colors text-foreground border border-border shadow-lg touch-manipulation whitespace-nowrap animate-pulse hover:animate-none"
+          >
+            {isLastOfEverything ? "See Summary" : "Continue"} <ArrowRight size={16} />
           </button>
         </div>
       </div>

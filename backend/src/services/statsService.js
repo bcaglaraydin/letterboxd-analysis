@@ -89,28 +89,44 @@ export function calculateCommunityComparison(films) {
 }
 
 /**
- * Finds the "Guilty Pleasure" movie (User High, Community Low).
- * Priority: User Rating >= 3 AND Maximize (User - Community) diff.
- * @param {Array} movies - Array of movie objects with { userRating, communityRating }.
- * @returns {Object|null} - The guilty pleasure movie object or null.
+ * Finds "Guilty Pleasure" movies (User High, Community Low).
+ * Returns an array of candidates, sorted by difference.
+ * Priority: Gold (User >= 3 & Diff > 0), then Silver (Diff > 0).
+ * @param {Array} movies - Array of movie objects.
+ * @returns {Array} - Array of guilty pleasure movies.
  */
 export function findGuiltyPleasure(movies) {
-  if (!movies || movies.length === 0) return null;
+  if (!movies || movies.length === 0) return [];
 
   const getDiff = (m) => m.userRating - m.communityRating;
 
-  // 1. Gold: User liked it (>= 3) AND liked it more than community
-  const gold = movies.filter((m) => m.userRating >= 3 && getDiff(m) > 0);
-  if (gold.length > 0) {
-    return gold.sort((a, b) => getDiff(b) - getDiff(a))[0];
-  }
+  // Debug: Log top 5 differences to see what we're working with
+  const sortedByDiff = [...movies].sort((a, b) => getDiff(b) - getDiff(a));
+  console.log('Top 5 Diffs:', sortedByDiff.slice(0, 5).map(m => 
+    `${m.title}: U${m.userRating}(${typeof m.userRating})/C${m.communityRating}(${typeof m.communityRating}) (Diff: ${getDiff(m).toFixed(2)})`
+  ));
 
-  // 2. Silver: User liked it more than community (even if rating < 3)
-  const silver = movies.filter((m) => getDiff(m) > 0);
-  if (silver.length > 0) {
-    return silver.sort((a, b) => getDiff(b) - getDiff(a))[0];
-  }
+  // 1. Guilty Pleasures: User >= 3.5, Comm < 3.7, Diff >= 0.8
+  // "Bad movie (or mid) that you loved"
+  const guiltyPleasures = movies.filter((m) => 
+    m.userRating >= 3.5 && 
+    m.communityRating < 3.7 &&
+    getDiff(m) >= 0.8
+  ).sort((a, b) => getDiff(b) - getDiff(a));
 
-  // No match found (User didn't rate anything higher than community)
-  return null;
+  // 2. Controversial Picks: User >= 3.5, Comm >= 3.7, Comm < 4.0, Diff >= 0.7
+  // "Good movie that you loved WAY more than the average"
+  const controversialPicks = movies.filter((m) => 
+    m.userRating >= 3.5 && 
+    m.communityRating >= 3.7 &&
+    m.communityRating < 4.0 &&
+    getDiff(m) >= 0.7
+  ).sort((a, b) => getDiff(b) - getDiff(a));
+
+  console.log(`Guilty Pleasure Stats: ${guiltyPleasures.length} GPs, ${controversialPicks.length} CPs`);
+
+  return {
+    guiltyPleasures,
+    controversialPicks
+  };
 }

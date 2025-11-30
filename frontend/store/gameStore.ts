@@ -36,7 +36,8 @@ export interface UserStats {
     averageUserRating: number;
   };
   communityRatingDistribution: Record<string, number>;
-  guiltyPleasure: Movie | null;
+  guiltyPleasures: Movie[];
+  controversialPicks: Movie[];
 }
 
 interface RoundResult {
