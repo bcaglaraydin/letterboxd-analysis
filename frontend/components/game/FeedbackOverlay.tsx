@@ -58,7 +58,7 @@ export const FeedbackOverlay: React.FC<FeedbackOverlayProps> = ({
               x: [0, 0, window.innerWidth * 0.4], // Fly to right (approx 40% of screen width)
             }}
             transition={{
-              duration: 1.2,
+              duration: 0.8,
               times: [0, 0.2, 0.8, 1],
               ease: "easeInOut",
             }}

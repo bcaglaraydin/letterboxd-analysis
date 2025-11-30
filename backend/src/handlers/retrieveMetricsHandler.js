@@ -107,33 +107,37 @@ export const handler = async (event) => {
         .filter((r) => r != null && r > 0);
       const commDist = calculateRatingDistribution(commRatings);
 
+      // 5. Guilty Pleasure & Controversial Picks
+      // Map averageRating -> communityRating for the service function
+      const candidates = allFilmsWithMeta
+        .filter((f) => f.averageRating)
+        .map((f) => ({
+          ...f,
+          communityRating: f.averageRating,
+        }));
+      
+      const { guiltyPleasures, controversialPicks } = findGuiltyPleasure(candidates);
+
+      const stats = {
+        totalMovies: userFilms.length, // Use userFilms.length as basicStats doesn't return totalMovies
+        averageRating: basicStats.average, // basicStats returns 'average', not 'averageRating'
+        ratingDistribution: ratingDist,
+        generosity: { // Construct generosity object from basicStats
+          median: basicStats.median,
+          average: basicStats.average,
+          stdDev: basicStats.stdDev,
+        },
+        communityComparison: commStats,
+        communityRatingDistribution: commDist,
+        guiltyPleasures,
+        controversialPicks
+      };
+
       return {
         statusCode: 200,
         body: JSON.stringify({
           username: username,
-          userStats: {
-            totalMovies: userFilms.length,
-            averageRating: basicStats.average,
-            ratingDistribution: ratingDist,
-            generosity: {
-              median: basicStats.median,
-              average: basicStats.average,
-              stdDev: basicStats.stdDev,
-            },
-            communityComparison: commStats,
-            communityRatingDistribution: commDist,
-            guiltyPleasure: (() => {
-              const candidates = allFilmsWithMeta
-                .filter((f) => f.averageRating)
-                .map((f) => ({
-                  ...f,
-                  communityRating: f.averageRating,
-                  title: f.title || f.slug,
-                  poster: f.posterUrl,
-                }));
-              return findGuiltyPleasure(candidates);
-            })(),
-          },
+          userStats: stats,
           movies: gameMoviesWithMetadata,
         }),
       };
