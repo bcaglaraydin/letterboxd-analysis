@@ -48,22 +48,22 @@ export const StarRating: React.FC<StarRatingProps> = ({
 
   const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
     if (readOnly) return;
-    
+
     // Prevent scrolling while rating
     // e.preventDefault(); // React synthetic events might not support this directly in all cases, better to use touch-action: none in CSS
 
     const touch = e.touches[0];
     const rect = e.currentTarget.getBoundingClientRect();
     const x = touch.clientX - rect.left;
-    
+
     // Calculate 0-5 based on width
     // Clamp between 0 and 5
     let rawValue = (x / rect.width) * 5;
     rawValue = Math.max(0, Math.min(5, rawValue));
-    
+
     // Round to nearest 0.5
     const roundedValue = Math.round(rawValue * 2) / 2;
-    
+
     setHoverValue(roundedValue);
   };
 

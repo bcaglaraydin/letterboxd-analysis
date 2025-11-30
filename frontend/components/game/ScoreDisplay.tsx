@@ -48,9 +48,7 @@ export const ScoreDisplay = () => {
       {/* Round Indicator (Top Left) */}
       <div className="flex flex-col items-start gap-0">
         <div className="flex items-baseline gap-1 font-light">
-          <span className="text-2xl font-serif">
-            {currentRound}
-          </span>
+          <span className="text-2xl font-serif">{currentRound}</span>
           <span className="text-sm text-muted-foreground">/ {totalRounds}</span>
         </div>
       </div>
