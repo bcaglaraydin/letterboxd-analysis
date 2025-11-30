@@ -36,7 +36,9 @@ inputs = {
       {
         Action = [
           "dynamodb:BatchGetItem",
-          "dynamodb:GetItem"
+          "dynamodb:GetItem",
+          "dynamodb:BatchWriteItem",
+          "dynamodb:PutItem"
         ]
         Effect   = "Allow"
         Resource = dependency.films.outputs.table_arn
