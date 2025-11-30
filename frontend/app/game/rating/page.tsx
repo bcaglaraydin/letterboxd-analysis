@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useGameStore } from "@/store/gameStore";
 import { GameBackground } from "@/components/game/GameBackground";
 import { GameContainer } from "@/components/game/GameContainer";
@@ -31,16 +32,16 @@ export default function RatingGamePage() {
     nextRound();
   };
 
+  const router = useRouter();
+
+  useEffect(() => {
+    if (movies.length === 0) {
+      router.push("/");
+    }
+  }, [movies, router]);
+
   if (movies.length === 0) {
-    // Redirect to home if no movies (e.g. direct access)
-    // For now, just show loading or return null
-    return (
-      <GameBackground>
-        <div className="flex items-center justify-center min-h-screen">
-          <p className="text-muted-foreground">Loading Game...</p>
-        </div>
-      </GameBackground>
-    );
+    return null; // Don't render anything while redirecting
   }
 
   const currentMovie = movies[currentMovieIndex];

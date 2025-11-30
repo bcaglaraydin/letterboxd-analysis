@@ -38,7 +38,15 @@ export default function LandingPage() {
       startGame(data);
       router.push("/game/rating");
     } catch (err: any) {
-      setError(err.message);
+      if (
+        err.message.includes("User not found") ||
+        err.message.includes("profile is private") ||
+        err.message.includes("Request failed with status code 404")
+      ) {
+        setError("Who is that?");
+      } else {
+        setError(err.message);
+      }
       setIsLoading(false);
     }
   };
