@@ -30,7 +30,7 @@ export const MovieCard = ({
       <div
         className={cn(
           "relative rounded-2xl overflow-hidden shadow-2xl shadow-black/50 group flex-1 min-h-0 md:flex-none md:aspect-[2/3] bg-black/10",
-          layout === "below" ? "mb-4 md:mb-6" : "",
+          layout === "below" ? "mb-2 md:mb-6" : "",
         )}
       >
         {/* Placeholder / Loading State */}
@@ -67,10 +67,10 @@ export const MovieCard = ({
       {/* Layout: Below */}
       {layout === "below" && (
         <div className="text-center space-y-1 shrink-0">
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground leading-tight font-serif">
+          <h2 className="text-xl md:text-3xl font-bold text-foreground leading-tight font-serif">
             {title}
           </h2>
-          <div className="flex items-center justify-center gap-3 text-muted-foreground text-sm font-medium tracking-wide">
+          <div className="flex items-center justify-center gap-3 text-muted-foreground text-xs md:text-sm font-medium tracking-wide">
             <span>{year}</span>
             <span>•</span>
             <span className="uppercase tracking-wider">{director}</span>

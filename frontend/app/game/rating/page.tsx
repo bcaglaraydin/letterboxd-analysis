@@ -56,7 +56,7 @@ export default function RatingGamePage() {
   }
 
   return (
-    <GameBackground>
+    <GameBackground className="h-[100dvh] overflow-hidden md:h-auto md:overflow-visible">
       <ScoreDisplay />
 
       <GameContainer className="h-[100dvh] md:h-auto md:min-h-screen overflow-hidden md:overflow-visible flex flex-col md:block pt-0 md:pt-24">
@@ -64,9 +64,9 @@ export default function RatingGamePage() {
         <div className="h-24 shrink-0 md:hidden" />
 
         {/* Main Game Area */}
-        <div className="w-full max-w-sm mx-auto flex flex-col md:block flex-1 min-h-0 pb-6 md:pb-0 md:space-y-8">
+        <div className="w-full max-w-sm mx-auto flex flex-col md:block flex-1 min-h-0 pb-4 md:pb-0 md:space-y-8">
           {currentMovie && (
-            <div className="flex-1 min-h-0 relative flex flex-col justify-center mb-4 md:mb-6 md:h-auto md:block">
+            <div className="flex-1 min-h-0 relative flex flex-col justify-center mb-2 md:mb-6 md:h-auto md:block">
               <MovieCard
                 key={currentMovie.movieId}
                 title={currentMovie.title}
@@ -78,8 +78,8 @@ export default function RatingGamePage() {
             </div>
           )}
 
-          <div className="shrink-0 space-y-4 text-center z-10 md:space-y-6">
-            <h3 className="text-sm md:text-lg font-medium text-muted-foreground uppercase tracking-widest">
+          <div className="shrink-0 space-y-2 text-center z-10 md:space-y-6">
+            <h3 className="text-xs md:text-lg font-medium text-muted-foreground uppercase tracking-widest">
               What did you rate this movie?
             </h3>
             <div className="flex flex-col items-center gap-2">

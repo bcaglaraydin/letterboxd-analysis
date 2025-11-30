@@ -42,7 +42,7 @@ export const ScoreDisplay = () => {
   }, [score]);
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[100] flex justify-between items-start p-8 pointer-events-none text-foreground">
+    <div className="fixed top-0 left-0 right-0 z-[100] flex justify-between items-start p-4 md:p-8 pointer-events-none text-foreground">
       {/* Round Indicator (Top Left) */}
       <div className="flex flex-col items-start gap-1">
         <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground">
