@@ -37,7 +37,7 @@ export default function RatingGamePage() {
     return (
       <GameBackground>
         <div className="flex items-center justify-center min-h-screen">
-          <p className="text-white/50">Loading Game...</p>
+          <p className="text-muted-foreground">Loading Game...</p>
         </div>
       </GameBackground>
     );
@@ -73,11 +73,11 @@ export default function RatingGamePage() {
           )}
 
           <div className="space-y-6 text-center">
-            <h3 className="text-lg font-medium text-slate-400 uppercase tracking-widest">
+            <h3 className="text-lg font-medium text-muted-foreground uppercase tracking-widest">
               What did you rate this movie?
             </h3>
             <div className="flex flex-col items-center gap-2">
-              <span className="text-6xl font-light tracking-tighter text-white">
+              <span className="text-6xl font-light tracking-tighter text-foreground">
                 {currentRating.toFixed(1)}
               </span>
             </div>
@@ -88,7 +88,7 @@ export default function RatingGamePage() {
 
             <button
               onClick={handleSubmit}
-              className="w-full py-4 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10 rounded-xl text-sm font-medium tracking-widest uppercase transition-colors text-white"
+              className="w-full py-4 bg-primary hover:bg-primary/90 border border-transparent rounded-xl text-sm font-medium tracking-widest uppercase transition-colors text-primary-foreground shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform duration-200"
             >
               Reveal Rating
             </button>

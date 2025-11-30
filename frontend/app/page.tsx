@@ -53,34 +53,33 @@ export default function LandingPage() {
           className="w-full max-w-md space-y-8 text-center"
         >
           <div className="space-y-2">
-            <h1 className="text-5xl font-serif tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60">
+            <h1 className="text-6xl font-serif tracking-tight text-primary">
               Letterboxd
               <br />
-              <span className="text-emerald-400 italic">Guessing Game</span>
+              <span className="text-accent italic">Guessing Game</span>
             </h1>
-            <p className="text-slate-400 text-lg">
+            <p className="text-muted-foreground text-lg font-sans">
               How well do you know your own taste?
             </p>
           </div>
 
-          <form onSubmit={handleStart} className="space-y-4">
+          <form onSubmit={handleStart} className="space-y-6">
             <div className="relative group">
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter your Letterboxd username"
-                className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-xl text-center placeholder:text-white/20 focus:outline-none focus:border-emerald-500/50 focus:bg-white/10 transition-all duration-300"
+                className="w-full px-6 py-4 bg-white/50 border-2 border-primary/10 rounded-xl text-xl text-center placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 focus:bg-white/80 transition-all duration-300 text-primary font-serif"
                 disabled={isLoading}
               />
-              <div className="absolute inset-0 rounded-2xl bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none blur-xl" />
             </div>
 
             {error && (
               <motion.p
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
-                className="text-red-400 text-sm"
+                className="text-destructive text-sm font-medium"
               >
                 {error}
               </motion.p>
@@ -89,7 +88,7 @@ export default function LandingPage() {
             <button
               type="submit"
               disabled={isLoading || !username}
-              className="relative w-full py-4 bg-white text-black rounded-2xl font-bold text-lg tracking-wide hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100 transition-all duration-300 flex items-center justify-center gap-2 group overflow-hidden"
+              className="relative w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold text-lg tracking-wide hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100 transition-all duration-300 flex items-center justify-center gap-2 group overflow-hidden shadow-lg shadow-primary/10"
             >
               {isLoading ? (
                 <>
@@ -102,13 +101,10 @@ export default function LandingPage() {
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </>
               )}
-
-              {/* Button Glow */}
-              <div className="absolute inset-0 bg-emerald-400/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </button>
           </form>
 
-          <div className="pt-8 flex justify-center gap-4 opacity-40 text-xs uppercase tracking-widest">
+          <div className="pt-8 flex justify-center gap-4 text-muted-foreground/60 text-xs uppercase tracking-widest font-medium">
             <span>Powered by Letterboxd</span>
             <span>•</span>
             <span>Made for Film Lovers</span>

@@ -44,7 +44,7 @@ export const FeedbackOverlay: React.FC<FeedbackOverlayProps> = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md"
+      className="absolute inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
     >
       <div className="relative w-full h-full flex items-center justify-center">
         {/* Flying Score Animation */}
@@ -63,7 +63,7 @@ export const FeedbackOverlay: React.FC<FeedbackOverlayProps> = ({
               ease: "easeInOut",
             }}
             className={cn(
-              "absolute z-50 text-6xl font-bold drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] pointer-events-none",
+              "absolute z-50 text-6xl font-bold drop-shadow-md pointer-events-none",
               scoreColor,
             )}
           >
@@ -74,7 +74,7 @@ export const FeedbackOverlay: React.FC<FeedbackOverlayProps> = ({
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="text-center space-y-4 p-6 bg-black/40 border border-white/10 rounded-3xl backdrop-blur-xl shadow-2xl"
+          className="text-center space-y-4 p-8 bg-card border border-border rounded-3xl shadow-2xl max-w-sm w-full mx-4"
         >
           <div
             className={cn(
@@ -87,20 +87,20 @@ export const FeedbackOverlay: React.FC<FeedbackOverlayProps> = ({
           </div>
 
           <div className="space-y-1">
-            <h3 className="text-4xl font-serif text-white">{message}</h3>
+            <h3 className="text-4xl font-serif text-foreground">{message}</h3>
             <div className={cn("text-2xl font-bold", scoreColor)}>
               +{roundScore}
             </div>
           </div>
 
-          <div className="py-4 space-y-1 border-t border-white/10 mt-4">
-            <p className="text-slate-400 text-sm uppercase tracking-widest">
+          <div className="py-4 space-y-1 border-t border-border mt-4">
+            <p className="text-muted-foreground text-sm uppercase tracking-widest">
               Your Guess:{" "}
-              <span className="text-white font-bold">
+              <span className="text-foreground font-bold">
                 {userRating.toFixed(1)}
               </span>
             </p>
-            <p className="text-slate-500 text-sm uppercase tracking-widest">
+            <p className="text-muted-foreground text-sm uppercase tracking-widest">
               Your Actual Rating: {actualRating.toFixed(1)}
             </p>
           </div>
@@ -108,7 +108,7 @@ export const FeedbackOverlay: React.FC<FeedbackOverlayProps> = ({
           <button
             onClick={onContinue}
             className={cn(
-              "w-full py-3 text-white rounded-xl font-medium hover:scale-105 transition-transform",
+              "w-full py-3 text-primary-foreground rounded-xl font-medium hover:scale-105 transition-transform shadow-md",
               theme.buttonColor,
             )}
           >

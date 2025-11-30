@@ -79,10 +79,10 @@ export const MovieCard: React.FC<MovieCardProps> = ({
       {/* Layout: Below (Clean Separation) */}
       {layout === "below" && (
         <div className="text-center space-y-2 px-4">
-          <h2 className="text-3xl font-serif font-medium leading-tight text-white">
+          <h2 className="text-3xl font-serif font-medium leading-tight text-foreground">
             {title}
           </h2>
-          <p className="text-slate-300 text-sm font-light">
+          <p className="text-muted-foreground text-sm font-light">
             {year} • {director}
           </p>
         </div>
