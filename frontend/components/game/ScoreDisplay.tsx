@@ -1,12 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
 import { useGameStore } from "@/store/gameStore";
 
 export const ScoreDisplay = () => {
-  const { score, roundScore, theme, history, currentRound, totalRounds } =
+  const { score, history, currentRound, totalRounds } =
     useGameStore();
   const [displayScore, setDisplayScore] = useState(0);
 

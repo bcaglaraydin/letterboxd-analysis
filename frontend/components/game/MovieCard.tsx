@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
-import { Film } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 interface MovieCardProps {
@@ -40,11 +39,12 @@ export const MovieCard = ({
         )}
 
         {/* Actual Image */}
-        <img
+        <Image
           src={posterUrl}
           alt={`Poster for ${title}`}
+          fill
           className={cn(
-            "max-w-full max-h-full w-auto h-auto rounded-2xl shadow-2xl shadow-black/50 transition-opacity duration-500 md:w-full md:h-full md:object-cover md:rounded-none md:shadow-none",
+            "object-cover rounded-2xl shadow-2xl shadow-black/50 transition-opacity duration-500 md:rounded-none md:shadow-none",
             isLoaded ? "opacity-100" : "opacity-0",
           )}
           onLoad={() => setIsLoaded(true)}
