@@ -1,15 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import {
   ArrowRight,
   Star,
   Share2,
   RotateCcw,
   Heart,
-  Trophy,
-  ThumbsUp,
 } from "lucide-react";
 import { useGameStore } from "@/store/gameStore";
 import { cn } from "@/lib/utils";
@@ -369,10 +368,11 @@ export const PostGameScreen = () => {
               whileHover={{ scale: 1.05, rotate: -2 }}
               className="relative rounded-xl overflow-hidden shadow-2xl shadow-black/50 border-4 border-white/10 w-32 md:w-72 aspect-[2/3]"
             >
-              <img
+              <Image
                 src={currentMovie?.poster || ""}
-                alt={currentMovie?.title}
-                className="w-full h-full object-cover"
+                alt={currentMovie?.title || ""}
+                fill
+                className="object-cover"
               />
               <div className="absolute top-2 right-2 md:top-4 md:right-4 bg-primary text-primary-foreground font-bold rounded-full w-8 h-8 md:w-12 md:h-12 flex items-center justify-center shadow-lg border-2 border-white/20 text-sm md:text-lg">
                 {currentMovie?.userRating}
@@ -505,10 +505,11 @@ export const PostGameScreen = () => {
               transition={{ delay: i * 0.1 }}
               className="aspect-[2/3] rounded-md overflow-hidden relative group bg-muted"
             >
-              <img
+              <Image
                 src={m.poster || ""}
                 alt={m.title}
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
               />
               <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <span className="font-bold text-white text-sm">

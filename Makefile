@@ -1,4 +1,4 @@
-.PHONY: install dev dev-backend dev-frontend format
+.PHONY: install dev dev-backend dev-frontend format lint
 
 install:
 	npm install
@@ -13,6 +13,12 @@ dev-backend:
 
 dev-frontend:
 	cd frontend && npm run dev
+
+lint:
+	terraform fmt -check -recursive infra/
+	cd backend && npm run lint
+	cd frontend && npm run lint
+	cd backend && npx prettier --check "../**/*.{yml,yaml,md}" --ignore-path ../.gitignore
 
 format:
 	terraform fmt -recursive infra/

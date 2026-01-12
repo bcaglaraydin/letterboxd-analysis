@@ -18,7 +18,6 @@ export const FeedbackOverlay: React.FC<FeedbackOverlayProps> = ({
   onContinue,
 }) => {
   const { theme, roundScore } = useGameStore();
-  const diff = Math.abs(userRating - actualRating);
 
   let message = "Good Attempt";
   let scoreColor = "text-yellow-400";

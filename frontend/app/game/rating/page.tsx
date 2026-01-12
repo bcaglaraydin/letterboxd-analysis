@@ -6,10 +6,8 @@ import { useGameStore } from "@/store/gameStore";
 import { GameBackground } from "@/components/game/GameBackground";
 import { GameContainer } from "@/components/game/GameContainer";
 import { MovieCard } from "@/components/game/MovieCard";
-import { RatingSlider } from "@/components/game/RatingSlider";
 import { StarRating } from "@/components/game/StarRating";
 import { FeedbackOverlay } from "@/components/game/FeedbackOverlay";
-import { cn } from "@/lib/utils";
 
 import { ScoreDisplay } from "@/components/game/ScoreDisplay";
 import { PostGameScreen } from "@/components/game/PostGameScreen";
