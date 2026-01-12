@@ -86,7 +86,11 @@ export default function RatingGamePage() {
             {/* Rating Number Removed for Space */}
 
             <div className="flex justify-center">
-              <StarRating value={currentRating} onChange={setCurrentRating} />
+              <StarRating
+                value={currentRating}
+                onChange={setCurrentRating}
+                readOnly={showFeedback}
+              />
             </div>
 
             <button
