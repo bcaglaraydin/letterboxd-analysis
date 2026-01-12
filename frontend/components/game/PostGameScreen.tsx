@@ -349,8 +349,11 @@ export const PostGameScreen = () => {
         {/* Background Poster Blur */}
         <div
           key={currentMovie?.poster} // Force re-render for animation
-          className="absolute inset-0 opacity-20 bg-cover bg-center blur-xl scale-110 transition-transform duration-[20s] ease-linear animate-slow-zoom"
-          style={{ backgroundImage: `url(${currentMovie?.poster || ""})` }}
+          className="absolute inset-0 opacity-20 bg-cover bg-center blur-xl scale-110 transition-transform ease-linear animate-slow-zoom"
+          style={{
+            backgroundImage: `url(${currentMovie?.poster || ""})`,
+            transitionDuration: "20s",
+          }}
         />
         <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px]" />
 
