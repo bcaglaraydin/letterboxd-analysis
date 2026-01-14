@@ -77,6 +77,7 @@ export default function RatingGamePage() {
         score={score}
         pointsEarned={showFeedback ? roundScore : null}
         maxScore={totalRounds * 20}
+        showMaxScore={true}
         label="Score"
         size="lg"
         position="top-right"
