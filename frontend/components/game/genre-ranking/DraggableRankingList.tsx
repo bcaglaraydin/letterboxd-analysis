@@ -68,7 +68,12 @@ export const DraggableRankingList: React.FC<DraggableRankingListProps> = ({
                 >
                   {index + 1}
                 </div>
-                <span className="font-serif text-sm md:text-lg font-semibold text-foreground flex-1">
+                <span
+                  className={cn(
+                    "font-serif font-semibold text-foreground flex-1 min-w-0 leading-tight",
+                    genre.name.length > 10 ? "text-xs md:text-lg" : "text-sm md:text-lg",
+                  )}
+                >
                   {genre.name}
                 </span>
                 <div className="flex flex-col gap-0.5 opacity-40">

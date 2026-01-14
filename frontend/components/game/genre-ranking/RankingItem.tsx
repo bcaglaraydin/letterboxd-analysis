@@ -139,11 +139,12 @@ export const RankingItem = ({
         </div>
       )}
 
-      {/* Genre Name - Hide for empty slots */}
+      {/* Genre Name - Hide for empty slots, dynamic font size for long names */}
       {variant !== "actual-slot" && (
         <span
           className={cn(
-            "font-serif text-sm md:text-lg font-semibold text-foreground flex-1",
+            "font-serif font-semibold text-foreground flex-1 min-w-0 leading-tight",
+            genre.name.length > 10 ? "text-xs md:text-lg" : "text-sm md:text-lg",
           )}
         >
           {genre.name}
