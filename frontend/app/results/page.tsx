@@ -11,13 +11,25 @@ const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   "https://mpnd4bu9jg.execute-api.eu-west-1.amazonaws.com";
 
+interface MetricData {
+  username: string;
+  averageRating: number;
+  totalFilms: number;
+  topGenres: Array<{ name: string; count: number }>;
+  topDirectors: Array<{ name: string; count: number }>;
+}
+
+interface MetricsResponse {
+  metrics: MetricData[];
+}
+
 function ResultsContent() {
   const searchParams = useSearchParams();
   const username1 = searchParams.get("username");
   const username2 = searchParams.get("username2");
 
   // We'll store metrics directly since that's what we display
-  const [metricsData, setMetricsData] = useState<any>(null);
+  const [metricsData, setMetricsData] = useState<MetricsResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
@@ -80,9 +92,9 @@ function ResultsContent() {
       const metricsJson = await metricsRes.json();
       setMetricsData(metricsJson);
       setStatus("Analysis complete!");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.message || "An error occurred");
+      setError(err instanceof Error ? err.message : "An error occurred");
       setStatus("Failed.");
     } finally {
       setLoading(false);
@@ -130,7 +142,7 @@ function ResultsContent() {
         <div
           className={`grid gap-8 ${usersMetrics.length > 1 ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1"}`}
         >
-          {usersMetrics.map((userMetric: any) => (
+          {usersMetrics.map((userMetric: MetricData) => (
             <div key={userMetric.username} className="flex flex-col gap-4">
               <h2 className="text-2xl font-semibold text-center border-b pb-2">
                 {userMetric.username}
@@ -156,7 +168,7 @@ function ResultsContent() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {userMetric.topGenres?.map((g: any) => (
+                    {userMetric.topGenres?.map((g) => (
                       <li key={g.name} className="flex justify-between">
                         <span>{g.name}</span>
                         <span className="font-mono text-muted-foreground">
@@ -174,7 +186,7 @@ function ResultsContent() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {userMetric.topDirectors?.map((d: any) => (
+                    {userMetric.topDirectors?.map((d) => (
                       <li key={d.name} className="flex justify-between">
                         <span className="truncate max-w-[200px]" title={d.name}>
                           {d.name}
