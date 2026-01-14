@@ -74,9 +74,9 @@ export const RankingItem = ({
     }
   }, [hasJustLanded, onScorePosition, score]);
 
-  // Common base styles for pixel-perfect matching
+  // Common base styles - mobile uses h-full to fill parent container, desktop uses fixed height
   const baseClasses =
-    "flex items-center gap-3 md:gap-4 p-2.5 md:p-4 rounded-lg md:rounded-xl border-2 transition-all h-[56px] md:h-[72px]";
+    "flex items-center gap-2 md:gap-4 p-1.5 md:p-4 rounded-md md:rounded-xl border-2 transition-all h-full md:h-[72px]";
 
   // Variant-specific styles
   const variantStyles = {
@@ -157,7 +157,7 @@ export const RankingItem = ({
             ref={scoreBadgeRef}
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
-            className={cn("font-bold text-sm md:text-base ml-auto shrink-0")}
+            className={cn("font-bold text-xs md:text-base ml-auto shrink-0 w-8 md:w-10 text-right")}
             style={{
               // Color based on per-item score ratio: 0 = red (hue 0), max = green (hue 120)
               color: `hsl(${Math.round((score / pointsPerItem) * 120)}, 70%, 35%)`,
