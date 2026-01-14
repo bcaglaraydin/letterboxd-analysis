@@ -205,6 +205,7 @@ export function GenreRankingGame() {
             pointsEarned={flyingPoints}
             flyFromPosition={flyPosition}
             maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
+            pointsPerAction={GENRE_RANKING_CONFIG.POINTS_PER_ITEM}
             animationDelay={0}
             label="Score"
             size="lg"

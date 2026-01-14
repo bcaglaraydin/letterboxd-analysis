@@ -46,10 +46,10 @@ export const RankingItem = ({
   const scoreBadgeRef = useRef<HTMLDivElement>(null);
   const hasReportedRef = useRef(false);
   const color = genreToColor(genre.name);
-  const { getScoreColor, pointsPerItem } = useRankingScore({
+  const { pointsPerItem } = useRankingScore({
     maxScore,
     itemCount,
-  }); // Used for badge color
+  }); // Used for badge color calculation
 
   // Reset reporting flag when hasJustLanded becomes false
   useEffect(() => {
@@ -158,7 +158,10 @@ export const RankingItem = ({
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             className={cn("font-bold text-sm md:text-base ml-auto shrink-0")}
-            style={{ color: getScoreColor((score / pointsPerItem) * maxScore) }} // Normalize to total max score scale for color
+            style={{
+              // Color based on per-item score ratio: 0 = red (hue 0), max = green (hue 120)
+              color: `hsl(${Math.round((score / pointsPerItem) * 120)}, 70%, 35%)`,
+            }}
           >
             +{score}
           </motion.div>
