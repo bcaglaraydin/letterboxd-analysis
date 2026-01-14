@@ -52,7 +52,7 @@ export const DraggableRankingList: React.FC<DraggableRankingListProps> = ({
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.03 }}
                 className={cn(
-                  "relative flex items-center gap-3 md:gap-4 p-2.5 md:p-4 rounded-lg md:rounded-xl cursor-grab active:cursor-grabbing h-full md:h-auto",
+                  "relative flex items-center gap-2 md:gap-4 p-1.5 md:p-4 rounded-md md:rounded-xl cursor-grab active:cursor-grabbing h-full md:h-auto",
                   "border-2 border-border bg-card",
                   "shadow-sm hover:shadow-md md:shadow-md md:hover:shadow-lg transition-shadow",
                   isDragging === genreId && "shadow-lg md:shadow-xl",

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, LayoutGroup } from "framer-motion";
-import { ArrowRight, Lock, RotateCcw } from "lucide-react";
+import { ArrowRight, Lock } from "lucide-react";
 import { useGenreGameStore } from "@/store/genreGameStore";
 import { RankingItem } from "./RankingItem";
 import { ScorePanel } from "../shared/ScorePanel";
@@ -21,7 +21,6 @@ export function GenreRankingGame() {
     previousScore,
     setUserRanking,
     confirmRanking,
-    resetGame,
     nextPhase,
     startGame,
   } = useGenreGameStore();
@@ -198,52 +197,55 @@ export function GenreRankingGame() {
         animate={{ opacity: 1 }}
         className="flex flex-col h-[100dvh] md:min-h-screen md:h-auto w-full p-3 md:p-6 md:py-8 overflow-hidden md:overflow-visible"
       >
-        {/* ScorePanel */}
-        {isRevealing && (
-          <ScorePanel
-            score={totalScore}
-            pointsEarned={flyingPoints}
-            flyFromPosition={flyPosition}
-            maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
-            pointsPerAction={GENRE_RANKING_CONFIG.POINTS_PER_ITEM}
-            showMaxScore={true}
-            animationDelay={0}
-            label="Score"
-            size="lg"
-            position="top-right"
-          />
-        )}
-
-        {/* Header */}
-        <motion.div
-          className="text-center mb-3 md:mb-6 pt-2 md:pt-4 shrink-0"
-          layout="position"
-        >
-          <motion.h2
-            className="text-lg md:text-2xl font-serif font-bold text-foreground"
-            key={isRevealing ? "reveal-header" : "ranking-header"}
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            {isRevealing ? "Let's See How You Did!" : "Rank Your Top Genres"}
-          </motion.h2>
-          {!isRevealing && (
-            <motion.p
-              className="text-xs md:text-sm text-muted-foreground mt-1"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
+        {/* SECTION 1: Top Section - Score or Header (shrink-0) */}
+        <div className="shrink-0">
+          {isRevealing ? (
+            /* Score display during reveal - flows in layout on mobile, fixed on desktop */
+            <div className="flex justify-end mb-2 md:mb-0">
+              <ScorePanel
+                score={totalScore}
+                pointsEarned={flyingPoints}
+                flyFromPosition={flyPosition}
+                maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
+                pointsPerAction={GENRE_RANKING_CONFIG.POINTS_PER_ITEM}
+                showMaxScore={true}
+                animationDelay={0}
+                label="Score"
+                size="md"
+                position="static"
+                className="md:fixed md:top-6 md:right-6 md:z-[55]"
+              />
+            </div>
+          ) : (
+            /* Header during ranking phase */
+            <motion.div
+              className="text-center mb-2 md:mb-6 pt-2 md:pt-4"
+              layout="position"
             >
-              Drag to reorder from most to least watched
-            </motion.p>
+              <motion.h2
+                className="text-lg md:text-2xl font-serif font-bold text-foreground"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                Rank Your Top Genres
+              </motion.h2>
+              <motion.p
+                className="text-xs md:text-sm text-muted-foreground mt-1"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                Drag to reorder from most to least watched
+              </motion.p>
+            </motion.div>
           )}
-        </motion.div>
+        </div>
 
-        {/* Main Content Area */}
-        <div className="flex-1 w-full max-w-4xl mx-auto min-h-0 overflow-hidden md:overflow-visible flex flex-col items-center">
+        {/* SECTION 2: Game Area - fills remaining space (flex-1) */}
+        <div className="flex-1 w-full max-w-4xl mx-auto min-h-0 overflow-hidden md:overflow-visible flex flex-col">
           <LayoutGroup>
             <motion.div
-              className={`w-full grid gap-4 md:gap-6 ${showTwoColumns ? "grid-cols-2" : "grid-cols-1"}`}
+              className={`w-full h-full grid gap-1 md:gap-6 ${showTwoColumns ? "grid-cols-2" : "grid-cols-1 max-w-md mx-auto"}`}
               layout
               transition={{
                 type: "tween",
@@ -251,10 +253,9 @@ export function GenreRankingGame() {
                 ease: [0.25, 0.1, 0.25, 1],
               }}
             >
-              {/* User Ranking Column */}
               <motion.div
                 layout
-                className="max-w-md w-full relative mx-auto"
+                className="w-full h-full flex flex-col relative"
                 transition={{
                   type: "tween",
                   duration: 2,
@@ -264,7 +265,7 @@ export function GenreRankingGame() {
                 {/* Column Header */}
                 {isRevealing && (
                   <motion.div
-                    className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-wider mb-2 text-center"
+                    className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-wider mb-1 md:mb-2 text-center"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
@@ -284,20 +285,21 @@ export function GenreRankingGame() {
                     onDragEnd={() => setIsDragging(null)}
                   />
                 ) : (
-                  /* Reveal Phase: Static items */
-                  <div className="flex flex-col gap-1.5 md:gap-3 w-full">
+                  /* Reveal Phase: Static items - flex container for items to fill */
+                  <div className="flex flex-col gap-1 md:gap-3 w-full h-full">
                     {userRanking.map((genreId, index) => {
                       const genre = getGenre(genreId);
                       if (!genre) return null;
                       return (
-                        <RankingItem
-                          key={`static-user-${genreId}`}
-                          genre={genre}
-                          index={index}
-                          variant="static"
-                          maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
-                          itemCount={itemCount}
-                        />
+                        <div key={`static-user-${genreId}`} className="flex-1">
+                          <RankingItem
+                            genre={genre}
+                            index={index}
+                            variant="static"
+                            maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
+                            itemCount={itemCount}
+                          />
+                        </div>
                       );
                     })}
                   </div>
@@ -321,8 +323,8 @@ export function GenreRankingGame() {
           </LayoutGroup>
         </div>
 
-        {/* Buttons */}
-        <div className="pt-3 md:pt-6 pb-4 md:pb-8 flex justify-center shrink-0">
+        {/* SECTION 3: Buttons (shrink-0) */}
+        <div className="pt-2 md:pt-6 pb-2 md:pb-8 flex justify-center shrink-0">
           {!isRevealing && (
             <motion.button
               initial={{ opacity: 0, y: 10 }}
@@ -339,29 +341,16 @@ export function GenreRankingGame() {
           )}
 
           {isComplete && (
-            <motion.div
+            <motion.button
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex gap-4"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => nextPhase()}
+              className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold flex items-center gap-2"
             >
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={resetGame}
-                className="px-6 py-3 border-2 border-border rounded-xl font-semibold flex items-center gap-2 hover:bg-muted transition-colors"
-              >
-                <RotateCcw className="w-4 h-4" />
-                Play Again
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => nextPhase()}
-                className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold flex items-center gap-2"
-              >
-                Continue <ArrowRight className="w-4 h-4" />
-              </motion.button>
-            </motion.div>
+              Continue <ArrowRight className="w-4 h-4" />
+            </motion.button>
           )}
         </div>
       </motion.div>
