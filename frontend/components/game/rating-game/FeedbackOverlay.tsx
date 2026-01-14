@@ -46,29 +46,7 @@ export const FeedbackOverlay: React.FC<FeedbackOverlayProps> = ({
       className="absolute inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
     >
       <div className="relative w-full h-full flex items-center justify-center">
-        {/* Flying Score Animation */}
-        {roundScore !== null && roundScore > 0 && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.5, y: 0, x: 0 }}
-            animate={{
-              opacity: [0, 1, 1, 0],
-              scale: [0.5, 1.5, 1, 0.5],
-              y: [0, 0, -window.innerHeight * 0.45], // Fly to top (approx 45% of screen height)
-              x: [0, 0, window.innerWidth * 0.4], // Fly to right (approx 40% of screen width)
-            }}
-            transition={{
-              duration: 0.8,
-              times: [0, 0.2, 0.8, 1],
-              ease: "easeInOut",
-            }}
-            className={cn(
-              "absolute z-50 text-6xl font-bold drop-shadow-md pointer-events-none",
-              scoreColor,
-            )}
-          >
-            +{roundScore}
-          </motion.div>
-        )}
+        {/* Flying animation now handled by ScorePanel in parent */}
 
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}

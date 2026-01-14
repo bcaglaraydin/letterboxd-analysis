@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { GameBackground } from "@/components/game/GameBackground";
+import { GameBackground } from "@/components/game/shared/GameBackground";
 import { useGameStore } from "@/store/gameStore";
 import { Loader2, ArrowRight } from "lucide-react";
 
@@ -37,15 +37,17 @@ export default function LandingPage() {
 
       startGame(data);
       router.push("/game/rating");
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "An unknown error occurred";
       if (
-        err.message.includes("User not found") ||
-        err.message.includes("profile is private") ||
-        err.message.includes("Request failed with status code 404")
+        errorMessage.includes("User not found") ||
+        errorMessage.includes("profile is private") ||
+        errorMessage.includes("Request failed with status code 404")
       ) {
         setError("Who is that?");
       } else {
-        setError(err.message);
+        setError(errorMessage);
       }
       setIsLoading(false);
     }

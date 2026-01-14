@@ -3,18 +3,26 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/store/gameStore";
-import { GameBackground } from "@/components/game/GameBackground";
-import { GameContainer } from "@/components/game/GameContainer";
-import { MovieCard } from "@/components/game/MovieCard";
-import { StarRating } from "@/components/game/StarRating";
-import { FeedbackOverlay } from "@/components/game/FeedbackOverlay";
-
-import { ScoreDisplay } from "@/components/game/ScoreDisplay";
-import { PostGameScreen } from "@/components/game/PostGameScreen";
+import { GameBackground } from "@/components/game/shared/GameBackground";
+import { GameContainer } from "@/components/game/shared/GameContainer";
+import { ScorePanel } from "@/components/game/shared/ScorePanel";
+import { MovieCard } from "@/components/game/rating-game/MovieCard";
+import { StarRating } from "@/components/game/rating-game/StarRating";
+import { FeedbackOverlay } from "@/components/game/rating-game/FeedbackOverlay";
+import { PostGameScreen } from "@/components/game/rating-game/PostGameScreen";
 
 export default function RatingGamePage() {
-  const { movies, currentMovieIndex, isGameOver, submitGuess, nextRound } =
-    useGameStore();
+  const {
+    movies,
+    currentMovieIndex,
+    isGameOver,
+    submitGuess,
+    nextRound,
+    score,
+    roundScore,
+    currentRound,
+    totalRounds,
+  } = useGameStore();
 
   const [currentRating, setCurrentRating] = useState(5.0);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -56,7 +64,23 @@ export default function RatingGamePage() {
 
   return (
     <GameBackground className="h-[100dvh] !min-h-0 overflow-hidden md:h-auto md:min-h-screen md:overflow-visible">
-      <ScoreDisplay />
+      {/* Round Indicator (Top Left) */}
+      <div className="absolute top-0 left-0 p-4 md:p-8 z-[60] pointer-events-none">
+        <div className="flex items-baseline gap-1 font-light text-foreground">
+          <span className="text-2xl font-serif">{currentRound}</span>
+          <span className="text-sm text-muted-foreground">/ {totalRounds}</span>
+        </div>
+      </div>
+
+      {/* ScorePanel with flying animation */}
+      <ScorePanel
+        score={score}
+        pointsEarned={showFeedback ? roundScore : null}
+        maxScore={totalRounds * 20}
+        label="Score"
+        size="lg"
+        position="top-right"
+      />
 
       <GameContainer className="h-full md:h-auto md:min-h-screen overflow-hidden md:overflow-visible flex flex-col md:block pt-0 md:pt-24">
         {/* Header Spacer for ScoreDisplay - Mobile Only */}

@@ -3,13 +3,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import {
-  ArrowRight,
-  Star,
-  Share2,
-  RotateCcw,
-  Heart,
-} from "lucide-react";
+import { ArrowRight, Star, Share2, RotateCcw, Heart } from "lucide-react";
 import { useGameStore } from "@/store/gameStore";
 import { cn } from "@/lib/utils";
 
