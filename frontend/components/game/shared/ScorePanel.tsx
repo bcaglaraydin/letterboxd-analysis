@@ -28,6 +28,8 @@ interface ScorePanelProps {
   position?: "static" | "top-right";
   /** Maximum points possible per action (for flying point color, default: 15) */
   pointsPerAction?: number;
+  /** Whether to show maxScore next to current score (e.g., '45/120', default: false) */
+  showMaxScore?: boolean;
 }
 
 /**
@@ -55,6 +57,7 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
   size = "lg",
   position = "static",
   pointsPerAction = 15,
+  showMaxScore = false,
 }) => {
   // Display score (animated counting)
   const [displayScore, setDisplayScore] = useState(score);
@@ -200,6 +203,9 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
           transition={{ duration: 0.15 }}
         >
           {displayScore}
+          {showMaxScore && (
+            <span className="text-muted-foreground/50 font-normal text-[0.5em]">/{maxScore}</span>
+          )}
         </motion.span>
       </div>
     </>
