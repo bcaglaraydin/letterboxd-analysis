@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { genreToColor } from "@/store/genreGameStore";
-import { useRankingScore } from "@/hooks/useRankingScore";
+import { useRankingScore } from "@/hooks/useDistanceScore";
 
 interface RankingItemProps {
   genre: { id: string; name: string };

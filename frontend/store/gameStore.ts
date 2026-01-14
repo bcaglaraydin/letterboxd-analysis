@@ -1,4 +1,6 @@
 import { create } from "zustand";
+import { calculateDistanceScore } from "@/hooks/useDistanceScore";
+import { RATING_GAME_CONFIG } from "@/components/game/rating-game/constants";
 
 export interface Movie {
   movieId: string;
@@ -71,7 +73,7 @@ interface GameState {
 
 export const useGameStore = create<GameState>((set, get) => ({
   currentRound: 1,
-  totalRounds: 5,
+  totalRounds: RATING_GAME_CONFIG.TOTAL_ROUNDS,
   score: 0,
   roundScore: null,
   history: [],
@@ -114,12 +116,13 @@ export const useGameStore = create<GameState>((set, get) => ({
     const { movies, currentMovieIndex, score, history, currentRound } = get();
     const currentMovie = movies[currentMovieIndex];
 
-    // Scoring Logic (0-20 scale per movie, max 100 total)
-    // Formula: max(0, 1 - (diff / max_diff)) * 20
+    // Scoring Logic using distance-based formula
     const diff = Math.abs(guess - currentMovie.userRating);
-    const maxDiff = 5.0;
-    const accuracy = Math.max(0, 1 - diff / maxDiff);
-    const points = Math.round(accuracy * 20);
+    const points = calculateDistanceScore(
+      diff,
+      RATING_GAME_CONFIG.MAX_SCORE,
+      RATING_GAME_CONFIG.MAX_DISTANCE,
+    );
 
     set({
       score: score + points,
