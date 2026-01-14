@@ -7,9 +7,8 @@ import { useGenreGameStore, genreToColor } from "@/store/genreGameStore";
 import { cn } from "@/lib/utils";
 import { RankingItem } from "./RankingItem";
 import { ScorePanel } from "../shared/ScorePanel";
-import { useRankingScore } from "@/hooks/useRankingScore";
-
-const MAX_GAME_SCORE = 120;
+import { useRankingScore } from "@/hooks/useDistanceScore";
+import { GENRE_RANKING_CONFIG } from "./constants";
 
 export function GenreRankingGame() {
   const {
@@ -25,11 +24,11 @@ export function GenreRankingGame() {
     startGame,
   } = useGenreGameStore();
 
-  const itemCount = userRanking.length || 8; // Fallback to 8 if data empty (though shouldn't happen in game)
+  const itemCount = userRanking.length || GENRE_RANKING_CONFIG.ITEM_COUNT;
 
   // Scoring Logic
   const { calculateItemScore } = useRankingScore({
-    maxScore: MAX_GAME_SCORE,
+    maxScore: GENRE_RANKING_CONFIG.MAX_SCORE,
     itemCount: itemCount,
   });
 
@@ -149,7 +148,7 @@ export function GenreRankingGame() {
   // Sequential item-by-item reveal animation
   useEffect(() => {
     if (revealStage !== "item-flying") return;
-    if (revealIndex < 0 || revealIndex > 7) return;
+    if (revealIndex < 0 || revealIndex >= actualRanking.length) return;
 
     const genreId = userRanking[revealIndex];
     // const actualPos = actualRanking.indexOf(genreId);
@@ -176,7 +175,7 @@ export function GenreRankingGame() {
       setLandedItemId(null);
       setFlyingPoints(null);
       setFlyPosition(undefined);
-      if (revealIndex < 7) {
+      if (revealIndex < actualRanking.length - 1) {
         setRevealIndex((prev) => prev + 1);
       } else {
         setTimeout(() => {
@@ -249,7 +248,7 @@ export function GenreRankingGame() {
             score={totalScore}
             pointsEarned={flyingPoints}
             flyFromPosition={flyPosition}
-            maxScore={MAX_GAME_SCORE}
+            maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
             animationDelay={0}
             label="Score"
             size="lg"
@@ -388,7 +387,7 @@ export function GenreRankingGame() {
                           genre={genre}
                           index={index}
                           variant="static"
-                          maxScore={MAX_GAME_SCORE}
+                          maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
                           itemCount={itemCount}
                         />
                       );
@@ -452,7 +451,7 @@ export function GenreRankingGame() {
                             genre={genre}
                             index={index}
                             variant="actual-slot"
-                            maxScore={MAX_GAME_SCORE}
+                            maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
                             itemCount={itemCount}
                           />
 
@@ -484,7 +483,7 @@ export function GenreRankingGame() {
                                   onScorePosition={(pos, score) =>
                                     handleScorePosition(genre.id, pos, score)
                                   }
-                                  maxScore={MAX_GAME_SCORE}
+                                  maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
                                   itemCount={itemCount}
                                 />
                               </motion.div>
