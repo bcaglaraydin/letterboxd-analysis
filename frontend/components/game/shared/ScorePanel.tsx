@@ -26,6 +26,8 @@ interface ScorePanelProps {
   size?: "sm" | "md" | "lg";
   /** Position of the panel */
   position?: "static" | "top-right";
+  /** Maximum points possible per action (for flying point color, default: 15) */
+  pointsPerAction?: number;
 }
 
 /**
@@ -52,6 +54,7 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
   className,
   size = "lg",
   position = "static",
+  pointsPerAction = 15,
 }) => {
   // Display score (animated counting)
   const [displayScore, setDisplayScore] = useState(score);
@@ -138,13 +141,11 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
       ? "fixed top-4 right-4 md:top-6 md:right-6 z-[55]"
       : "";
 
-  // Get score color class for flying animation
-  const getScoreColorClass = (points: number): string => {
-    const pointRatio = points / 20; // Assume max 20 points per action
-    if (pointRatio >= 1) return "text-emerald-400";
-    if (pointRatio >= 0.75) return "text-green-400";
-    if (pointRatio >= 0.4) return "text-yellow-400";
-    return "text-red-400";
+  // Get score color style for flying animation (matches RankingItem color formula)
+  const getFlyingPointsColor = (points: number): React.CSSProperties => {
+    const ratio = pointsPerAction > 0 ? points / pointsPerAction : 0;
+    const hue = Math.round(Math.min(1, Math.max(0, ratio)) * 120); // 0 = red, 120 = green
+    return { color: `hsl(${hue}, 70%, 35%)` };
   };
 
   return (
@@ -170,8 +171,11 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
               duration: flyDuration,
               ease: "easeInOut",
             }}
-            className={`fixed z-[60] font-bold drop-shadow-lg pointer-events-none ${sizeClasses[size].flying} ${getScoreColorClass(flyingPoints.value)}`}
-            style={{ transform: "translate(50%, -50%)" }}
+            className={`fixed z-[60] font-bold drop-shadow-lg pointer-events-none ${sizeClasses[size].flying}`}
+            style={{
+              transform: "translate(50%, -50%)",
+              ...getFlyingPointsColor(flyingPoints.value),
+            }}
           >
             +{flyingPoints.value}
           </motion.div>
