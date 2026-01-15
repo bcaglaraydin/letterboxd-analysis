@@ -90,7 +90,7 @@ export default function RatingGamePage() {
           </div>
         }
         middle={
-          <div className="w-full max-w-sm mx-auto flex flex-col md:block flex-1 min-h-0 pb-2 md:pb-0 space-y-1 md:space-y-8 justify-center">
+          <div className="w-full max-w-sm mx-auto flex flex-col md:block flex-1 min-h-0 pb-2 md:pb-0 space-y-1 md:space-y-8 justify-center px-8 md:px-0">
             {currentMovie && (
               <div className="flex-1 min-h-0 relative flex flex-col justify-center mb-1 md:mb-6 md:h-auto md:block">
                 <MovieCard
