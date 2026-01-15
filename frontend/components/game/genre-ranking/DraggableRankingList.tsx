@@ -62,20 +62,22 @@ export const DraggableRankingList: React.FC<DraggableRankingListProps> = ({
                   borderLeftWidth: "3px",
                 }}
               >
-                <div
+                <motion.div
+                  layout="position"
                   className="w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm font-bold shrink-0 text-white"
                   style={{ backgroundColor: color }}
                 >
                   {index + 1}
-                </div>
-                <span
+                </motion.div>
+                <motion.span
+                  layout="position"
                   className={cn(
                     "font-serif font-semibold text-foreground flex-1 min-w-0 leading-tight",
                     genre.name.length > 10 ? "text-xs md:text-lg" : "text-sm md:text-lg",
                   )}
                 >
                   {genre.name}
-                </span>
+                </motion.span>
                 <div className="flex flex-col gap-0.5 opacity-40">
                   <div className="w-3 md:w-4 h-0.5 bg-muted-foreground rounded" />
                   <div className="w-3 md:w-4 h-0.5 bg-muted-foreground rounded" />

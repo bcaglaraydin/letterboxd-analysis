@@ -129,26 +129,28 @@ export const RankingItem = ({
     >
       {/* Rank Badge - Hide for empty slots */}
       {variant !== "actual-slot" && (
-        <div
+        <motion.div
+          layout="position"
           className={cn(
             "w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm font-bold shrink-0 text-white",
           )}
           style={{ backgroundColor: color }}
         >
           {index + 1}
-        </div>
+        </motion.div>
       )}
 
       {/* Genre Name - Hide for empty slots, dynamic font size for long names */}
       {variant !== "actual-slot" && (
-        <span
+        <motion.span
+          layout="position"
           className={cn(
             "font-serif font-semibold text-foreground flex-1 min-w-0 leading-tight",
             genre.name.length > 10 ? "text-xs md:text-lg" : "text-sm md:text-lg",
           )}
         >
           {genre.name}
-        </span>
+        </motion.span>
       )}
 
       {/* In-Card Score Badge (Replaces Check/X) */}
