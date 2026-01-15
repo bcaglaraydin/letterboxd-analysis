@@ -132,6 +132,7 @@ const FlyingRankingItem = ({
   itemCount: number;
 }) => {
   const [startPos, setStartPos] = React.useState<{ x: number; y: number } | null>(null);
+  const [flightComplete, setFlightComplete] = React.useState(false);
   const elementRef = React.useRef<HTMLDivElement>(null);
 
   React.useLayoutEffect(() => {
@@ -171,6 +172,7 @@ const FlyingRankingItem = ({
         mass: 0.8,
         duration: 1.2,
       }}
+      onAnimationComplete={() => setFlightComplete(true)} // Trigger landing state
       className="absolute inset-0 z-20"
     >
       <RankingItem
@@ -179,7 +181,9 @@ const FlyingRankingItem = ({
         variant="actual-filled"
         isRevealed={true}
         isCorrect={isCorrect}
+        // Score is always passed so ref is mounted, but visibility controlled
         score={score}
+        showScoreBadge={flightComplete}
         hasJustLanded={hasJustLanded}
         onScorePosition={(pos, s) => onScorePosition(genreId, pos, s)}
         maxScore={maxScore}

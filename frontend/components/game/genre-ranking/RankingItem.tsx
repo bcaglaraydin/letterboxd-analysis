@@ -25,6 +25,8 @@ interface RankingItemProps {
   maxScore?: number;
   /** Total number of items in the ranking (defaults to 8 if not provided) */
   itemCount?: number;
+  /** Whether the score badge should be visible (defaults to true). If false, it's rendered but hidden (opacity 0). */
+  showScoreBadge?: boolean;
 }
 
 export const RankingItem = ({
@@ -42,6 +44,7 @@ export const RankingItem = ({
   onScorePosition,
   maxScore = 120,
   itemCount = 8,
+  showScoreBadge = true,
 }: RankingItemProps) => {
   const scoreBadgeRef = useRef<HTMLDivElement>(null);
   const hasReportedRef = useRef(false);
@@ -159,7 +162,11 @@ export const RankingItem = ({
           <motion.div
             ref={scoreBadgeRef}
             initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
+            animate={{
+              opacity: showScoreBadge ? 1 : 0,
+              scale: showScoreBadge ? 1 : 0.5,
+            }}
+            transition={{ type: "spring", stiffness: 500, damping: 14 }}
             className={cn("font-bold text-xs md:text-base ml-auto shrink-0 w-8 md:w-10 text-right")}
             style={{
               // Color based on per-item score ratio: 0 = red (hue 0), max = green (hue 120)
