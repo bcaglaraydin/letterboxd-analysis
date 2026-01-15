@@ -36,9 +36,11 @@ export const MovieCard = ({
         {/* Mobile Constraint Wrapper - ensures aspect ratio is respected without cropping */}
         <div
           className="relative h-full w-auto md:w-full md:h-full aspect-[2/3] md:aspect-auto max-h-full max-w-full shadow-2xl shadow-black/50 rounded-2xl overflow-hidden md:shadow-none md:rounded-none md:overflow-visible"
-          style={{
-            // On mobile, let simple flex/aspect rules handle sizing
-          }}
+          style={
+            {
+              // On mobile, let simple flex/aspect rules handle sizing
+            }
+          }
         >
           {/* Placeholder / Loading State */}
           {!isLoaded && (

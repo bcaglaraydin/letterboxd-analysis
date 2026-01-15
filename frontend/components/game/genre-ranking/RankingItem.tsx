@@ -149,7 +149,9 @@ export const RankingItem = ({
           layout="position"
           className={cn(
             "font-serif font-semibold text-foreground flex-1 min-w-0 leading-tight",
-            genre.name.length > 10 ? "text-xs md:text-lg" : "text-sm md:text-lg",
+            genre.name.length > 10
+              ? "text-xs md:text-lg"
+              : "text-sm md:text-lg",
           )}
         >
           {genre.name}
@@ -167,7 +169,9 @@ export const RankingItem = ({
               scale: showScoreBadge ? 1 : 0.5,
             }}
             transition={{ type: "spring", stiffness: 500, damping: 14 }}
-            className={cn("font-bold text-xs md:text-base ml-auto shrink-0 w-8 md:w-10 text-right")}
+            className={cn(
+              "font-bold text-xs md:text-base ml-auto shrink-0 w-8 md:w-10 text-right",
+            )}
             style={{
               // Color based on per-item score ratio: 0 = red (hue 0), max = green (hue 120)
               color: `hsl(${Math.round((score / pointsPerItem) * 120)}, 70%, 35%)`,

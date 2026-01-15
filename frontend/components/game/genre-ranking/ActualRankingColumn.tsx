@@ -73,16 +73,16 @@ export const ActualRankingColumn: React.FC<ActualRankingColumnProps> = ({
               className="relative flex-1"
               // No motion prop here for the container to avoid conflicts
             >
-               {/* Slot Placeholder */}
-               <div className="w-full h-full absolute inset-0 z-0">
-                  <RankingItem
-                    genre={genre}
-                    index={index}
-                    variant="actual-slot"
-                    maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
-                    itemCount={itemCount}
-                  />
-               </div>
+              {/* Slot Placeholder */}
+              <div className="w-full h-full absolute inset-0 z-0">
+                <RankingItem
+                  genre={genre}
+                  index={index}
+                  variant="actual-slot"
+                  maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
+                  itemCount={itemCount}
+                />
+              </div>
 
               {/* Filled Item - Flies from User Position */}
               <AnimatePresence>
@@ -131,14 +131,17 @@ const FlyingRankingItem = ({
   maxScore: number;
   itemCount: number;
 }) => {
-  const [startPos, setStartPos] = React.useState<{ x: number; y: number } | null>(null);
+  const [startPos, setStartPos] = React.useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   const [flightComplete, setFlightComplete] = React.useState(false);
   const elementRef = React.useRef<HTMLDivElement>(null);
 
   React.useLayoutEffect(() => {
     // 1. Find the source element (User Ranking Item)
     const sourceEl = document.getElementById(`user-item-${genreId}`);
-    
+
     // 2. Find the destination element (Our own container)
     const destEl = elementRef.current;
 
@@ -158,7 +161,8 @@ const FlyingRankingItem = ({
   }, [genreId]);
 
   // Don't render until we have a start position to prevent jumping
-  if (!startPos) return <div ref={elementRef} className="opacity-0 w-full h-full" />;
+  if (!startPos)
+    return <div ref={elementRef} className="opacity-0 w-full h-full" />;
 
   return (
     <motion.div
