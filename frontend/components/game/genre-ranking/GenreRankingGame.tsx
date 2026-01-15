@@ -291,7 +291,11 @@ export function GenreRankingGame() {
                       const genre = getGenre(genreId);
                       if (!genre) return null;
                       return (
-                        <div key={`static-user-${genreId}`} className="flex-1">
+                        <div
+                          key={`static-user-${genreId}`}
+                          id={`user-item-${genreId}`}
+                          className="flex-1"
+                        >
                           <RankingItem
                             genre={genre}
                             index={index}

@@ -68,61 +68,123 @@ export const ActualRankingColumn: React.FC<ActualRankingColumnProps> = ({
           const hasJustLanded = landedItemId === genreId;
 
           return (
-            <motion.div
+            <div
               key={`actual-slot-${index}`}
               className="relative flex-1"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{
-                duration: 0.8,
-                delay: index * 0.15,
-                ease: "easeOut",
-              }}
+              // No motion prop here for the container to avoid conflicts
             >
-              {/* Empty Slot */}
-              <RankingItem
-                genre={genre}
-                index={index}
-                variant="actual-slot"
-                maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
-                itemCount={itemCount}
-              />
+               {/* Slot Placeholder */}
+               <div className="w-full h-full absolute inset-0 z-0">
+                  <RankingItem
+                    genre={genre}
+                    index={index}
+                    variant="actual-slot"
+                    maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
+                    itemCount={itemCount}
+                  />
+               </div>
 
-              {/* Filled Item - Slides in from left */}
+              {/* Filled Item - Flies from User Position */}
               <AnimatePresence>
                 {isRevealed && (
-                  <motion.div
-                    initial={{ opacity: 0, x: -300, scale: 0.85 }}
-                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                    transition={{
-                      type: "spring",
-                      damping: 20,
-                      stiffness: 100,
-                      duration: 1.5,
-                    }}
-                    className="absolute inset-0"
-                  >
-                    <RankingItem
-                      genre={genre}
-                      index={index}
-                      variant="actual-filled"
-                      isRevealed={true}
-                      isCorrect={isCorrect}
-                      score={calculateItemScore(userIndex, actualIndex)}
-                      hasJustLanded={hasJustLanded}
-                      onScorePosition={(pos, score) =>
-                        onScorePosition(genre.id, pos, score)
-                      }
-                      maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
-                      itemCount={itemCount}
-                    />
-                  </motion.div>
+                  <FlyingRankingItem
+                    key={`flying-${genreId}`}
+                    genreId={genreId}
+                    index={index}
+                    genre={genre}
+                    isCorrect={isCorrect}
+                    score={calculateItemScore(userIndex, actualIndex)}
+                    hasJustLanded={hasJustLanded}
+                    onScorePosition={onScorePosition}
+                    maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
+                    itemCount={itemCount}
+                  />
                 )}
               </AnimatePresence>
-            </motion.div>
+            </div>
           );
         })}
       </div>
+    </motion.div>
+  );
+};
+
+// Sub-component to handle the "Fly from source" logic
+const FlyingRankingItem = ({
+  genreId,
+  index,
+  genre,
+  isCorrect,
+  score,
+  hasJustLanded,
+  onScorePosition,
+  maxScore,
+  itemCount,
+}: {
+  genreId: string;
+  index: number;
+  genre: Genre;
+  isCorrect: boolean;
+  score: number;
+  hasJustLanded: boolean;
+  onScorePosition: ActualRankingColumnProps["onScorePosition"];
+  maxScore: number;
+  itemCount: number;
+}) => {
+  const [startPos, setStartPos] = React.useState<{ x: number; y: number } | null>(null);
+  const elementRef = React.useRef<HTMLDivElement>(null);
+
+  React.useLayoutEffect(() => {
+    // 1. Find the source element (User Ranking Item)
+    const sourceEl = document.getElementById(`user-item-${genreId}`);
+    
+    // 2. Find the destination element (Our own container)
+    const destEl = elementRef.current;
+
+    if (sourceEl && destEl) {
+      const sourceRect = sourceEl.getBoundingClientRect();
+      const destRect = destEl.getBoundingClientRect();
+
+      // Calculate delta
+      const deltaX = sourceRect.left - destRect.left;
+      const deltaY = sourceRect.top - destRect.top;
+
+      setStartPos({ x: deltaX, y: deltaY });
+    } else {
+      // Fallback if measurement fails
+      setStartPos({ x: -200, y: 0 });
+    }
+  }, [genreId]);
+
+  // Don't render until we have a start position to prevent jumping
+  if (!startPos) return <div ref={elementRef} className="opacity-0 w-full h-full" />;
+
+  return (
+    <motion.div
+      ref={elementRef}
+      initial={{ x: startPos.x, y: startPos.y, opacity: 1, scale: 1 }} // Start at source, full size
+      animate={{ x: 0, y: 0, opacity: 1, scale: 1 }} // Fly to 0,0 (destination)
+      transition={{
+        type: "spring",
+        damping: 24,
+        stiffness: 120, // Slightly faster/snappier flight
+        mass: 0.8,
+        duration: 1.2,
+      }}
+      className="absolute inset-0 z-20"
+    >
+      <RankingItem
+        genre={genre}
+        index={index}
+        variant="actual-filled"
+        isRevealed={true}
+        isCorrect={isCorrect}
+        score={score}
+        hasJustLanded={hasJustLanded}
+        onScorePosition={(pos, s) => onScorePosition(genreId, pos, s)}
+        maxScore={maxScore}
+        itemCount={itemCount}
+      />
     </motion.div>
   );
 };
