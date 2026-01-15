@@ -33,36 +33,44 @@ export const MovieCard = ({
           layout === "below" ? "mb-1 md:mb-6" : "",
         )}
       >
-        {/* Placeholder / Loading State */}
-        {!isLoaded && (
-          <div className="absolute inset-0 bg-muted animate-pulse z-10 md:rounded-2xl" />
-        )}
-
-        {/* Actual Image */}
-        <Image
-          src={posterUrl}
-          alt={`Poster for ${title}`}
-          fill
-          className={cn(
-            "object-cover rounded-2xl shadow-2xl shadow-black/50 transition-opacity duration-500 md:rounded-none md:shadow-none",
-            isLoaded ? "opacity-100" : "opacity-0",
+        {/* Mobile Constraint Wrapper - ensures aspect ratio is respected without cropping */}
+        <div
+          className="relative h-full w-auto md:w-full md:h-full aspect-[2/3] md:aspect-auto max-h-full max-w-full shadow-2xl shadow-black/50 rounded-2xl overflow-hidden md:shadow-none md:rounded-none md:overflow-visible"
+          style={{
+            // On mobile, let simple flex/aspect rules handle sizing
+          }}
+        >
+          {/* Placeholder / Loading State */}
+          {!isLoaded && (
+            <div className="absolute inset-0 bg-muted animate-pulse z-10 md:rounded-2xl" />
           )}
-          onLoad={() => setIsLoaded(true)}
-        />
 
-        {/* Layout: Overlay (Default) */}
-        {layout === "overlay" && (
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-6">
-            <h2 className="text-3xl font-bold text-white leading-tight font-serif">
-              {title}
-            </h2>
-            <div className="flex items-center gap-3 mt-2 text-white/80 text-sm font-medium tracking-wide">
-              <span>{year}</span>
-              <span>•</span>
-              <span className="uppercase tracking-wider">{director}</span>
+          {/* Actual Image */}
+          <Image
+            src={posterUrl}
+            alt={`Poster for ${title}`}
+            fill
+            className={cn(
+              "object-cover transition-opacity duration-500 md:rounded-2xl md:shadow-2xl md:shadow-black/50",
+              isLoaded ? "opacity-100" : "opacity-0",
+            )}
+            onLoad={() => setIsLoaded(true)}
+          />
+
+          {/* Layout: Overlay (Default) */}
+          {layout === "overlay" && (
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-6">
+              <h2 className="text-3xl font-bold text-white leading-tight font-serif">
+                {title}
+              </h2>
+              <div className="flex items-center gap-3 mt-2 text-white/80 text-sm font-medium tracking-wide">
+                <span>{year}</span>
+                <span>•</span>
+                <span className="uppercase tracking-wider">{director}</span>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Layout: Below */}
