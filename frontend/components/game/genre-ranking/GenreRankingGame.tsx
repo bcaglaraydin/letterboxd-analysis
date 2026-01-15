@@ -268,7 +268,7 @@ export function GenreRankingGame() {
                     className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-wider mb-1 md:mb-2 text-center"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5 }}
+                    transition={{ delay: 2.0 }}
                   >
                     Your Ranking
                   </motion.div>
