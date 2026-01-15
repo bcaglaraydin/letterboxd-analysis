@@ -6,6 +6,7 @@ import { ArrowRight, Lock } from "lucide-react";
 import { useGenreGameStore } from "@/store/genreGameStore";
 import { RankingItem } from "./RankingItem";
 import { ScorePanel } from "../shared/ScorePanel";
+import { GameLayout } from "../shared/GameLayout";
 import { useRankingScore } from "@/hooks/useDistanceScore";
 import { GENRE_RANKING_CONFIG } from "./constants";
 import { GenreIntroPhase } from "./GenreIntroPhase";
@@ -195,168 +196,173 @@ export function GenreRankingGame() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="flex flex-col h-[100dvh] md:min-h-screen md:h-auto w-full p-3 md:p-6 md:py-8 overflow-hidden md:overflow-visible"
+        className="w-full h-full"
       >
-        {/* SECTION 1: Top Section - Score or Header (shrink-0) */}
-        <div className="shrink-0">
-          {isRevealing ? (
-            /* Score display during reveal - flows in layout on mobile, fixed on desktop */
-            <div className="flex justify-end mb-2 md:mb-0">
-              <ScorePanel
-                score={totalScore}
-                pointsEarned={flyingPoints}
-                flyFromPosition={flyPosition}
-                maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
-                pointsPerAction={GENRE_RANKING_CONFIG.POINTS_PER_ITEM}
-                showMaxScore={true}
-                animationDelay={0}
-                label="Score"
-                size="md"
-                position="static"
-                className="md:fixed md:top-6 md:right-6 md:z-[55]"
-              />
-            </div>
-          ) : (
-            /* Header during ranking phase */
-            <motion.div
-              className="text-center mb-2 md:mb-6 pt-2 md:pt-4"
-              layout="position"
-            >
-              <motion.h2
-                className="text-lg md:text-2xl font-serif font-bold text-foreground"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                Rank Your Top Genres
-              </motion.h2>
-              <motion.p
-                className="text-xs md:text-sm text-muted-foreground mt-1"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.2 }}
-              >
-                Drag to reorder from most to least watched
-              </motion.p>
-            </motion.div>
-          )}
-        </div>
-
-        {/* SECTION 2: Game Area - fills remaining space (flex-1) */}
-        <div className="flex-1 w-full max-w-4xl mx-auto min-h-0 overflow-hidden md:overflow-visible flex flex-col">
-          <LayoutGroup>
-            <motion.div
-              className={`w-full h-full grid gap-1 md:gap-6 ${showTwoColumns ? "grid-cols-2" : "grid-cols-1 max-w-md mx-auto"}`}
-              layout
-              transition={{
-                type: "tween",
-                duration: 2,
-                ease: [0.25, 0.1, 0.25, 1],
-              }}
-            >
-              <motion.div
-                layout
-                className="w-full h-full flex flex-col relative"
-                transition={{
-                  type: "tween",
-                  duration: 2,
-                  ease: [0.25, 0.1, 0.25, 1],
-                }}
-              >
-                {/* Column Header */}
-                {isRevealing && (
-                  <motion.div
-                    className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-wider mb-1 md:mb-2 text-center"
+        <GameLayout
+          className="p-3 md:p-6 md:py-8"
+          top={
+            <div className="w-full">
+              {isRevealing ? (
+                /* Score display during reveal - flows in layout on mobile, fixed on desktop */
+                <div className="flex justify-end mb-2 md:mb-0">
+                  <ScorePanel
+                    score={totalScore}
+                    pointsEarned={flyingPoints}
+                    flyFromPosition={flyPosition}
+                    maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
+                    pointsPerAction={GENRE_RANKING_CONFIG.POINTS_PER_ITEM}
+                    showMaxScore={true}
+                    animationDelay={0}
+                    label="Score"
+                    size="md"
+                    position="static"
+                  />
+                </div>
+              ) : (
+                /* Header during ranking phase */
+                <motion.div
+                  className="text-center mb-2 md:mb-6 pt-2 md:pt-4"
+                  layout="position"
+                >
+                  <motion.h2
+                    className="text-lg md:text-2xl font-serif font-bold text-foreground"
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                  >
+                    Rank Your Top Genres
+                  </motion.h2>
+                  <motion.p
+                    className="text-xs md:text-sm text-muted-foreground mt-1"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ delay: 2.0 }}
+                    transition={{ delay: 0.2 }}
                   >
-                    Your Ranking
-                  </motion.div>
-                )}
-
-                {/* Draggable List OR Static List */}
-                {!isRevealing ? (
-                  <DraggableRankingList
-                    genres={genres}
-                    userRanking={userRanking}
-                    onReorder={setUserRanking}
-                    isDragging={isDragging}
-                    onDragStart={setIsDragging}
-                    onDragEnd={() => setIsDragging(null)}
-                  />
-                ) : (
-                  /* Reveal Phase: Static items - flex container for items to fill */
-                  <div className="flex flex-col gap-1 md:gap-3 w-full h-full">
-                    {userRanking.map((genreId, index) => {
-                      const genre = getGenre(genreId);
-                      if (!genre) return null;
-                      return (
-                        <div
-                          key={`static-user-${genreId}`}
-                          id={`user-item-${genreId}`}
-                          className="flex-1"
-                        >
-                          <RankingItem
-                            genre={genre}
-                            index={index}
-                            variant="static"
-                            maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
-                            itemCount={itemCount}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </motion.div>
-
-              {/* Actual Ranking Column */}
-              {showActualColumn && (
-                <ActualRankingColumn
-                  genres={genres}
-                  actualRanking={actualRanking}
-                  userRanking={userRanking}
-                  revealedActualIds={revealedActualIds}
-                  landedItemId={landedItemId}
-                  itemCount={itemCount}
-                  calculateItemScore={calculateItemScore}
-                  onScorePosition={handleScorePosition}
-                />
+                    Drag to reorder from most to least watched
+                  </motion.p>
+                </motion.div>
               )}
-            </motion.div>
-          </LayoutGroup>
-        </div>
+            </div>
+          }
+          middle={
+            <div className="w-full max-w-4xl mx-auto h-full flex flex-col">
+              <LayoutGroup>
+                <motion.div
+                  className={`w-full h-full grid gap-1 md:gap-6 ${showTwoColumns ? "grid-cols-2" : "grid-cols-1 max-w-md mx-auto"}`}
+                  layout
+                  transition={{
+                    type: "tween",
+                    duration: 2,
+                    ease: [0.25, 0.1, 0.25, 1],
+                  }}
+                >
+                  <motion.div
+                    layout
+                    className="w-full h-full flex flex-col relative"
+                    transition={{
+                      type: "tween",
+                      duration: 2,
+                      ease: [0.25, 0.1, 0.25, 1],
+                    }}
+                  >
+                    {/* Column Header */}
+                    {isRevealing && (
+                      <motion.div
+                        className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-wider mb-1 md:mb-2 text-center"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 2.0 }}
+                      >
+                        Your Ranking
+                      </motion.div>
+                    )}
 
-        {/* SECTION 3: Buttons (shrink-0) */}
-        <div className="pt-2 md:pt-6 pb-2 md:pb-8 flex justify-center shrink-0">
-          {!isRevealing && (
-            <motion.button
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={confirmRanking}
-              className="px-6 md:px-8 py-3 md:py-4 bg-primary text-primary-foreground font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all text-base md:text-lg flex items-center gap-2"
-            >
-              <Lock className="w-4 h-4 md:w-5 md:h-5" />
-              Lock It In
-            </motion.button>
-          )}
+                    {/* Draggable List OR Static List */}
+                    {!isRevealing ? (
+                      <DraggableRankingList
+                        genres={genres}
+                        userRanking={userRanking}
+                        onReorder={setUserRanking}
+                        isDragging={isDragging}
+                        onDragStart={setIsDragging}
+                        onDragEnd={() => setIsDragging(null)}
+                      />
+                    ) : (
+                      /* Reveal Phase: Static items - flex container for items to fill */
+                      <div className="flex flex-col gap-1 md:gap-3 w-full h-full">
+                        {userRanking.map((genreId, index) => {
+                          const genre = getGenre(genreId);
+                          if (!genre) return null;
+                          return (
+                            <div
+                              key={`static-user-${genreId}`}
+                              id={`user-item-${genreId}`}
+                              className="flex-1"
+                            >
+                              <RankingItem
+                                genre={genre}
+                                index={index}
+                                variant="static"
+                                maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
+                                itemCount={itemCount}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </motion.div>
 
-          {isComplete && (
-            <motion.button
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => nextPhase()}
-              className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold flex items-center gap-2"
-            >
-              Continue <ArrowRight className="w-4 h-4" />
-            </motion.button>
-          )}
-        </div>
+                  {/* Actual Ranking Column */}
+                  {showActualColumn && (
+                    <ActualRankingColumn
+                      genres={genres}
+                      actualRanking={actualRanking}
+                      userRanking={userRanking}
+                      revealedActualIds={revealedActualIds}
+                      landedItemId={landedItemId}
+                      itemCount={itemCount}
+                      calculateItemScore={calculateItemScore}
+                      onScorePosition={handleScorePosition}
+                    />
+                  )}
+                </motion.div>
+              </LayoutGroup>
+            </div>
+          }
+          bottom={
+            <div className="flex justify-center w-full pt-2 md:pt-6 pb-2 md:pb-8 min-h-[80px] md:min-h-[100px]">
+              <div className="h-12 md:h-14 flex items-center">
+                {!isRevealing && (
+                  <motion.button
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={confirmRanking}
+                    className="px-6 md:px-8 py-3 md:py-4 bg-primary text-primary-foreground font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all text-base md:text-lg flex items-center gap-2"
+                  >
+                    <Lock className="w-4 h-4 md:w-5 md:h-5" />
+                    Lock It In
+                  </motion.button>
+                )}
+
+                {isComplete && (
+                  <motion.button
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => nextPhase()}
+                    className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold flex items-center gap-2"
+                  >
+                    Continue <ArrowRight className="w-4 h-4" />
+                  </motion.button>
+                )}
+              </div>
+            </div>
+          }
+        />
       </motion.div>
     );
   }
