@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/store/gameStore";
 import { GameBackground } from "@/components/game/shared/GameBackground";
-import { GameContainer } from "@/components/game/shared/GameContainer";
+import { GameLayout } from "@/components/game/shared/GameLayout";
 import { ScorePanel } from "@/components/game/shared/ScorePanel";
 import { MovieCard } from "@/components/game/rating-game/MovieCard";
 import { StarRating } from "@/components/game/rating-game/StarRating";
@@ -55,54 +55,58 @@ export default function RatingGamePage() {
   if (isGameOver) {
     return (
       <GameBackground>
-        <GameContainer>
-          <PostGameScreen />
-        </GameContainer>
+        <GameLayout
+          className="w-full max-w-7xl mx-auto"
+          middle={<PostGameScreen />}
+        />
       </GameBackground>
     );
   }
 
   return (
     <GameBackground className="h-[100dvh] !min-h-0 overflow-hidden md:h-auto md:min-h-screen md:overflow-visible">
-      {/* Round Indicator (Top Left) */}
-      <div className="absolute top-0 left-0 p-4 md:p-8 z-[60] pointer-events-none">
-        <div className="flex items-baseline gap-1 font-light text-foreground">
-          <span className="text-2xl font-serif">{currentRound}</span>
-          <span className="text-sm text-muted-foreground">/ {totalRounds}</span>
-        </div>
-      </div>
-
-      {/* ScorePanel with flying animation */}
-      <ScorePanel
-        score={score}
-        pointsEarned={showFeedback ? roundScore : null}
-        maxScore={totalRounds * 20}
-        showMaxScore={true}
-        label="Score"
-        size="lg"
-        position="top-right"
-      />
-
-      <GameContainer className="h-full md:h-auto md:min-h-screen overflow-hidden md:overflow-visible flex flex-col md:block pt-0 md:pt-24">
-        {/* Header Spacer for ScoreDisplay - Mobile Only */}
-        <div className="h-16 shrink-0 md:hidden" />
-
-        {/* Main Game Area */}
-        <div className="w-full max-w-sm mx-auto flex flex-col md:block flex-1 min-h-0 pb-2 md:pb-0 space-y-1 md:space-y-8">
-          {currentMovie && (
-            <div className="flex-1 min-h-0 relative flex flex-col justify-center mb-1 md:mb-6 md:h-auto md:block">
-              <MovieCard
-                key={currentMovie.movieId}
-                title={currentMovie.title}
-                year={parseInt(currentMovie.releaseYear) || 0}
-                director={currentMovie.director || "Unknown Director"}
-                posterUrl={currentMovie.poster || ""}
-                className="h-full md:h-auto"
-              />
+      <GameLayout
+        className="h-[100dvh] !min-h-0 overflow-hidden md:h-auto md:min-h-screen md:overflow-visible w-full max-w-7xl mx-auto"
+        top={
+          <div className="flex justify-between items-start p-4 md:p-8 w-full">
+            {/* Round Indicator */}
+            <div className="flex items-baseline gap-1 font-light text-foreground">
+              <span className="text-2xl font-serif">{currentRound}</span>
+              <span className="text-sm text-muted-foreground">
+                / {totalRounds}
+              </span>
             </div>
-          )}
 
-          <div className="shrink-0 space-y-2 text-center z-10 md:space-y-6">
+            {/* ScorePanel */}
+            <ScorePanel
+              score={score}
+              pointsEarned={showFeedback ? roundScore : null}
+              maxScore={totalRounds * 20}
+              showMaxScore={true}
+              label="Score"
+              size="lg"
+              position="static"
+            />
+          </div>
+        }
+        middle={
+          <div className="w-full max-w-sm mx-auto flex flex-col md:block flex-1 min-h-0 pb-2 md:pb-0 space-y-1 md:space-y-8 justify-center">
+            {currentMovie && (
+              <div className="flex-1 min-h-0 relative flex flex-col justify-center mb-1 md:mb-6 md:h-auto md:block">
+                <MovieCard
+                  key={currentMovie.movieId}
+                  title={currentMovie.title}
+                  year={parseInt(currentMovie.releaseYear) || 0}
+                  director={currentMovie.director || "Unknown Director"}
+                  posterUrl={currentMovie.poster || ""}
+                  className="h-full md:h-auto"
+                />
+              </div>
+            )}
+          </div>
+        }
+        bottom={
+          <div className="shrink-0 space-y-2 text-center z-10 md:space-y-6 w-full max-w-sm mx-auto pb-4">
             <h3 className="text-sm md:text-xl font-bold text-primary uppercase tracking-widest drop-shadow-sm">
               What did you rate this movie?
             </h3>
@@ -123,8 +127,8 @@ export default function RatingGamePage() {
               Reveal Rating
             </button>
           </div>
-        </div>
-      </GameContainer>
+        }
+      />
 
       {/* Feedback Overlay */}
       {showFeedback && currentMovie && (
