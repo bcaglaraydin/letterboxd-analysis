@@ -204,7 +204,9 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
         >
           {displayScore}
           {showMaxScore && (
-            <span className="text-muted-foreground/50 font-normal text-[0.5em]">/{maxScore}</span>
+            <span className="text-muted-foreground/50 font-normal text-[0.5em]">
+              /{maxScore}
+            </span>
           )}
         </motion.span>
       </div>
