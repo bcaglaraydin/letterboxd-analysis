@@ -148,7 +148,7 @@ export function GenreRankingGame() {
             </div>
           }
           middle={
-            <div className="w-full max-w-4xl mx-auto flex flex-col justify-center">
+            <div className="w-full max-w-[57.5rem] mx-auto flex flex-col justify-center">
               <LayoutGroup>
                 <motion.div
                   className={`w-full grid gap-1 md:gap-6 ${showTwoColumns ? "grid-cols-2" : "grid-cols-1 max-w-md mx-auto"}`}
