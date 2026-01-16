@@ -9,28 +9,34 @@ import {
   AveragesStep,
   HistogramStep,
   GuiltyPleasuresStep,
-  SummaryStep,
 } from "./steps";
 
-export const PostGameScreen = () => {
-  const { movies, userStats, resetGame } = useGameStore();
+interface PostGameScreenProps {
+  onComplete: () => void;
+}
+
+export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) => {
+  const { movies, userStats } = useGameStore();
+
   // Step navigation and guilty pleasures state
   const [step, setStep] = useState(0);
   const [gpIndex, setGpIndex] = useState(0);
   const [cpIndex, setCpIndex] = useState(0);
   const [viewingControversial, setViewingControversial] = useState(false);
 
+  // Auto-switch to controversial if no guilty pleasures
+  React.useEffect(() => {
+    if (userStats) {
+      const gpLen = userStats.guiltyPleasures?.length || 0;
+      const cpLen = userStats.controversialPicks?.length || 0;
+      if (gpLen === 0 && cpLen > 0) {
+        setViewingControversial(true);
+      }
+    }
+  }, [userStats]);
+
   // Safety check if stats aren't ready
   if (!userStats || movies.length === 0) return null;
-
-  const nextStep = () => setStep((prev) => prev + 1);
-  const reset = () => {
-    setStep(0);
-    setGpIndex(0);
-    setCpIndex(0);
-    setViewingControversial(false);
-    resetGame();
-  };
 
   // --- Logic Helpers ---
   const guiltyPleasures = userStats.guiltyPleasures || [];
@@ -55,8 +61,18 @@ export const PostGameScreen = () => {
     if (!viewingControversial && controversialPicks.length > 0) {
       setViewingControversial(true);
     } else {
-      nextStep();
+        // If we were viewing guilty pleasures or controversial picks and are done, complete the flow.
+        onComplete();
     }
+  };
+  
+  // Custom nextStep for steps other than GuiltyPleasures to check for completion if no GP/CP exist
+  const handleStepCompletion = () => {
+      if (step < steps.length - 1) {
+          setStep(prev => prev + 1);
+      } else {
+          onComplete();
+      }
   };
 
   const hasMoreInCurrentList = currentIndex < currentList.length - 1;
@@ -70,13 +86,13 @@ export const PostGameScreen = () => {
 
   const steps = [
     // Step 0: Intro
-    <IntroStep key="intro" onNext={nextStep} />,
+    <IntroStep key="intro" onNext={handleStepCompletion} />,
 
     // Step 1: Averages
-    <AveragesStep key="averages" userStats={userStats} onNext={nextStep} />,
+    <AveragesStep key="averages" userStats={userStats} onNext={handleStepCompletion} />,
 
     // Step 2: Histogram
-    <HistogramStep key="histogram" userStats={userStats} onNext={nextStep} />,
+    <HistogramStep key="histogram" userStats={userStats} onNext={hasGuiltyOrControversial ? handleStepCompletion : onComplete} />,
 
     // Step 3: Guilty Pleasures (conditionally included)
     hasGuiltyOrControversial ? (
@@ -92,14 +108,6 @@ export const PostGameScreen = () => {
         onContinue={handleContinue}
       />
     ) : null,
-
-    // Step 4: Summary
-    <SummaryStep
-      key="summary"
-      movies={movies}
-      userStats={userStats}
-      onReset={reset}
-    />,
   ].filter(Boolean);
 
   return (

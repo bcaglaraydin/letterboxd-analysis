@@ -15,7 +15,11 @@ import { ActualRankingColumn } from "./ActualRankingColumn";
 import { useRevealAnimation } from "./useRevealAnimation";
 import { Button } from "@/components/ui/button";
 
-export function GenreRankingGame() {
+interface GenreRankingGameProps {
+  onGameComplete: (score: number) => void;
+}
+
+export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
   const {
     genres,
     userRanking,
@@ -263,11 +267,11 @@ export function GenreRankingGame() {
                     whileTap={{ scale: 0.95 }}
                   >
                     <Button
-                      onClick={() => nextPhase()}
+                      onClick={() => onGameComplete(totalScore)}
                       size="lg"
                       className="px-6 py-3 h-auto rounded-xl font-semibold"
                     >
-                      Continue <ArrowRight className="w-4 h-4 ml-2" />
+                      Return to Hub <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </motion.div>
                 )}

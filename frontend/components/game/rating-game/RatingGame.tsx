@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 import { useGameStore } from "@/store/gameStore";
 import { GameBackground } from "@/components/game/shared/GameBackground";
 import { GameLayout } from "@/components/game/shared/GameLayout";
@@ -12,7 +11,11 @@ import { FeedbackOverlay } from "@/components/game/rating-game/FeedbackOverlay";
 import { PostGameScreen } from "@/components/game/rating-game/PostGameScreen";
 import { Button } from "@/components/ui/button";
 
-export default function RatingGamePage() {
+interface RatingGameProps {
+  onGameComplete: (score: number) => void;
+}
+
+export function RatingGame({ onGameComplete }: RatingGameProps) {
   const {
     movies,
     currentMovieIndex,
@@ -31,34 +34,22 @@ export default function RatingGamePage() {
     x: number;
     y: number;
   }>();
-  // No longer needed for button ref
-  // const buttonContainerRef = React.useRef<HTMLDivElement>(null);
 
   const handleSubmit = () => {
-    // Position now comes from FeedbackOverlay
     submitGuess(currentRating);
     setShowFeedback(true);
   };
 
   const handleNext = () => {
     setShowFeedback(false);
-    setCurrentRating(5.0); // Reset slider
+    setCurrentRating(5.0);
     setFlyFromPosition(undefined);
     nextRound();
   };
 
-  const router = useRouter();
-
-  useEffect(() => {
-    if (movies.length === 0) {
-      router.push("/");
-    }
-  }, [movies, router]);
-
-  if (movies.length === 0) {
-    return null; // Don't render anything while redirecting
-  }
-
+  // If connected to a backend, movies would verify here, but 
+  // orchestration handles loading state usually.
+  
   const currentMovie = movies[currentMovieIndex];
 
   if (isGameOver) {
@@ -66,7 +57,11 @@ export default function RatingGamePage() {
       <GameBackground>
         <GameLayout
           className="w-full max-w-7xl mx-auto"
-          middle={<PostGameScreen />}
+          middle={
+            <PostGameScreen 
+              onComplete={() => onGameComplete(score)}
+            />
+          }
         />
       </GameBackground>
     );
@@ -78,7 +73,6 @@ export default function RatingGamePage() {
         className="h-[100dvh] !min-h-0 overflow-hidden md:h-auto md:min-h-screen md:overflow-visible w-full max-w-7xl mx-auto"
         top={
           <div className="flex justify-between items-start p-4 md:p-8 w-full relative z-[60]">
-            {/* Round Indicator */}
             <div className="flex items-baseline gap-1 font-light text-foreground">
               <span className="text-2xl font-serif">{currentRound}</span>
               <span className="text-sm text-muted-foreground">
@@ -86,10 +80,8 @@ export default function RatingGamePage() {
               </span>
             </div>
 
-            {/* ScorePanel - z-index high to sit above FeedbackOverlay */}
             <ScorePanel
               score={score}
-              // Only trigger animation when we have potential start position
               pointsEarned={showFeedback && flyFromPosition ? roundScore : null}
               flyFromPosition={flyFromPosition}
               maxScore={totalRounds * 20}
@@ -121,7 +113,6 @@ export default function RatingGamePage() {
             <h3 className="text-sm md:text-xl font-bold text-primary uppercase tracking-widest drop-shadow-sm">
               What did you rate this movie?
             </h3>
-            {/* Rating Number Removed for Space */}
 
             <div className="flex justify-center">
               <StarRating
@@ -144,7 +135,6 @@ export default function RatingGamePage() {
         }
       />
 
-      {/* Feedback Overlay */}
       {showFeedback && currentMovie && (
         <FeedbackOverlay
           userRating={currentRating}

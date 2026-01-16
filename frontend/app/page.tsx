@@ -37,7 +37,7 @@ export default function LandingPage() {
       }
 
       startGame(data);
-      router.push("/game/rating");
+      router.push("/game");
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "An unknown error occurred";
