@@ -28,4 +28,3 @@ export const getScoreFeedback = (score: number | null) => {
   if (score >= SCORE_FEEDBACK.OK.threshold) return SCORE_FEEDBACK.OK;
   return SCORE_FEEDBACK.MISS;
 };
-

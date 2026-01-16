@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -8,8 +6,8 @@ interface ScorePanelProps {
   score: number;
   /** Points just earned (triggers flying animation when changed) */
   pointsEarned?: number | null;
-  /** Starting position for flying animation (percentages, default: center) */
-  flyFromPosition?: { top: string; right: string };
+  /** Starting position for flying animation ({x, y} in viewport pixels) */
+  flyFromPosition?: { x: number; y: number };
   /** Maximum possible score for color calculation (default: 100) */
   maxScore?: number;
   /** Label text above the score (default: "Score") */
@@ -36,13 +34,13 @@ interface ScorePanelProps {
  * ScorePanel - A unified component for score display with flying point animation.
  *
  * This component combines:
- * 1. Flying score animation that flies towards the counter
+ * 1. Flying score animation that flies towards the counter (using Portal for z-index safety)
  * 2. Animated score counter that ticks up as points arrive
  *
  * Usage:
  * - Set `score` to the current total score
  * - When points are earned, set `pointsEarned` to trigger the flying animation
- * - The points will fly to the counter and the counter will animate up
+ * - Provide `flyFromPosition` directly as {x, y} viewport coordinates
  */
 export const ScorePanel: React.FC<ScorePanelProps> = ({
   score,
@@ -65,7 +63,12 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
   const [flyingPoints, setFlyingPoints] = useState<{
     value: number;
     key: number;
+    startX: number;
+    startY: number;
+    targetX: number;
+    targetY: number;
   } | null>(null);
+
   // Ref for the score counter element
   const counterRef = useRef<HTMLDivElement>(null);
   // Previous score for detecting resets
@@ -83,12 +86,26 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
     if (
       pointsEarned !== null &&
       pointsEarned > 0 &&
-      pointsEarned !== prevPointsRef.current
+      pointsEarned !== prevPointsRef.current &&
+      flyFromPosition &&
+      counterRef.current
     ) {
-      setFlyingPoints({ value: pointsEarned, key: Date.now() });
+      // Measure destination dynamically
+      const destRect = counterRef.current.getBoundingClientRect();
+      const targetX = destRect.left + destRect.width / 2;
+      const targetY = destRect.top + destRect.height / 2;
+
+      setFlyingPoints({
+        value: pointsEarned,
+        key: Date.now(),
+        startX: flyFromPosition.x,
+        startY: flyFromPosition.y,
+        targetX,
+        targetY,
+      });
     }
     prevPointsRef.current = pointsEarned;
-  }, [pointsEarned]);
+  }, [pointsEarned, flyFromPosition]);
 
   // Animate score counting up
   useEffect(() => {
@@ -153,41 +170,41 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
 
   return (
     <>
-      {/* Flying Score Animation */}
-      <AnimatePresence>
-        {flyingPoints && (
+      {/* Flying Score Animation - Direct Render (No Portal) */}
+      {flyingPoints && (
+        <AnimatePresence>
           <motion.div
             key={flyingPoints.key}
             initial={{
               opacity: 1,
               scale: 1.2,
-              top: flyFromPosition?.top ?? "50%",
-              right: flyFromPosition?.right ?? "50%",
+              top: flyingPoints.startY,
+              left: flyingPoints.startX,
             }}
             animate={{
               opacity: [1, 1, 0],
               scale: [1.2, 1, 0.6],
-              top: "4%",
-              right: "4%",
+              top: flyingPoints.targetY,
+              left: flyingPoints.targetX,
             }}
             transition={{
               duration: flyDuration,
               ease: "easeInOut",
             }}
-            className={`fixed z-[60] font-bold drop-shadow-lg pointer-events-none ${sizeClasses[size].flying}`}
+            className={`fixed z-[9999] font-bold drop-shadow-lg pointer-events-none ${sizeClasses[size].flying} flex items-center justify-center`}
             style={{
-              transform: "translate(50%, -50%)",
+              transform: "translate(-50%, -50%)", // Centering adjustment
+              position: "fixed",
               ...getFlyingPointsColor(flyingPoints.value),
             }}
           >
             +{flyingPoints.value}
           </motion.div>
-        )}
-      </AnimatePresence>
+        </AnimatePresence>
+      )}
 
       {/* Score Counter */}
       <div
-        ref={counterRef}
         className={`flex flex-col items-end gap-0 ${positionClasses} ${className || ""}`}
       >
         <span
@@ -196,6 +213,7 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
           {label}
         </span>
         <motion.span
+          ref={counterRef}
           className={`font-serif italic transition-colors duration-300 ${sizeClasses[size].score}`}
           style={scoreColorStyle}
           key={displayScore}

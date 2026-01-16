@@ -27,8 +27,15 @@ export default function RatingGamePage() {
 
   const [currentRating, setCurrentRating] = useState(5.0);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [flyFromPosition, setFlyFromPosition] = useState<{
+    x: number;
+    y: number;
+  }>();
+  // No longer needed for button ref
+  // const buttonContainerRef = React.useRef<HTMLDivElement>(null);
 
   const handleSubmit = () => {
+    // Position now comes from FeedbackOverlay
     submitGuess(currentRating);
     setShowFeedback(true);
   };
@@ -36,6 +43,7 @@ export default function RatingGamePage() {
   const handleNext = () => {
     setShowFeedback(false);
     setCurrentRating(5.0); // Reset slider
+    setFlyFromPosition(undefined);
     nextRound();
   };
 
@@ -69,7 +77,7 @@ export default function RatingGamePage() {
       <GameLayout
         className="h-[100dvh] !min-h-0 overflow-hidden md:h-auto md:min-h-screen md:overflow-visible w-full max-w-7xl mx-auto"
         top={
-          <div className="flex justify-between items-start p-4 md:p-8 w-full">
+          <div className="flex justify-between items-start p-4 md:p-8 w-full relative z-[60]">
             {/* Round Indicator */}
             <div className="flex items-baseline gap-1 font-light text-foreground">
               <span className="text-2xl font-serif">{currentRound}</span>
@@ -78,10 +86,12 @@ export default function RatingGamePage() {
               </span>
             </div>
 
-            {/* ScorePanel */}
+            {/* ScorePanel - z-index high to sit above FeedbackOverlay */}
             <ScorePanel
               score={score}
-              pointsEarned={showFeedback ? roundScore : null}
+              // Only trigger animation when we have potential start position
+              pointsEarned={showFeedback && flyFromPosition ? roundScore : null}
+              flyFromPosition={flyFromPosition}
               maxScore={totalRounds * 20}
               showMaxScore={true}
               label="Score"
@@ -121,13 +131,15 @@ export default function RatingGamePage() {
               />
             </div>
 
-            <Button
-              onClick={handleSubmit}
-              size="lg"
-              className="w-auto px-12 min-w-[200px] py-3 md:py-4 h-auto rounded-xl text-sm font-medium tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform duration-200"
-            >
-              Reveal Rating
-            </Button>
+            <div className="inline-block">
+              <Button
+                onClick={handleSubmit}
+                size="lg"
+                className="w-auto px-12 min-w-[200px] py-3 md:py-4 h-auto rounded-xl text-sm font-medium tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform duration-200"
+              >
+                Reveal Rating
+              </Button>
+            </div>
           </div>
         }
       />
@@ -138,6 +150,7 @@ export default function RatingGamePage() {
           userRating={currentRating}
           actualRating={currentMovie.userRating}
           onContinue={handleNext}
+          onScorePosition={setFlyFromPosition}
         />
       )}
     </GameBackground>

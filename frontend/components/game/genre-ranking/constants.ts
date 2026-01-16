@@ -30,4 +30,3 @@ export const REVEAL_ANIMATION_TIMING = {
   /** Delay before completing the reveal */
   COMPLETION_DELAY: 1000,
 } as const;
-

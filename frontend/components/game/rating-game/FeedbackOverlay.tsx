@@ -12,18 +12,31 @@ interface FeedbackOverlayProps {
   userRating: number;
   actualRating: number;
   onContinue: () => void;
+  onScorePosition?: (position: { x: number; y: number }) => void;
 }
 
 export const FeedbackOverlay: React.FC<FeedbackOverlayProps> = ({
   userRating,
   actualRating,
   onContinue,
+  onScorePosition,
 }) => {
   const { theme, roundScore } = useGameStore();
 
   const feedback = getScoreFeedback(roundScore);
   const message = feedback.message;
   const scoreColor = feedback.color;
+
+  const scoreRef = React.useRef<HTMLDivElement>(null);
+
+  React.useLayoutEffect(() => {
+    if (scoreRef.current && onScorePosition) {
+      const rect = scoreRef.current.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      onScorePosition({ x, y });
+    }
+  }, [onScorePosition]);
 
   return (
     <motion.div
@@ -52,7 +65,10 @@ export const FeedbackOverlay: React.FC<FeedbackOverlayProps> = ({
 
           <div className="space-y-1">
             <h3 className="text-4xl font-serif text-foreground">{message}</h3>
-            <div className={cn("text-2xl font-bold", scoreColor)}>
+            <div
+              ref={scoreRef}
+              className={cn("text-2xl font-bold", scoreColor)}
+            >
               +{roundScore}
             </div>
           </div>

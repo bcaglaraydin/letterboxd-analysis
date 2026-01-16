@@ -16,7 +16,7 @@ interface ActualRankingColumnProps {
   calculateItemScore: (userIndex: number, actualIndex: number) => number;
   onScorePosition: (
     genreId: string,
-    position: { top: string; right: string },
+    position: { x: number; y: number },
     score: number,
   ) => void;
 }
@@ -127,7 +127,11 @@ const FlyingRankingItem = ({
   isCorrect: boolean;
   score: number;
   hasJustLanded: boolean;
-  onScorePosition: ActualRankingColumnProps["onScorePosition"];
+  onScorePosition: (
+    genreId: string,
+    position: { x: number; y: number },
+    score: number,
+  ) => void;
   maxScore: number;
   itemCount: number;
 }) => {

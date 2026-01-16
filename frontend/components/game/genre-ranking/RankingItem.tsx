@@ -17,10 +17,7 @@ interface RankingItemProps {
   style?: React.CSSProperties;
   hasJustLanded?: boolean;
   /** Callback with position when score badge is ready for flying animation */
-  onScorePosition?: (
-    position: { top: string; right: string },
-    score: number,
-  ) => void;
+  onScorePosition?: (position: { x: number; y: number }, score: number) => void;
   /** Max possible game score (defaults to 120 if not provided) */
   maxScore?: number;
   /** Total number of items in the ranking (defaults to 8 if not provided) */
@@ -77,9 +74,10 @@ export const RankingItem = ({
     ) {
       hasReportedRef.current = true;
       const rect = scoreBadgeRef.current.getBoundingClientRect();
-      const top = `${((rect.top + rect.height / 2) / window.innerHeight) * 100}%`;
-      const right = `${((window.innerWidth - rect.right + rect.width / 2) / window.innerWidth) * 100}%`;
-      onScorePosition({ top, right }, score ?? 0);
+      // Calculate center of the badge in viewport coordinates
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      onScorePosition({ x, y }, score ?? 0);
     }
   }, [hasJustLanded, onScorePosition, score]);
 
