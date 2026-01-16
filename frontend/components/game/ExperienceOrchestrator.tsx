@@ -8,7 +8,8 @@ import { GameHub } from "./GameHub";
 import { GenreRankingGame } from "./genre-ranking/GenreRankingGame";
 
 export const ExperienceOrchestrator = () => {
-  const { currentPhase, completeRatingGame, completeGenreGame } = useExperienceStore();
+  const { currentPhase, completeRatingGame, completeGenreGame } =
+    useExperienceStore();
 
   return (
     <div className="w-full h-full min-h-screen bg-background overflow-hidden relative">

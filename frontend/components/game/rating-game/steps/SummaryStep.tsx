@@ -66,22 +66,25 @@ export const SummaryStep: React.FC<SummaryStepProps> = ({
         </div>
 
         <div className="pt-6 border-t border-border flex flex-col gap-3">
-          <Button 
+          <Button
             onClick={onContinue}
             className="w-full py-3 h-auto rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all mb-2"
           >
-             Continue to Journey <ArrowRight size={18} />
+            Continue to Journey <ArrowRight size={18} />
           </Button>
           <div className="flex gap-3">
-            <Button variant="outline" className="flex-1 py-3 h-auto rounded-xl font-medium flex items-center justify-center gap-2">
-                <Share2 size={18} /> Share
+            <Button
+              variant="outline"
+              className="flex-1 py-3 h-auto rounded-xl font-medium flex items-center justify-center gap-2"
+            >
+              <Share2 size={18} /> Share
             </Button>
             <Button
-                onClick={onReset}
-                variant="secondary"
-                className="flex-1 py-3 h-auto rounded-xl font-medium flex items-center justify-center gap-2"
+              onClick={onReset}
+              variant="secondary"
+              className="flex-1 py-3 h-auto rounded-xl font-medium flex items-center justify-center gap-2"
             >
-                <RotateCcw size={18} /> Replay
+              <RotateCcw size={18} /> Replay
             </Button>
           </div>
         </div>
