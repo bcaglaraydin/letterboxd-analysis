@@ -1,3 +1,5 @@
+import { shuffle } from '../utils/array.js';
+
 /**
  * Generates data for the Genre Ranking Game.
  * @param {Array} films - Array of film objects with a 'genres' property (Array of strings).
@@ -24,12 +26,11 @@ export const generateGenreGame = (films, options = {}) => {
     .sort((a, b) => b[1] - a[1]) // Descending by count
     .slice(0, limit);
 
-  // 3. Format Response
+  // 3. Format Response with shuffled genres
+  const genres = sortedGenres.map(([name]) => ({ id: name, name }));
+
   const genreGameData = {
-    genres: sortedGenres
-      .map(([name]) => ({ id: name, name }))
-      // Shuffle them so the user has to guess the order
-      .sort(() => Math.random() - 0.5),
+    genres: shuffle([...genres]), // Fisher-Yates shuffle for unbiased randomization
     actualRanking: sortedGenres.map(([name]) => name),
   };
 

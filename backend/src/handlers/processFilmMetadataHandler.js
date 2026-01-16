@@ -2,6 +2,7 @@ import { scrapeFilmDetails } from '../services/letterboxdScrapingService.js';
 import { putItem, getItem } from '../services/dynamoDbService.js';
 
 const FILMS_TABLE = process.env.FILMS_TABLE;
+const TTL_HOURS = 24;
 
 export const handler = async (event) => {
   console.log(`Worker received ${event.Records.length} messages`);
@@ -31,8 +32,8 @@ export const handler = async (event) => {
         console.log(`Scraping details for: ${slug}`);
         const filmDetails = await scrapeFilmDetails(slug, url);
 
-        // 3. Store in DynamoDB with TTL (24 hours)
-        const ttl = Math.floor(Date.now() / 1000) + 24 * 60 * 60;
+        // 3. Store in DynamoDB with TTL
+        const ttl = Math.floor(Date.now() / 1000) + TTL_HOURS * 60 * 60;
         await putItem(FILMS_TABLE, { ...filmDetails, ttl });
         console.log(`Stored film: ${slug}`);
       } catch (error) {

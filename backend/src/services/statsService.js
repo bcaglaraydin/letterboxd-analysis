@@ -89,11 +89,11 @@ export function calculateCommunityComparison(films) {
 }
 
 /**
- * Finds "Guilty Pleasure" movies (User High, Community Low).
- * Returns an array of candidates, sorted by difference.
- * Priority: Gold (User >= 3 & Diff > 0), then Silver (Diff > 0).
- * @param {Array} movies - Array of movie objects.
- * @returns {Array} - Array of guilty pleasure movies.
+ * Finds "Guilty Pleasure" and "Controversial Pick" movies.
+ * Guilty Pleasure: User rated high, community rated low/mid.
+ * Controversial Pick: User rated WAY higher than community on good movies.
+ * @param {Array} movies - Array of movie objects with userRating and communityRating.
+ * @returns {{guiltyPleasures: Array, controversialPicks: Array}} - Sorted by rating difference.
  */
 export function findGuiltyPleasure(movies) {
   if (!movies || movies.length === 0) return [];
