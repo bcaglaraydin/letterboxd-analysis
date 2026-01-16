@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, LayoutGroup } from "framer-motion";
 import { ArrowRight, Lock } from "lucide-react";
 import { useGenreGameStore } from "@/store/genreGameStore";
@@ -8,10 +8,12 @@ import { RankingItem } from "./RankingItem";
 import { ScorePanel } from "../shared/ScorePanel";
 import { GameLayout } from "../shared/GameLayout";
 import { useRankingScore } from "@/hooks/useDistanceScore";
-import { GENRE_RANKING_CONFIG, REVEAL_ANIMATION_TIMING } from "./constants";
+import { GENRE_RANKING_CONFIG } from "./constants";
 import { GenreIntroPhase } from "./GenreIntroPhase";
 import { DraggableRankingList } from "./DraggableRankingList";
 import { ActualRankingColumn } from "./ActualRankingColumn";
+import { useRevealAnimation } from "./useRevealAnimation";
+import { Button } from "@/components/ui/button";
 
 export function GenreRankingGame() {
   const {
@@ -34,8 +36,25 @@ export function GenreRankingGame() {
     itemCount: itemCount,
   });
 
-  // Local UI states
+  // Local UI state
   const [isDragging, setIsDragging] = useState<string | null>(null);
+
+  // Reveal Animation (extracted to custom hook)
+  const {
+    revealStage,
+    revealedActualIds,
+    landedItemId,
+    flyingPoints,
+    flyPosition,
+    totalScore,
+    isComplete,
+    handleScorePosition,
+  } = useRevealAnimation({
+    phase,
+    userRanking,
+    actualRanking,
+    previousScore,
+  });
 
   // Initialize with mock data on mount (for development)
   useEffect(() => {
@@ -59,125 +78,8 @@ export function GenreRankingGame() {
     }
   }, [genres.length, phase, startGame]);
 
-  // Reveal animation states
-  const [revealStage, setRevealStage] = useState<
-    "ranking" | "ranking-shift" | "slots-appear" | "item-flying" | "complete"
-  >("ranking");
-  const [revealIndex, setRevealIndex] = useState(-1);
-  const [revealedActualIds, setRevealedActualIds] = useState<Set<string>>(
-    new Set(),
-  );
-  const [landedItemId, setLandedItemId] = useState<string | null>(null);
-  const [flyingPoints, setFlyingPoints] = useState<number | null>(null);
-  const [flyPosition, setFlyPosition] = useState<
-    { top: string; right: string } | undefined
-  >(undefined);
-  const [totalScore, setTotalScore] = useState(0);
-  const [isComplete, setIsComplete] = useState(false);
-  const lastProcessedIdRef = useRef<string | null>(null);
-
-  // Handler for when RankingItem reports its score badge position
-  const handleScorePosition = useCallback(
-    (
-      genreId: string,
-      position: { top: string; right: string },
-      genreScore: number,
-    ) => {
-      if (lastProcessedIdRef.current === genreId) return;
-      lastProcessedIdRef.current = genreId;
-
-      setFlyPosition(position);
-      setFlyingPoints(genreScore);
-      setTimeout(() => {
-        setTotalScore((prev) => prev + genreScore);
-      }, 600);
-    },
-    [],
-  );
-
   // Get genre object by ID
   const getGenre = (id: string) => genres.find((g) => g.id === id);
-
-  // Reset states when going back to ranking phase
-  useEffect(() => {
-    if (phase === "ranking" || phase === "intro") {
-      const resetTimer = setTimeout(() => {
-        setRevealStage("ranking");
-        setRevealIndex(-1);
-        setRevealedActualIds(new Set());
-        setLandedItemId(null);
-        setFlyingPoints(null);
-        setFlyPosition(undefined);
-        setTotalScore(0);
-        lastProcessedIdRef.current = null;
-        setIsComplete(false);
-      }, 0);
-      return () => clearTimeout(resetTimer);
-    }
-  }, [phase, previousScore]);
-
-  // Master Orchestrator for Reveal Sequence
-  useEffect(() => {
-    if (phase !== "reveal") return;
-
-    const shiftTimer = setTimeout(() => {
-      setRevealStage("ranking-shift");
-      setTotalScore(0);
-    }, REVEAL_ANIMATION_TIMING.SHIFT_DELAY);
-
-    const slotsTimer = setTimeout(() => {
-      setRevealStage("slots-appear");
-    }, REVEAL_ANIMATION_TIMING.SLOTS_APPEAR_DELAY);
-
-    const flyTimer = setTimeout(() => {
-      setRevealStage("item-flying");
-      setRevealIndex(0);
-    }, REVEAL_ANIMATION_TIMING.ITEM_FLYING_DELAY);
-
-    return () => {
-      clearTimeout(shiftTimer);
-      clearTimeout(slotsTimer);
-      clearTimeout(flyTimer);
-    };
-  }, [phase, previousScore]);
-
-  // Sequential item-by-item reveal animation
-  useEffect(() => {
-    if (revealStage !== "item-flying") return;
-    if (revealIndex < 0 || revealIndex >= actualRanking.length) return;
-
-    const genreId = userRanking[revealIndex];
-    let completionTimer: ReturnType<typeof setTimeout> | null = null;
-
-    const revealTimer = setTimeout(() => {
-      setRevealedActualIds((prev) => new Set(prev).add(genreId));
-    }, REVEAL_ANIMATION_TIMING.ITEM_REVEAL_DELAY);
-
-    const landTimer = setTimeout(() => {
-      setLandedItemId(genreId);
-    }, REVEAL_ANIMATION_TIMING.ITEM_LAND_DELAY);
-
-    const nextTimer = setTimeout(() => {
-      setLandedItemId(null);
-      setFlyingPoints(null);
-      setFlyPosition(undefined);
-      if (revealIndex < actualRanking.length - 1) {
-        setRevealIndex((prev) => prev + 1);
-      } else {
-        completionTimer = setTimeout(() => {
-          setRevealStage("complete");
-          setIsComplete(true);
-        }, REVEAL_ANIMATION_TIMING.COMPLETION_DELAY);
-      }
-    }, REVEAL_ANIMATION_TIMING.NEXT_ITEM_DELAY);
-
-    return () => {
-      clearTimeout(revealTimer);
-      clearTimeout(landTimer);
-      clearTimeout(nextTimer);
-      if (completionTimer) clearTimeout(completionTimer);
-    };
-  }, [revealIndex, revealStage, userRanking, actualRanking]);
 
   // Intro Phase - Use extracted component
   if (phase === "intro") {
@@ -335,31 +237,39 @@ export function GenreRankingGame() {
             <div className="flex justify-center w-full pt-2 md:pt-6 pb-2 md:pb-8 min-h-[80px] md:min-h-[100px]">
               <div className="h-12 md:h-14 flex items-center">
                 {!isRevealing && (
-                  <motion.button
+                  <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
-                    onClick={confirmRanking}
-                    className="px-6 md:px-8 py-3 md:py-4 bg-primary text-primary-foreground font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all text-base md:text-lg flex items-center gap-2"
                   >
-                    <Lock className="w-4 h-4 md:w-5 md:h-5" />
-                    Lock It In
-                  </motion.button>
+                    <Button
+                      onClick={confirmRanking}
+                      size="lg"
+                      className="px-6 md:px-8 py-3 md:py-4 h-auto text-base md:text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
+                    >
+                      <Lock className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+                      Lock It In
+                    </Button>
+                  </motion.div>
                 )}
 
                 {isComplete && (
-                  <motion.button
+                  <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => nextPhase()}
-                    className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold flex items-center gap-2"
                   >
-                    Continue <ArrowRight className="w-4 h-4" />
-                  </motion.button>
+                    <Button
+                      onClick={() => nextPhase()}
+                      size="lg"
+                      className="px-6 py-3 h-auto rounded-xl font-semibold"
+                    >
+                      Continue <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </motion.div>
                 )}
               </div>
             </div>

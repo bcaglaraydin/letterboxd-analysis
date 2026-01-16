@@ -6,6 +6,7 @@ import Image from "next/image";
 import { ArrowRight, Heart } from "lucide-react";
 import { type Movie } from "@/store/gameStore";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface GuiltyPleasuresStepProps {
   currentMovie: Movie | undefined;
@@ -152,13 +153,13 @@ export const GuiltyPleasuresStep: React.FC<GuiltyPleasuresStepProps> = ({
             </motion.div>
           ))}
 
-        <button
+        <Button
           onClick={onContinue}
-          className="bg-card/80 hover:bg-card backdrop-blur px-6 py-3 rounded-full flex items-center gap-2 transition-colors text-foreground border border-border shadow-lg touch-manipulation whitespace-nowrap animate-pulse hover:animate-none"
+          className="px-6 py-3 h-auto rounded-full flex items-center gap-2 backdrop-blur shadow-lg border border-border font-medium ring-1 ring-border/50 animate-pulse hover:animate-none"
         >
           {isLastOfEverything ? "See Summary" : "Continue"}{" "}
           <ArrowRight size={16} />
-        </button>
+        </Button>
       </div>
     </div>
   );

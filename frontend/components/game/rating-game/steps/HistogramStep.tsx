@@ -3,6 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { type UserStats } from "@/store/gameStore";
 
 interface HistogramStepProps {
@@ -110,12 +111,13 @@ export const HistogramStep: React.FC<HistogramStepProps> = ({
         </div>
 
         <div className="shrink-0 pt-4">
-          <button
+          <Button
             onClick={onNext}
-            className="mx-auto bg-secondary hover:bg-secondary/80 text-secondary-foreground px-6 py-3 rounded-full flex items-center gap-2 transition-colors touch-manipulation"
+            variant="secondary"
+            className="mx-auto px-6 py-3 h-auto rounded-full flex items-center gap-2"
           >
             Next <ArrowRight size={16} />
-          </button>
+          </Button>
         </div>
       </motion.div>
     </div>
