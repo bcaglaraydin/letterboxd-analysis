@@ -23,7 +23,10 @@ export const GameLayout: React.FC<GameLayoutProps> = ({
   maxWidth = "max-w-7xl",
 }) => {
   const contentWrapper = centered
-    ? cn("flex-1 flex flex-col items-center justify-start md:justify-center w-full mx-auto", maxWidth)
+    ? cn(
+        "flex-1 flex flex-col items-center justify-start md:justify-center w-full mx-auto",
+        maxWidth,
+      )
     : "";
 
   return (
@@ -34,9 +37,9 @@ export const GameLayout: React.FC<GameLayoutProps> = ({
         className,
       )}
     >
-      {/* Top Zone */}
+      {/* Top Zone - High z-index to stay above overlays if needed */}
       {(top || (!top && !bottom)) && (
-        <div className="shrink-0 z-10 w-full relative flex flex-col justify-center">
+        <div className="shrink-0 z-[60] w-full relative flex flex-col justify-center">
           {top}
         </div>
       )}

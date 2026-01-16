@@ -33,7 +33,7 @@ interface RevealAnimationState {
   /** Points currently flying to score panel */
   flyingPoints: number | null;
   /** Position of flying points animation */
-  flyPosition: { top: string; right: string } | undefined;
+  flyPosition: { x: number; y: number } | undefined;
   /** Current total score during reveal */
   totalScore: number;
   /** Whether the reveal animation is complete */
@@ -41,7 +41,7 @@ interface RevealAnimationState {
   /** Handler for when an item reports its score position */
   handleScorePosition: (
     genreId: string,
-    position: { top: string; right: string },
+    position: { x: number; y: number },
     genreScore: number,
   ) => void;
 }
@@ -71,7 +71,7 @@ export function useRevealAnimation({
   const [landedItemId, setLandedItemId] = useState<string | null>(null);
   const [flyingPoints, setFlyingPoints] = useState<number | null>(null);
   const [flyPosition, setFlyPosition] = useState<
-    { top: string; right: string } | undefined
+    { x: number; y: number } | undefined
   >(undefined);
   const [totalScore, setTotalScore] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
@@ -81,7 +81,7 @@ export function useRevealAnimation({
   const handleScorePosition = useCallback(
     (
       genreId: string,
-      position: { top: string; right: string },
+      position: { x: number; y: number },
       genreScore: number,
     ) => {
       if (lastProcessedIdRef.current === genreId) return;
