@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { Share2, RotateCcw } from "lucide-react";
 import { type Movie, type UserStats } from "@/store/gameStore";
+import { Button } from "@/components/ui/button";
 
 interface SummaryStepProps {
   movies: Movie[];
@@ -63,15 +64,16 @@ export const SummaryStep: React.FC<SummaryStepProps> = ({
         </div>
 
         <div className="pt-6 border-t border-border flex flex-col gap-3">
-          <button className="w-full bg-primary text-primary-foreground py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:brightness-110 transition-all touch-manipulation">
+          <Button className="w-full py-3 h-auto rounded-xl font-bold flex items-center justify-center gap-2">
             <Share2 size={18} /> Share Results
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={onReset}
-            className="w-full bg-secondary text-secondary-foreground py-3 rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-secondary/80 transition-all touch-manipulation"
+            variant="secondary"
+            className="w-full py-3 h-auto rounded-xl font-medium flex items-center justify-center gap-2"
           >
             <RotateCcw size={18} /> Replay
-          </button>
+          </Button>
         </div>
       </motion.div>
     </div>

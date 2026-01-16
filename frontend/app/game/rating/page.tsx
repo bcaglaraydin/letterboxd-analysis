@@ -10,6 +10,7 @@ import { MovieCard } from "@/components/game/rating-game/MovieCard";
 import { StarRating } from "@/components/game/rating-game/StarRating";
 import { FeedbackOverlay } from "@/components/game/rating-game/FeedbackOverlay";
 import { PostGameScreen } from "@/components/game/rating-game/PostGameScreen";
+import { Button } from "@/components/ui/button";
 
 export default function RatingGamePage() {
   const {
@@ -120,12 +121,13 @@ export default function RatingGamePage() {
               />
             </div>
 
-            <button
+            <Button
               onClick={handleSubmit}
-              className="w-auto px-12 min-w-[200px] py-3 md:py-4 bg-primary hover:bg-primary/90 border border-transparent rounded-xl text-sm font-medium tracking-widest uppercase transition-colors text-primary-foreground shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform duration-200"
+              size="lg"
+              className="w-auto px-12 min-w-[200px] py-3 md:py-4 h-auto rounded-xl text-sm font-medium tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform duration-200"
             >
               Reveal Rating
-            </button>
+            </Button>
           </div>
         }
       />

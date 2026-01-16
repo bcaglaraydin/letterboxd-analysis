@@ -6,6 +6,7 @@ import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGameStore } from "@/store/gameStore";
 import { getScoreFeedback } from "./constants";
+import { Button } from "@/components/ui/button";
 
 interface FeedbackOverlayProps {
   userRating: number;
@@ -68,15 +69,12 @@ export const FeedbackOverlay: React.FC<FeedbackOverlayProps> = ({
             </p>
           </div>
 
-          <button
+          <Button
             onClick={onContinue}
-            className={cn(
-              "w-full py-3 text-primary-foreground rounded-xl font-medium hover:scale-105 transition-transform shadow-md",
-              theme.buttonColor,
-            )}
+            className="w-full py-3 h-auto rounded-xl font-medium shadow-md hover:scale-105 transition-transform"
           >
             Continue
-          </button>
+          </Button>
         </motion.div>
       </div>
     </motion.div>

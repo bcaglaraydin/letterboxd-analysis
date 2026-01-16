@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { GameBackground } from "@/components/game/shared/GameBackground";
 import { useGameStore } from "@/store/gameStore";
 import { Loader2, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function LandingPage() {
   const [username, setUsername] = useState("");
@@ -95,10 +96,11 @@ export default function LandingPage() {
               </motion.p>
             )}
 
-            <button
+            <Button
               type="submit"
               disabled={isLoading || !username}
-              className="relative w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold text-lg tracking-wide hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100 transition-all duration-300 flex items-center justify-center gap-2 group overflow-hidden shadow-lg shadow-primary/10"
+              size="lg"
+              className="w-full py-4 h-auto text-lg font-bold tracking-wide rounded-xl shadow-lg shadow-primary/10 flex items-center justify-center gap-2 group overflow-hidden"
             >
               {isLoading ? (
                 <>
@@ -111,7 +113,7 @@ export default function LandingPage() {
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </>
               )}
-            </button>
+            </Button>
           </form>
 
           <div className="pt-8 flex justify-center gap-4 text-muted-foreground/60 text-xs uppercase tracking-widest font-medium">
