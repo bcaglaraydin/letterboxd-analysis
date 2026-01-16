@@ -26,7 +26,6 @@ export const MovieCard = ({
   return (
     <div className={cn("w-full flex flex-col h-full", className)}>
       {/* Poster Image */}
-      {/* Poster Image */}
       <div
         className={cn(
           "relative group flex-1 min-h-0 w-full flex justify-center items-center md:block md:flex-none md:aspect-[2/3] md:rounded-2xl md:overflow-hidden md:shadow-2xl md:shadow-black/50 md:bg-black/10",
@@ -34,14 +33,7 @@ export const MovieCard = ({
         )}
       >
         {/* Mobile Constraint Wrapper - ensures aspect ratio is respected without cropping */}
-        <div
-          className="relative h-full w-auto md:w-full md:h-full aspect-[2/3] md:aspect-auto max-h-full max-w-full shadow-2xl shadow-black/50 rounded-2xl overflow-hidden md:shadow-none md:rounded-none md:overflow-visible"
-          style={
-            {
-              // On mobile, let simple flex/aspect rules handle sizing
-            }
-          }
-        >
+        <div className="relative h-full w-auto md:w-full md:h-full aspect-[2/3] md:aspect-auto max-h-full max-w-full shadow-2xl shadow-black/50 rounded-2xl overflow-hidden md:shadow-none md:rounded-none md:overflow-visible">
           {/* Placeholder / Loading State */}
           {!isLoaded && (
             <div className="absolute inset-0 bg-muted animate-pulse z-10 md:rounded-2xl" />
