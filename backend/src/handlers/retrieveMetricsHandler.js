@@ -1,5 +1,7 @@
-import { batchGet, batchWrite } from '../services/dynamoDbService.js';
-import { scrapeUserFilmsList, scrapeFilmDetails } from '../services/letterboxdScrapingService.js';
+import { batchGet } from '../services/dynamoDbService.js';
+import { scrapeUserFilmsList } from '../services/letterboxdScrapingService.js';
+import { generateGenreGame } from '../games/genreGame.js';
+import { generateRatingGame } from '../games/ratingGame.js';
 import {
   calculateRatingDistribution,
   calculateBasicStats,
@@ -45,70 +47,43 @@ export const handler = async (event) => {
       const metadataMap = new Map();
       dbItems.forEach((item) => metadataMap.set(item.slug, item));
 
-      // 3. Select 5 Random Movies for the Game
-      const ratedFilms = userFilms.filter((f) => f.userRating !== null);
-      if (ratedFilms.length < 5) {
+      // 3. Generate Rating Game Data
+      let ratingGameData;
+      try {
+        ratingGameData = await generateRatingGame(userFilms, metadataMap);
+      } catch (err) {
         return {
           statusCode: 400,
-          body: JSON.stringify({ error: 'User needs at least 5 rated films.' }),
+          body: JSON.stringify({ error: err.message }),
         };
       }
-      const shuffled = [...ratedFilms].sort(() => 0.5 - Math.random());
-      const gameMovies = shuffled.slice(0, 5);
 
-      // 4. Ensure Metadata for Game Movies (Scrape if missing)
-      const gameMoviesWithMetadata = await Promise.all(
-        gameMovies.map(async (film) => {
-          let meta = metadataMap.get(film.slug);
-          // Re-scrape if metadata is missing or looks like a failed scrape (year is '????')
-          if (!meta || !meta.year || meta.year === '????') {
-            console.log(`Scraping missing metadata for game movie: ${film.slug}`);
-            try {
-              const url = `https://letterboxd.com/film/${film.slug}/`;
-              meta = await scrapeFilmDetails(film.slug, url);
-              if (FILMS_TABLE) await batchWrite(FILMS_TABLE, [meta]);
-            } catch (err) {
-              console.error(`Failed to scrape ${film.slug}`, err);
-              meta = { title: film.slug, year: '????', posterUrl: null };
-            }
-          }
-          return {
-            movieId: film.slug,
-            userRating: film.userRating,
-            communityRating: meta.averageRating || 0,
-            releaseYear: meta.year,
-            runtimeMinutes: meta.runtime,
-            title: meta.title,
-            director: meta.director,
-            poster: meta.posterUrl || film.posterUrl,
-          };
-        })
-      );
-
-      // 5. Calculate User Stats (using all films we have info for)
+      // 4. Generate Genre Ranking Game Data
+      // Construct allFilmsWithMeta using the map we already have
       const allFilmsWithMeta = userFilms.map((f) => {
         const meta = metadataMap.get(f.slug) || {};
         return {
           ...f,
           ...meta,
-          userRating: f.userRating, // Preserve user's rating
-          poster: meta.posterUrl || f.posterUrl, // Prefer high-res poster from meta, fallback to list poster
-          title: meta.title || f.title || f.slug, // Prefer meta title, then list title, then slug
+          userRating: f.userRating,
+          poster: meta.posterUrl || f.posterUrl,
+          title: meta.title || f.title || f.slug,
         };
       });
 
+      const genreGameData = generateGenreGame(allFilmsWithMeta, { limit: 8 });
+
+      // 5. Calculate User Stats
       const userRatings = userFilms.map((f) => f.userRating).filter((r) => r !== null);
       const ratingDist = calculateRatingDistribution(userRatings);
       const basicStats = calculateBasicStats(userRatings);
       const commStats = calculateCommunityComparison(allFilmsWithMeta);
-
       const commRatings = allFilmsWithMeta
         .map((f) => f.averageRating)
         .filter((r) => r != null && r > 0);
       const commDist = calculateRatingDistribution(commRatings);
 
-      // 5. Guilty Pleasure & Controversial Picks
-      // Map averageRating -> communityRating for the service function
+      // 6. Guilty Pleasure & Controversial Picks
       const candidates = allFilmsWithMeta
         .filter((f) => f.averageRating)
         .map((f) => ({
@@ -119,11 +94,10 @@ export const handler = async (event) => {
       const { guiltyPleasures, controversialPicks } = findGuiltyPleasure(candidates);
 
       const stats = {
-        totalMovies: userFilms.length, // Use userFilms.length as basicStats doesn't return totalMovies
-        averageRating: basicStats.average, // basicStats returns 'average', not 'averageRating'
+        totalMovies: userFilms.length,
+        averageRating: basicStats.average,
         ratingDistribution: ratingDist,
         generosity: {
-          // Construct generosity object from basicStats
           median: basicStats.median,
           average: basicStats.average,
           stdDev: basicStats.stdDev,
@@ -139,7 +113,8 @@ export const handler = async (event) => {
         body: JSON.stringify({
           username: username,
           userStats: stats,
-          movies: gameMoviesWithMetadata,
+          ratingGame: ratingGameData,
+          genreGame: genreGameData,
         }),
       };
     }

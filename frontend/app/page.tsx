@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { GameBackground } from "@/components/game/shared/GameBackground";
 import { useGameStore } from "@/store/gameStore";
+import { useGenreGameStore } from "@/store/genreGameStore";
 import { Loader2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -14,6 +15,7 @@ export default function LandingPage() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const startGame = useGameStore((state) => state.startGame);
+  const startGenreGame = useGenreGameStore((state) => state.startGame);
 
   const handleStart = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +38,17 @@ export default function LandingPage() {
         throw new Error(data.error || "Failed to fetch data");
       }
 
-      startGame(data);
+      startGame({
+        movies: data.ratingGame.movies,
+        userStats: data.userStats,
+      });
+      
+      if (data.genreGame) {
+        startGenreGame({
+          ...data.genreGame,
+          previousScore: 0,
+        });
+      }
       router.push("/game");
     } catch (err: unknown) {
       const errorMessage =
