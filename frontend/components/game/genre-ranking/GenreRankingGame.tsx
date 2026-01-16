@@ -191,8 +191,8 @@ export function GenreRankingGame() {
                         onDragEnd={() => setIsDragging(null)}
                       />
                     ) : (
-                      /* Reveal Phase: Static items - flex container for items to fill */
-                      <div className="flex flex-col gap-1 md:gap-3 w-full h-full">
+                      /* Reveal Phase: Static items - compact block, no vertical fill */
+                      <div className="flex flex-col gap-1 md:gap-3 w-full">
                         {userRanking.map((genreId, index) => {
                           const genre = getGenre(genreId);
                           if (!genre) return null;
@@ -200,7 +200,7 @@ export function GenreRankingGame() {
                             <div
                               key={`static-user-${genreId}`}
                               id={`user-item-${genreId}`}
-                              className="flex-1"
+                              className="h-10 md:h-[72px]"
                             >
                               <RankingItem
                                 genre={genre}
