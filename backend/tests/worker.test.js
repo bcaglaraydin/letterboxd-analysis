@@ -90,9 +90,3 @@ describe.runIf(shouldRun)('Worker Pipeline', () => {
     });
   });
 });
-
-describe.skipIf(!shouldRun)('Worker Pipeline (SKIPPED - AWS not configured)', () => {
-  it('skipped because SQS_QUEUE_URL or FILMS_TABLE not set', () => {
-    expect(true).toBe(true); // Placeholder
-  });
-});
