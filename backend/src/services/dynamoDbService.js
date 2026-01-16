@@ -3,7 +3,6 @@ import {
   DynamoDBDocumentClient,
   PutCommand,
   BatchWriteCommand,
-  QueryCommand,
   BatchGetCommand,
   GetCommand,
   DeleteCommand,
@@ -86,16 +85,6 @@ export async function batchWrite(tableName, items) {
       console.error(`Failed to write ${batch.length} items to ${tableName} after 3 attempts.`);
     }
   }
-}
-
-export async function query(tableName, keyConditionExpression, expressionAttributeValues) {
-  const command = new QueryCommand({
-    TableName: tableName,
-    KeyConditionExpression: keyConditionExpression,
-    ExpressionAttributeValues: expressionAttributeValues,
-  });
-  const response = await docClient.send(command);
-  return response.Items;
 }
 
 export async function batchGet(tableName, keys) {

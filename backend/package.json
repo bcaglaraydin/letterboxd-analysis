@@ -8,14 +8,17 @@
   },
   "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run src",
+    "test:unit": "vitest run src",
+    "test:integration": "vitest run tests",
+    "test:all": "vitest run",
+    "test:watch": "vitest",
     "local": "node local-run.js",
     "start:local": "node --watch server.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "verify": "node tests/verify-scraping.js && node tests/verify-worker.js && node tests/verify-metrics.js"
+    "format:check": "prettier --check ."
   },
   "author": "",
   "license": "ISC",
@@ -35,6 +38,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "globals": "^16.5.0",
-    "prettier": "^3.6.2"
+    "prettier": "^3.6.2",
+    "vitest": "^3.2.4"
   }
 }

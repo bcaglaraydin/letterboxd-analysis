@@ -93,16 +93,15 @@ jobs:
         working-directory: backend
         run: npm ci
 
-      - name: Verify Worker (SQS & DynamoDB)
+      - name: Run Unit Tests
         working-directory: backend
-        env:
-          SQS_QUEUE_URL: ${{ env.SQS_QUEUE_URL }}
-          FILMS_TABLE: ${{ env.FILMS_TABLE }}
-          AWS_REGION: ${{ env.AWS_REGION }}
-        run: node tests/verify-worker.js
+        run: npm run test:unit
 
-      - name: Verify Metrics API
+      - name: Run Integration Tests
         working-directory: backend
         env:
           API_URL: ${{ env.API_URL }}
-        run: node tests/verify-metrics.js
+          SQS_QUEUE_URL: ${{ env.SQS_QUEUE_URL }}
+          FILMS_TABLE: ${{ env.FILMS_TABLE }}
+          AWS_REGION: ${{ env.AWS_REGION }}
+        run: npm run test:integration
