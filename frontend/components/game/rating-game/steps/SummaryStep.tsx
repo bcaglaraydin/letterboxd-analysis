@@ -3,7 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { Share2, RotateCcw } from "lucide-react";
+import { Share2, RotateCcw, ArrowRight } from "lucide-react";
 import { type Movie, type UserStats } from "@/store/gameStore";
 import { Button } from "@/components/ui/button";
 
@@ -11,12 +11,14 @@ interface SummaryStepProps {
   movies: Movie[];
   userStats: UserStats;
   onReset: () => void;
+  onContinue: () => void;
 }
 
 export const SummaryStep: React.FC<SummaryStepProps> = ({
   movies,
   userStats,
   onReset,
+  onContinue,
 }) => {
   return (
     <div
@@ -64,16 +66,24 @@ export const SummaryStep: React.FC<SummaryStepProps> = ({
         </div>
 
         <div className="pt-6 border-t border-border flex flex-col gap-3">
-          <Button className="w-full py-3 h-auto rounded-xl font-bold flex items-center justify-center gap-2">
-            <Share2 size={18} /> Share Results
-          </Button>
-          <Button
-            onClick={onReset}
-            variant="secondary"
-            className="w-full py-3 h-auto rounded-xl font-medium flex items-center justify-center gap-2"
+          <Button 
+            onClick={onContinue}
+            className="w-full py-3 h-auto rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all mb-2"
           >
-            <RotateCcw size={18} /> Replay
+             Continue to Journey <ArrowRight size={18} />
           </Button>
+          <div className="flex gap-3">
+            <Button variant="outline" className="flex-1 py-3 h-auto rounded-xl font-medium flex items-center justify-center gap-2">
+                <Share2 size={18} /> Share
+            </Button>
+            <Button
+                onClick={onReset}
+                variant="secondary"
+                className="flex-1 py-3 h-auto rounded-xl font-medium flex items-center justify-center gap-2"
+            >
+                <RotateCcw size={18} /> Replay
+            </Button>
+          </div>
         </div>
       </motion.div>
     </div>
