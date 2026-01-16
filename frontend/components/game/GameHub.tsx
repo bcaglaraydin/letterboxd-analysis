@@ -12,7 +12,13 @@ import { RATING_GAME_CONFIG } from "@/components/game/rating-game/constants";
 import { GENRE_RANKING_CONFIG } from "@/components/game/genre-ranking/constants";
 
 export const GameHub = () => {
-  const { scores, startGenreGame, startRatingGame, unlockedGames, completedGames } = useExperienceStore();
+  const {
+    scores,
+    startGenreGame,
+    startRatingGame,
+    unlockedGames,
+    completedGames,
+  } = useExperienceStore();
   const isGenreUnlocked = unlockedGames.includes("genre-game");
   const isRatingCompleted = completedGames.includes("rating-game");
   const isGenreCompleted = completedGames.includes("genre-game");
@@ -61,25 +67,25 @@ export const GameHub = () => {
           >
             {/* Rating Game Card */}
             <motion.div variants={item} className="w-full">
-              <div 
+              <div
                 className={`bg-card/50 border border-border/50 rounded-3xl p-6 md:p-8 relative overflow-hidden group hover:border-primary/20 transition-colors ${
-                    allGamesCompleted ? "cursor-pointer hover:bg-card/80" : ""
+                  allGamesCompleted ? "cursor-pointer hover:bg-card/80" : ""
                 }`}
                 onClick={allGamesCompleted ? startRatingGame : undefined}
               >
                 <div className="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity">
                   <Star className="w-12 h-12 text-primary/20" />
                 </div>
-                
+
                 <div className="space-y-4">
                   <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
                     <Star className="w-6 h-6 fill-current" />
                   </div>
-                  
+
                   <div>
                     <h3 className="text-xl font-bold">Rating Intuition</h3>
                     <p className="text-sm text-muted-foreground">
-                        {allGamesCompleted ? "Click to Replay" : "Completed"}
+                      {allGamesCompleted ? "Click to Replay" : "Completed"}
                     </p>
                   </div>
 
@@ -97,10 +103,10 @@ export const GameHub = () => {
 
             {/* Genre Ranking Game Card */}
             <motion.div variants={item} className="w-full h-full">
-              <div 
+              <div
                 className={`h-full bg-card border rounded-3xl p-6 md:p-8 relative overflow-hidden transition-all duration-300 ${
-                  isGenreUnlocked 
-                    ? "border-accent/50 bg-gradient-to-br from-accent/5 to-transparent hover:shadow-lg hover:shadow-accent/5 hover:scale-[1.02] cursor-pointer" 
+                  isGenreUnlocked
+                    ? "border-accent/50 bg-gradient-to-br from-accent/5 to-transparent hover:shadow-lg hover:shadow-accent/5 hover:scale-[1.02] cursor-pointer"
                     : "border-border/30 opacity-60"
                 }`}
                 onClick={isGenreUnlocked ? startGenreGame : undefined}
@@ -114,32 +120,48 @@ export const GameHub = () => {
                 <div className="space-y-4 h-full flex flex-col">
                   <div className="flex justify-between items-start">
                     <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center text-accent">
-                      {isGenreUnlocked && !isGenreCompleted ? <Play className="w-6 h-6 fill-current" /> : isGenreCompleted ? <Film className="w-6 h-6" /> : <Lock className="w-6 h-6" />}
+                      {isGenreUnlocked && !isGenreCompleted ? (
+                        <Play className="w-6 h-6 fill-current" />
+                      ) : isGenreCompleted ? (
+                        <Film className="w-6 h-6" />
+                      ) : (
+                        <Lock className="w-6 h-6" />
+                      )}
                     </div>
                   </div>
-                  
+
                   <div className="flex-1">
                     <h3 className="text-xl font-bold">
-                       {isGenreCompleted ? "Genre Ranking" : isGenreUnlocked ? "Next Chapter" : "Locked"}
+                      {isGenreCompleted
+                        ? "Genre Ranking"
+                        : isGenreUnlocked
+                          ? "Next Chapter"
+                          : "Locked"}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      {isGenreCompleted ? (allGamesCompleted ? "Click to Replay" : "Completed") : isGenreUnlocked ? "Continue your journey" : "Complete previous game to unlock"}
+                      {isGenreCompleted
+                        ? allGamesCompleted
+                          ? "Click to Replay"
+                          : "Completed"
+                        : isGenreUnlocked
+                          ? "Continue your journey"
+                          : "Complete previous game to unlock"}
                     </p>
                   </div>
 
                   {isGenreCompleted ? (
-                      <div className="flex items-end gap-1">
-                        <span className="text-4xl font-serif font-bold text-foreground">
-                          {Math.round(scores.genre)}
-                        </span>
-                        <span className="text-sm text-muted-foreground mb-1.5 opacity-60">
-                          / {GENRE_RANKING_CONFIG.MAX_SCORE}
-                        </span>
-                      </div>
+                    <div className="flex items-end gap-1">
+                      <span className="text-4xl font-serif font-bold text-foreground">
+                        {Math.round(scores.genre)}
+                      </span>
+                      <span className="text-sm text-muted-foreground mb-1.5 opacity-60">
+                        / {GENRE_RANKING_CONFIG.MAX_SCORE}
+                      </span>
+                    </div>
                   ) : isGenreUnlocked ? (
-                    <Button 
+                    <Button
                       className="w-full h-12 rounded-xl text-base font-bold shadow-lg shadow-accent/20 hover:shadow-accent/30 transition-all group"
-                      variant="default" 
+                      variant="default"
                     >
                       Continue
                       <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-0.5 transition-transform" />

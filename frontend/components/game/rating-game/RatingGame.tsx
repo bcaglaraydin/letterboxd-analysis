@@ -47,9 +47,9 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
     nextRound();
   };
 
-  // If connected to a backend, movies would verify here, but 
+  // If connected to a backend, movies would verify here, but
   // orchestration handles loading state usually.
-  
+
   const currentMovie = movies[currentMovieIndex];
 
   if (isGameOver) {
@@ -57,11 +57,7 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
       <GameBackground>
         <GameLayout
           className="w-full max-w-7xl mx-auto"
-          middle={
-            <PostGameScreen 
-              onComplete={() => onGameComplete(score)}
-            />
-          }
+          middle={<PostGameScreen onComplete={() => onGameComplete(score)} />}
         />
       </GameBackground>
     );

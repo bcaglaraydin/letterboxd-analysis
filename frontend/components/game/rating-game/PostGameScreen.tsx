@@ -15,7 +15,9 @@ interface PostGameScreenProps {
   onComplete: () => void;
 }
 
-export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) => {
+export const PostGameScreen: React.FC<PostGameScreenProps> = ({
+  onComplete,
+}) => {
   const { movies, userStats } = useGameStore();
 
   // Step navigation and guilty pleasures state
@@ -61,18 +63,18 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) =>
     if (!viewingControversial && controversialPicks.length > 0) {
       setViewingControversial(true);
     } else {
-        // If we were viewing guilty pleasures or controversial picks and are done, complete the flow.
-        onComplete();
+      // If we were viewing guilty pleasures or controversial picks and are done, complete the flow.
+      onComplete();
     }
   };
-  
+
   // Custom nextStep for steps other than GuiltyPleasures to check for completion if no GP/CP exist
   const handleStepCompletion = () => {
-      if (step < steps.length - 1) {
-          setStep(prev => prev + 1);
-      } else {
-          onComplete();
-      }
+    if (step < steps.length - 1) {
+      setStep((prev) => prev + 1);
+    } else {
+      onComplete();
+    }
   };
 
   const hasMoreInCurrentList = currentIndex < currentList.length - 1;
@@ -89,10 +91,18 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) =>
     <IntroStep key="intro" onNext={handleStepCompletion} />,
 
     // Step 1: Averages
-    <AveragesStep key="averages" userStats={userStats} onNext={handleStepCompletion} />,
+    <AveragesStep
+      key="averages"
+      userStats={userStats}
+      onNext={handleStepCompletion}
+    />,
 
     // Step 2: Histogram
-    <HistogramStep key="histogram" userStats={userStats} onNext={hasGuiltyOrControversial ? handleStepCompletion : onComplete} />,
+    <HistogramStep
+      key="histogram"
+      userStats={userStats}
+      onNext={hasGuiltyOrControversial ? handleStepCompletion : onComplete}
+    />,
 
     // Step 3: Guilty Pleasures (conditionally included)
     hasGuiltyOrControversial ? (
