@@ -8,6 +8,10 @@ interface GameLayoutProps {
   middle: React.ReactNode;
   bottom?: React.ReactNode;
   className?: string;
+  /** Center content horizontally with max-width constraint (absorbs GameContainer functionality) */
+  centered?: boolean;
+  /** Max width class when centered (default: "max-w-7xl") */
+  maxWidth?: string;
 }
 
 export const GameLayout: React.FC<GameLayoutProps> = ({
@@ -15,16 +19,23 @@ export const GameLayout: React.FC<GameLayoutProps> = ({
   middle,
   bottom,
   className,
+  centered = false,
+  maxWidth = "max-w-7xl",
 }) => {
+  const contentWrapper = centered
+    ? cn("flex-1 flex flex-col items-center justify-start md:justify-center w-full mx-auto", maxWidth)
+    : "";
+
   return (
     <div
       className={cn(
         "flex flex-col h-[100dvh] md:min-h-screen w-full relative overflow-hidden md:overflow-visible",
+        centered && contentWrapper,
         className,
       )}
     >
       {/* Top Zone */}
-      {(top || (!top && !bottom)) && ( // Render if top exists, or if neither exists (just in case, but logical check)
+      {(top || (!top && !bottom)) && (
         <div className="shrink-0 z-10 w-full relative flex flex-col justify-center">
           {top}
         </div>

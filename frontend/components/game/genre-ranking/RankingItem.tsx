@@ -7,7 +7,7 @@ import { useRankingScore } from "@/hooks/useDistanceScore";
 interface RankingItemProps {
   genre: { id: string; name: string };
   index: number;
-  variant?: "static" | "ghost" | "actual-slot" | "actual-filled";
+  variant?: "static" | "ghost" | "actual-slot" | "actual-filled" | "draggable";
   hasLanded?: boolean;
   isRevealed?: boolean;
   isCorrect?: boolean;
@@ -27,6 +27,10 @@ interface RankingItemProps {
   itemCount?: number;
   /** Whether the score badge should be visible (defaults to true). If false, it's rendered but hidden (opacity 0). */
   showScoreBadge?: boolean;
+  /** Whether to show the drag handle (for draggable variant) */
+  showDragHandle?: boolean;
+  /** Whether this item is currently being dragged */
+  isDragging?: boolean;
 }
 
 export const RankingItem = ({
@@ -45,6 +49,8 @@ export const RankingItem = ({
   maxScore = 120,
   itemCount = 8,
   showScoreBadge = true,
+  showDragHandle = true,
+  isDragging = false,
 }: RankingItemProps) => {
   const scoreBadgeRef = useRef<HTMLDivElement>(null);
   const hasReportedRef = useRef(false);
@@ -52,7 +58,7 @@ export const RankingItem = ({
   const { pointsPerItem } = useRankingScore({
     maxScore,
     itemCount,
-  }); // Used for badge color calculation
+  });
 
   // Reset reporting flag when hasJustLanded becomes false
   useEffect(() => {
@@ -83,7 +89,7 @@ export const RankingItem = ({
 
   // Variant-specific styles
   const variantStyles = {
-    static: cn(baseClasses, "bg-card/50 border-border/50"), // Removed opacity-50
+    static: cn(baseClasses, "bg-card/50 border-border/50"),
     ghost: cn(
       baseClasses,
       "bg-card border-border shadow-md z-10",
@@ -94,23 +100,28 @@ export const RankingItem = ({
       baseClasses,
       "bg-card shadow-sm z-20 absolute inset-0 w-full",
     ),
+    draggable: cn(
+      baseClasses,
+      "bg-card border-border cursor-grab active:cursor-grabbing",
+      "shadow-sm hover:shadow-md md:shadow-md md:hover:shadow-lg transition-shadow",
+      isDragging && "shadow-lg md:shadow-xl",
+    ),
   };
 
   // Determine border color based on variant/state
   const getBorderColor = () => {
-    if (variant === "static") return undefined;
-    if (variant === "actual-slot") return undefined; // Handled by class
+    if (variant === "static" || variant === "draggable") return undefined;
+    if (variant === "actual-slot") return undefined;
 
-    // For ghost/filled, score state overrides default
     if (isRevealed) {
-      return isCorrect ? "#22c55e" : undefined; // Remove red for incorrect
+      return isCorrect ? "#22c55e" : undefined;
     }
     return "hsl(var(--border))";
   };
 
   const getBackgroundColor = () => {
     if (isRevealed && variant === "actual-filled") {
-      return isCorrect ? "rgba(34,197,94,0.1)" : undefined; // Remove red background
+      return isCorrect ? "rgba(34,197,94,0.1)" : undefined;
     }
     return undefined;
   };
@@ -158,6 +169,15 @@ export const RankingItem = ({
         </motion.span>
       )}
 
+      {/* Drag Handle - only for draggable variant */}
+      {variant === "draggable" && showDragHandle && (
+        <div className="flex flex-col gap-0.5 opacity-40">
+          <div className="w-3 md:w-4 h-0.5 bg-muted-foreground rounded" />
+          <div className="w-3 md:w-4 h-0.5 bg-muted-foreground rounded" />
+          <div className="w-3 md:w-4 h-0.5 bg-muted-foreground rounded" />
+        </div>
+      )}
+
       {/* In-Card Score Badge (Replaces Check/X) */}
       <AnimatePresence>
         {isRevealed && variant === "actual-filled" && score !== undefined && (
@@ -173,7 +193,6 @@ export const RankingItem = ({
               "font-bold text-xs md:text-base ml-auto shrink-0 w-8 md:w-10 text-right",
             )}
             style={{
-              // Color based on per-item score ratio: 0 = red (hue 0), max = green (hue 120)
               color: `hsl(${Math.round((score / pointsPerItem) * 120)}, 70%, 35%)`,
             }}
           >

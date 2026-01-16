@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGameStore } from "@/store/gameStore";
+import { getScoreFeedback } from "./constants";
 
 interface FeedbackOverlayProps {
   userRating: number;
@@ -19,24 +20,9 @@ export const FeedbackOverlay: React.FC<FeedbackOverlayProps> = ({
 }) => {
   const { theme, roundScore } = useGameStore();
 
-  let message = "Good Attempt";
-  let scoreColor = "text-yellow-400";
-
-  if (roundScore !== null) {
-    if (roundScore === 20) {
-      message = "Spot On.";
-      scoreColor = "text-emerald-400";
-    } else if (roundScore >= 15) {
-      message = "So Close!";
-      scoreColor = "text-green-400";
-    } else if (roundScore >= 8) {
-      message = "Not Bad";
-      scoreColor = "text-yellow-400";
-    } else {
-      message = "Way Off...";
-      scoreColor = "text-red-400";
-    }
-  }
+  const feedback = getScoreFeedback(roundScore);
+  const message = feedback.message;
+  const scoreColor = feedback.color;
 
   return (
     <motion.div

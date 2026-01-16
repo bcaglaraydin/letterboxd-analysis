@@ -8,7 +8,7 @@ import { RankingItem } from "./RankingItem";
 import { ScorePanel } from "../shared/ScorePanel";
 import { GameLayout } from "../shared/GameLayout";
 import { useRankingScore } from "@/hooks/useDistanceScore";
-import { GENRE_RANKING_CONFIG } from "./constants";
+import { GENRE_RANKING_CONFIG, REVEAL_ANIMATION_TIMING } from "./constants";
 import { GenreIntroPhase } from "./GenreIntroPhase";
 import { DraggableRankingList } from "./DraggableRankingList";
 import { ActualRankingColumn } from "./ActualRankingColumn";
@@ -123,16 +123,16 @@ export function GenreRankingGame() {
     const shiftTimer = setTimeout(() => {
       setRevealStage("ranking-shift");
       setTotalScore(0);
-    }, 100);
+    }, REVEAL_ANIMATION_TIMING.SHIFT_DELAY);
 
     const slotsTimer = setTimeout(() => {
       setRevealStage("slots-appear");
-    }, 2200);
+    }, REVEAL_ANIMATION_TIMING.SLOTS_APPEAR_DELAY);
 
     const flyTimer = setTimeout(() => {
       setRevealStage("item-flying");
       setRevealIndex(0);
-    }, 3200);
+    }, REVEAL_ANIMATION_TIMING.ITEM_FLYING_DELAY);
 
     return () => {
       clearTimeout(shiftTimer);
@@ -147,14 +147,15 @@ export function GenreRankingGame() {
     if (revealIndex < 0 || revealIndex >= actualRanking.length) return;
 
     const genreId = userRanking[revealIndex];
+    let completionTimer: ReturnType<typeof setTimeout> | null = null;
 
     const revealTimer = setTimeout(() => {
       setRevealedActualIds((prev) => new Set(prev).add(genreId));
-    }, 200);
+    }, REVEAL_ANIMATION_TIMING.ITEM_REVEAL_DELAY);
 
     const landTimer = setTimeout(() => {
       setLandedItemId(genreId);
-    }, 1200);
+    }, REVEAL_ANIMATION_TIMING.ITEM_LAND_DELAY);
 
     const nextTimer = setTimeout(() => {
       setLandedItemId(null);
@@ -163,17 +164,18 @@ export function GenreRankingGame() {
       if (revealIndex < actualRanking.length - 1) {
         setRevealIndex((prev) => prev + 1);
       } else {
-        setTimeout(() => {
+        completionTimer = setTimeout(() => {
           setRevealStage("complete");
           setIsComplete(true);
-        }, 1000);
+        }, REVEAL_ANIMATION_TIMING.COMPLETION_DELAY);
       }
-    }, 1300);
+    }, REVEAL_ANIMATION_TIMING.NEXT_ITEM_DELAY);
 
     return () => {
       clearTimeout(revealTimer);
       clearTimeout(landTimer);
       clearTimeout(nextTimer);
+      if (completionTimer) clearTimeout(completionTimer);
     };
   }, [revealIndex, revealStage, userRanking, actualRanking]);
 
