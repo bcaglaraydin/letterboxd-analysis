@@ -15,6 +15,9 @@ import { scrapeFilmDetails } from '../../services/letterboxdScrapingService.js';
 describe('generateRatingGame', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Suppress console output during tests
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   // ============================================================
