@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion, LayoutGroup } from "framer-motion";
 import { ArrowRight, Lock } from "lucide-react";
 import { useGenreGameStore } from "@/store/genreGameStore";
@@ -29,7 +29,6 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
     setUserRanking,
     confirmRanking,
     nextPhase,
-    startGame,
   } = useGenreGameStore();
 
   const itemCount = userRanking.length || GENRE_RANKING_CONFIG.ITEM_COUNT;
@@ -61,6 +60,8 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
   });
 
   // Initialize with mock data on mount (for development)
+  // Initialize with mock data on mount (for development)
+  /*
   useEffect(() => {
     if (genres.length === 0 && phase === "intro") {
       const mockGenres = [
@@ -81,6 +82,7 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
       });
     }
   }, [genres.length, phase, startGame]);
+  */
 
   // Get genre object by ID
   const getGenre = (id: string) => genres.find((g) => g.id === id);
