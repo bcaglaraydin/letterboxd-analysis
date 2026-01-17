@@ -8,6 +8,7 @@ import { useGameStore } from "@/store/gameStore";
 import { useGenreGameStore } from "@/store/genreGameStore";
 import { Loader2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 export default function LandingPage() {
   const [username, setUsername] = useState("");
@@ -75,7 +76,17 @@ export default function LandingPage() {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="w-full max-w-md space-y-8 text-center"
         >
-          <div className="space-y-2">
+          <div className="space-y-6">
+            <div className="flex justify-center">
+              <Image
+                src="/logo.svg"
+                alt="Letterboxd Analysis Logo"
+                width={120}
+                height={120}
+                className="w-32 h-32 md:w-40 md:h-40"
+                priority
+              />
+            </div>
             <h1 className="text-6xl font-serif tracking-tight text-primary">
               Letterboxd
               <br />
