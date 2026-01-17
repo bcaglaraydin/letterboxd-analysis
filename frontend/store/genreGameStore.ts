@@ -5,6 +5,7 @@ import { create } from "zustand";
 export interface Genre {
   id: string;
   name: string;
+  averageRating?: number;
 }
 
 interface GenreGameState {

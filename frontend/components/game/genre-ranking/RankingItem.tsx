@@ -1,11 +1,11 @@
 import React, { useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { genreToColor } from "@/store/genreGameStore";
+import { genreToColor, type Genre } from "@/store/genreGameStore";
 import { useRankingScore } from "@/hooks/useDistanceScore";
 
 interface RankingItemProps {
-  genre: { id: string; name: string };
+  genre: Genre;
   index: number;
   variant?: "static" | "ghost" | "actual-slot" | "actual-filled" | "draggable";
   hasLanded?: boolean;
@@ -166,6 +166,18 @@ export const RankingItem = ({
           {genre.name}
         </motion.span>
       )}
+
+      {/* Average Rating Display (Only for actual-filled or revealed items) */}
+      {(variant === "actual-filled" || (isRevealed && variant === "static")) &&
+        genre.averageRating !== undefined && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-xs md:text-sm font-semibold text-muted-foreground mr-2"
+          >
+            ★ {genre.averageRating.toFixed(1)}
+          </motion.div>
+        )}
 
       {/* Drag Handle - only for draggable variant */}
       {variant === "draggable" && showDragHandle && (
