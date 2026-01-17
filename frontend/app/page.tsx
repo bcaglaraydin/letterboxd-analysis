@@ -43,7 +43,7 @@ export default function LandingPage() {
         movies: data.ratingGame.movies,
         userStats: data.userStats,
       });
-      
+
       if (data.genreGame) {
         startGenreGame({
           ...data.genreGame,
