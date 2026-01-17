@@ -32,59 +32,76 @@ export const generateGenreGame = (films, options = {}) => {
     }
   });
 
-  // 2. Identify Popularity Threshold (Top 50% of counts)
-  // "Popular" means being in the top X percent of genre counts.
-  // We use the median (50th percentile) as the default threshold.
-  const allCounts = Object.values(genreStats)
-    .map((s) => s.count)
-    .sort((a, b) => a - b);
-
-  // Calculate P50 (Median)
-  let popularityThreshold = 0;
-  if (allCounts.length > 0) {
-    const mid = Math.floor(allCounts.length * 0.5);
-    popularityThreshold = allCounts[mid];
-  }
-
-  // 3. Partition and Sort
-  // We want to prefer Popular genres. Within each tier, we rank by Average Rating.
-  // Tier 1: Popular (count >= threshold)
-  // Tier 2: Niche (count < threshold)
-  const popularGenres = [];
-  const nicheGenres = [];
-
-  Object.entries(genreStats).forEach(([name, stats]) => {
+  // Convert to array of objects
+  let allGenres = Object.entries(genreStats).map(([name, stats]) => {
     const average = stats.ratedCount > 0 ? stats.totalRating / stats.ratedCount : 0;
-    const genreObj = { name, average, count: stats.count };
-
-    // Safety check: only consider genres with at least one rating for the game?
-    // The previous logic allowed 0 ratings (average 0). We'll keep it but they will be at bottom.
-
-    if (stats.count >= popularityThreshold) {
-      popularGenres.push(genreObj);
-    } else {
-      nicheGenres.push(genreObj);
-    }
+    return { name, average, count: stats.count, ratedCount: stats.ratedCount };
   });
 
-  // Sort function: Rating Descending, then Count Descending (for stability)
-  const sortFn = (a, b) => {
+  // Filter out any potential garbage if needed, but for now we keep all.
+  // Sort by count descending to "separate items by popularity"
+  allGenres.sort((a, b) => b.count - a.count);
+
+  if (allGenres.length === 0) {
+    return { genres: [], actualRanking: [] };
+  }
+
+  // 2. Separate into Popular and Less Popular (divide by 2)
+  // We split the list into two halves.
+  const midPoint = Math.ceil(allGenres.length / 2);
+  const popularGroup = allGenres.slice(0, midPoint);
+  const nicheGroup = allGenres.slice(midPoint);
+
+  // 3. Select Genres from each group
+  // We want to select an even distribution from best ranked to worst ranked.
+  // First, sort each group by Average Rating Descending.
+  const sortByRating = (a, b) => {
     if (b.average !== a.average) return b.average - a.average;
-    return b.count - a.count;
+    return b.count - a.count; // Tie-breaker
   };
 
-  popularGenres.sort(sortFn);
-  nicheGenres.sort(sortFn);
+  popularGroup.sort(sortByRating);
+  nicheGroup.sort(sortByRating);
 
-  // Combine: Popular First, then Niche to fill the limit
-  const selectedGenres = [...popularGenres, ...nicheGenres].slice(0, limit);
+  // Determine how many to pick from each.
+  // We ONLY want Popular genres for now, as requested.
+  // We take 'limit' items from the popular group.
+  const popularCount = limit;
+  // const nicheCount = 0; // Unused
 
-  // 4. Determine Actual Ranking for the Game (Sort Selected by Rating)
-  // Once selected, the correct order is PURELY by rating.
-  const rankedGenres = [...selectedGenres].sort((a, b) => b.average - a.average);
+  // Helper to pick evenly distributed items
+  const selectEvenly = (items, n) => {
+    if (n <= 0) return [];
+    if (n >= items.length) return [...items];
+    if (n === 1) return [items[0]]; // Best only
+
+    const selected = [];
+    // distribute indices from 0 to items.length - 1
+    for (let i = 0; i < n; i++) {
+      // index calculation:
+      // i=0 -> 0
+      // i=n-1 -> length-1
+      const index = Math.floor((i * (items.length - 1)) / (n - 1));
+      selected.push(items[index]);
+    }
+    return selected;
+  };
+
+  const selectedPopular = selectEvenly(popularGroup, popularCount);
+  // const selectedNiche = selectEvenly(nicheGroup, nicheCount);
+
+  // Combine
+  let finalSelection = [...selectedPopular];
+
+  // If we somehow didn't reach the limit using only popular (because popular group was too small),
+  // we strictly stick to popular per requirement "only uses popular genres".
+  // So we accept we might have fewer than limit.
+
+  // 4. Determine Actual Ranking for the Game (Global Sort by Rating)
+  const rankedGenres = [...finalSelection].sort((a, b) => b.average - a.average);
 
   // 5. Format Response
-  const finalGenres = rankedGenres.map((g) => ({
+  const formattedGenres = rankedGenres.map((g) => ({
     id: g.name,
     name: g.name,
     averageRating: Number(g.average.toFixed(2)),
@@ -92,7 +109,7 @@ export const generateGenreGame = (films, options = {}) => {
   const actualRanking = rankedGenres.map((g) => g.name);
 
   const genreGameData = {
-    genres: shuffle([...finalGenres]),
+    genres: shuffle([...formattedGenres]),
     actualRanking: actualRanking,
   };
 
