@@ -4,7 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Share2, RotateCcw, ArrowRight } from "lucide-react";
-import { type Movie, type UserStats } from "@/store/gameStore";
+import { type Movie, type UserStats } from "@/store/rating/ratingStore";
 import { Button } from "@/components/ui/button";
 
 interface SummaryStepProps {

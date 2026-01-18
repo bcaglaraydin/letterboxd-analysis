@@ -68,7 +68,7 @@ const calculateScore = (
   return score;
 };
 
-export const useGenreGameStore = create<GenreGameState>((set, get) => ({
+export const useGenreRankingStore = create<GenreGameState>((set, get) => ({
   phase: "intro",
   genres: [],
   userRanking: [],

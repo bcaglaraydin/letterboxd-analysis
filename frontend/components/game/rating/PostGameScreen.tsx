@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import { useGameStore } from "@/store/gameStore";
+import { useRatingGameStore } from "@/store/rating/ratingStore";
 import { cn } from "@/lib/utils";
 import {
   IntroStep,
@@ -18,7 +18,7 @@ interface PostGameScreenProps {
 export const PostGameScreen: React.FC<PostGameScreenProps> = ({
   onComplete,
 }) => {
-  const { movies, userStats } = useGameStore();
+  const { movies, userStats } = useRatingGameStore();
 
   // Step navigation and guilty pleasures state
   const [step, setStep] = useState(0);

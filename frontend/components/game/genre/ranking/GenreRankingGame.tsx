@@ -3,10 +3,11 @@
 import React, { useState } from "react";
 import { motion, LayoutGroup } from "framer-motion";
 import { ArrowRight, Lock } from "lucide-react";
-import { useGenreGameStore } from "@/store/genreGameStore";
+import { useGenreRankingStore } from "@/store/genre/rankingStore";
 import { RankingItem } from "./RankingItem";
-import { ScorePanel } from "../shared/ScorePanel";
-import { GameLayout } from "../shared/GameLayout";
+import { ScorePanel } from "@/components/game/shared/ScorePanel";
+import { GameRoundIndicator } from "@/components/game/shared/GameRoundIndicator";
+import { GameLayout } from "@/components/game/shared/GameLayout";
 import { useRankingScore } from "@/hooks/useDistanceScore";
 import { GENRE_RANKING_CONFIG } from "./constants";
 import { GenreIntroPhase } from "./GenreIntroPhase";
@@ -29,7 +30,7 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
     setUserRanking,
     confirmRanking,
     nextPhase,
-  } = useGenreGameStore();
+  } = useGenreRankingStore();
 
   const itemCount = userRanking.length || GENRE_RANKING_CONFIG.ITEM_COUNT;
 
@@ -111,7 +112,10 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
         <GameLayout
           className="p-3 md:p-6 md:py-8"
           top={
-            <div className="w-full">
+            <div className="w-full relative">
+              <div className="absolute left-0 top-1 md:top-0">
+                <GameRoundIndicator currentRound={1} totalRounds={1} />
+              </div>
               {isRevealing ? (
                 /* Score display during reveal - flows in layout on mobile, fixed on desktop */
                 <div className="flex justify-end mb-2 md:mb-0">

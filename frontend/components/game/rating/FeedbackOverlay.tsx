@@ -4,7 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useGameStore } from "@/store/gameStore";
+import { useRatingGameStore } from "@/store/rating/ratingStore";
 import { getScoreFeedback } from "./constants";
 import { Button } from "@/components/ui/button";
 
@@ -21,7 +21,7 @@ export const FeedbackOverlay: React.FC<FeedbackOverlayProps> = ({
   onContinue,
   onScorePosition,
 }) => {
-  const { theme, roundScore } = useGameStore();
+  const { theme, roundScore } = useRatingGameStore();
 
   const feedback = getScoreFeedback(roundScore);
   const message = feedback.message;

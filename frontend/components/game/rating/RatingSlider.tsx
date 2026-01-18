@@ -2,7 +2,7 @@
 
 import React from "react";
 import { cn } from "@/lib/utils";
-import { useGameStore } from "@/store/gameStore";
+import { useRatingGameStore } from "@/store/rating/ratingStore";
 
 interface RatingSliderProps {
   value: number;
@@ -21,7 +21,7 @@ export const RatingSlider: React.FC<RatingSliderProps> = ({
   step = 0.1,
   className,
 }) => {
-  const theme = useGameStore((state) => state.theme);
+  const theme = useRatingGameStore((state) => state.theme);
   const percentage = ((value - min) / (max - min)) * 100;
 
   return (

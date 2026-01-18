@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useGameStore } from "@/store/gameStore";
+import { useRatingGameStore } from "@/store/rating/ratingStore";
 
 interface StarRatingProps {
   value: number;
@@ -19,7 +19,7 @@ export const StarRating: React.FC<StarRatingProps> = ({
   readOnly = false,
 }) => {
   const [hoverValue, setHoverValue] = useState<number | null>(null);
-  const theme = useGameStore((state) => state.theme);
+  const theme = useRatingGameStore((state) => state.theme);
 
   const displayValue = hoverValue !== null ? hoverValue : value;
 

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { cn } from "@/lib/utils";
-import { useGameStore } from "@/store/gameStore";
+import { useRatingGameStore } from "@/store/rating/ratingStore";
 
 interface GameBackgroundProps {
   className?: string;
@@ -13,7 +13,7 @@ export const GameBackground: React.FC<GameBackgroundProps> = ({
   className,
   children,
 }) => {
-  const theme = useGameStore((state) => state.theme);
+  const theme = useRatingGameStore((state) => state.theme);
 
   return (
     <div

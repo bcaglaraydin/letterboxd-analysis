@@ -1,14 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { useGameStore } from "@/store/gameStore";
+import { useRatingGameStore } from "@/store/rating/ratingStore";
 import { GameBackground } from "@/components/game/shared/GameBackground";
 import { GameLayout } from "@/components/game/shared/GameLayout";
 import { ScorePanel } from "@/components/game/shared/ScorePanel";
-import { MovieCard } from "@/components/game/rating-game/MovieCard";
-import { StarRating } from "@/components/game/rating-game/StarRating";
-import { FeedbackOverlay } from "@/components/game/rating-game/FeedbackOverlay";
-import { PostGameScreen } from "@/components/game/rating-game/PostGameScreen";
+import { GameRoundIndicator } from "@/components/game/shared/GameRoundIndicator";
+import { MovieCard } from "@/components/game/rating/MovieCard";
+import { StarRating } from "@/components/game/rating/StarRating";
+import { FeedbackOverlay } from "@/components/game/rating/FeedbackOverlay";
+import { PostGameScreen } from "@/components/game/rating/PostGameScreen";
 import { Button } from "@/components/ui/button";
 
 interface RatingGameProps {
@@ -26,7 +27,7 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
     roundScore,
     currentRound,
     totalRounds,
-  } = useGameStore();
+  } = useRatingGameStore();
 
   const [currentRating, setCurrentRating] = useState(5.0);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -69,12 +70,10 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
         className="h-[100dvh] !min-h-0 overflow-hidden md:h-auto md:min-h-screen md:overflow-visible w-full max-w-7xl mx-auto"
         top={
           <div className="flex justify-between items-start p-4 md:p-8 w-full relative z-[60]">
-            <div className="flex items-baseline gap-1 font-light text-foreground">
-              <span className="text-2xl font-serif">{currentRound}</span>
-              <span className="text-sm text-muted-foreground">
-                / {totalRounds}
-              </span>
-            </div>
+            <GameRoundIndicator
+              currentRound={currentRound}
+              totalRounds={totalRounds}
+            />
 
             <ScorePanel
               score={score}

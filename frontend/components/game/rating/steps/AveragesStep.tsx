@@ -3,7 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Star } from "lucide-react";
-import { type UserStats } from "@/store/gameStore";
+import { type UserStats } from "@/store/rating/ratingStore";
 import { Button } from "@/components/ui/button";
 
 interface AveragesStepProps {
