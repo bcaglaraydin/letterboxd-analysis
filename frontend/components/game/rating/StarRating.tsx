@@ -7,9 +7,11 @@ import { useRatingGameStore } from '@/store/rating/ratingStore';
 
 interface StarRatingProps {
   value: number;
-  onChange: (value: number) => void;
+  onChange?: (value: number) => void;
   className?: string;
   readOnly?: boolean;
+  starSize?: string;
+  showEmptyStars?: boolean;
 }
 
 export const StarRating: React.FC<StarRatingProps> = ({
@@ -17,6 +19,8 @@ export const StarRating: React.FC<StarRatingProps> = ({
   onChange,
   className,
   readOnly = false,
+  starSize = 'w-10 h-10',
+  showEmptyStars = true,
 }) => {
   const [hoverValue, setHoverValue] = useState<number | null>(null);
   const theme = useRatingGameStore((state) => state.theme);
@@ -39,7 +43,7 @@ export const StarRating: React.FC<StarRatingProps> = ({
   };
 
   const handleClick = () => {
-    if (readOnly || hoverValue === null) return;
+    if (readOnly || hoverValue === null || !onChange) return;
     onChange(hoverValue);
   };
 
@@ -66,7 +70,7 @@ export const StarRating: React.FC<StarRatingProps> = ({
   };
 
   const handleTouchEnd = () => {
-    if (readOnly || hoverValue === null) return;
+    if (readOnly || hoverValue === null || !onChange) return;
     onChange(hoverValue);
     setHoverValue(null);
   };
@@ -84,11 +88,14 @@ export const StarRating: React.FC<StarRatingProps> = ({
         const isFull = displayValue >= starValue;
         const isHalf = displayValue >= starValue - 0.5 && displayValue < starValue;
 
+        if (!showEmptyStars && !isFull && !isHalf) return null;
+
         return (
           <div
             key={index}
             className={cn(
-              'relative w-10 h-10 transition-transform duration-100',
+              'relative transition-transform duration-100',
+              starSize,
               !readOnly && 'cursor-pointer hover:scale-110',
             )}
             onMouseMove={(e) => handleMouseMove(e, index)}
@@ -108,7 +115,7 @@ export const StarRating: React.FC<StarRatingProps> = ({
               )}
             >
               <Star
-                className={cn('w-10 h-10 fill-current', theme.accentText)}
+                className={cn(starSize, 'fill-current', theme.accentText)}
                 strokeWidth={0} // Fill only
               />
             </div>

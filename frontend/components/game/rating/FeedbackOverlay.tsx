@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { useRatingGameStore } from '@/store/rating/ratingStore';
 import { getScoreFeedback } from './constants';
 import { Button } from '@/components/ui/button';
+import { StarRating } from './StarRating';
 
 interface FeedbackOverlayProps {
   userRating: number;
@@ -70,13 +71,28 @@ export const FeedbackOverlay: React.FC<FeedbackOverlayProps> = ({
             </div>
           </div>
 
-          <div className="py-4 space-y-1 border-t border-border mt-4">
-            <p className="text-muted-foreground text-sm uppercase tracking-widest">
-              Your Guess: <span className="text-foreground font-bold">{userRating.toFixed(1)}</span>
-            </p>
-            <p className="text-muted-foreground text-sm uppercase tracking-widest">
-              Your Actual Rating: {actualRating.toFixed(1)}
-            </p>
+
+
+          <div className="py-4 space-y-3 border-t border-border mt-4">
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-muted-foreground text-sm uppercase tracking-widest">
+                Your Guess
+              </span>
+              <div className="flex items-center gap-2">
+                <StarRating value={userRating} readOnly starSize="w-5 h-5" />
+                <span className="text-foreground font-bold text-lg">{userRating.toFixed(1)}</span>
+              </div>
+            </div>
+            
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-muted-foreground text-sm uppercase tracking-widest">
+                Actual Rating
+              </span>
+              <div className="flex items-center gap-2">
+                <StarRating value={actualRating} readOnly starSize="w-5 h-5" />
+                <span className="text-foreground font-bold text-lg">{actualRating.toFixed(1)}</span>
+              </div>
+            </div>
           </div>
 
           <Button

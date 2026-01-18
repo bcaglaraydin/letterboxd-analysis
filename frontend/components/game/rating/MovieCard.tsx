@@ -11,6 +11,7 @@ interface MovieCardProps {
   posterUrl: string;
   className?: string;
   layout?: 'overlay' | 'glass' | 'below';
+  variant?: 'default' | 'compact';
 }
 
 export const MovieCard = ({
@@ -19,8 +20,10 @@ export const MovieCard = ({
   director,
   posterUrl,
   layout = 'below',
+  variant = 'default',
   className,
 }: MovieCardProps) => {
+  const isCompact = variant === 'compact';
   const [isLoaded, setIsLoaded] = React.useState(false);
 
   return (
@@ -67,11 +70,21 @@ export const MovieCard = ({
 
       {/* Layout: Below */}
       {layout === 'below' && (
-        <div className="text-center space-y-1 shrink-0">
-          <h2 className="text-xl md:text-3xl font-bold text-foreground leading-tight font-serif">
+        <div className="text-center space-y-0.5 shrink-0">
+          <h2
+            className={cn(
+              'font-bold text-foreground leading-tight font-serif',
+              isCompact ? 'text-sm md:text-lg' : 'text-xl md:text-3xl',
+            )}
+          >
             {title}
           </h2>
-          <div className="flex items-center justify-center gap-3 text-muted-foreground text-xs md:text-sm font-medium tracking-wide">
+          <div
+            className={cn(
+              'flex items-center justify-center gap-2 text-muted-foreground font-medium tracking-wide',
+              isCompact ? 'text-[10px] md:text-xs' : 'text-xs md:text-sm',
+            )}
+          >
             <span>{year}</span>
             <span>•</span>
             <span className="uppercase tracking-wider">{director}</span>

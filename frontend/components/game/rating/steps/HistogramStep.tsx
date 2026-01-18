@@ -3,6 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
+import { StarRating } from '../StarRating';
 import { Button } from '@/components/ui/button';
 import { type UserStats } from '@/store/rating/ratingStore';
 
@@ -79,8 +80,14 @@ export const HistogramStep: React.FC<HistogramStepProps> = ({ userStats, onNext 
                     className="w-1/2 bg-muted-foreground/30 rounded-t-[2px] md:rounded-t-sm"
                   />
                 </div>
-                <div className="text-[9px] md:text-xs text-muted-foreground font-medium mt-1 md:mt-2">
-                  {label}
+                <div className="flex items-center justify-center mt-1 md:mt-2">
+                   <StarRating 
+                     value={parseFloat(label)} 
+                     readOnly 
+                     starSize="w-1.5 h-1.5 md:w-3 md:h-3" 
+                     showEmptyStars={false}
+                     className="gap-[0.5px] justify-center"
+                   />
                 </div>
               </div>
             );
