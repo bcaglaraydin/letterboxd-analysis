@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Star } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { type UserStats } from '@/store/rating/ratingStore';
 import { Button } from '@/components/ui/button';
 
@@ -40,16 +40,7 @@ export const AveragesStep: React.FC<AveragesStepProps> = ({ userStats, onNext })
             >
               {userStats.averageRating.toFixed(1)}
             </motion.div>
-            <div className="flex justify-center gap-1 text-primary">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  size={20}
-                  className="md:w-8 md:h-8"
-                  fill={i < Math.round(userStats.averageRating) ? 'currentColor' : 'none'}
-                />
-              ))}
-            </div>
+
           </div>
 
           {/* VS Divider (Mobile only) */}
@@ -68,20 +59,7 @@ export const AveragesStep: React.FC<AveragesStepProps> = ({ userStats, onNext })
             >
               {userStats.communityComparison.averageCommunityRating.toFixed(1)}
             </motion.div>
-            <div className="flex justify-center gap-1 text-muted-foreground">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  size={16}
-                  className="md:w-6 md:h-6"
-                  fill={
-                    i < Math.round(userStats.communityComparison.averageCommunityRating)
-                      ? 'currentColor'
-                      : 'none'
-                  }
-                />
-              ))}
-            </div>
+
           </div>
         </div>
 
