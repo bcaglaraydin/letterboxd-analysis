@@ -1,27 +1,22 @@
-"use client";
+'use client';
 
-import React from "react";
-import { motion } from "framer-motion";
-import { Star, Film, Lock, ArrowRight, Play } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useExperienceStore } from "@/store/experienceStore";
-import { GameBackground } from "@/components/game/shared/GameBackground";
-import { GameLayout } from "@/components/game/shared/GameLayout";
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Star, Film, Lock, ArrowRight, Play } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useExperienceStore } from '@/store/experienceStore';
+import { GameBackground } from '@/components/game/shared/GameBackground';
+import { GameLayout } from '@/components/game/shared/GameLayout';
 
-import { RATING_GAME_CONFIG } from "@/components/game/rating/constants";
-import { GENRE_RANKING_CONFIG } from "@/components/game/genre/ranking/constants";
+import { RATING_GAME_CONFIG } from '@/components/game/rating/constants';
+import { GENRE_RANKING_CONFIG } from '@/components/game/genre/ranking/constants';
 
 export const GameHub = () => {
-  const {
-    scores,
-    startGenreGame,
-    startRatingGame,
-    unlockedGames,
-    completedGames,
-  } = useExperienceStore();
-  const isGenreUnlocked = unlockedGames.includes("genre-game");
-  const isRatingCompleted = completedGames.includes("rating-game");
-  const isGenreCompleted = completedGames.includes("genre-game");
+  const { scores, startGenreGame, startRatingGame, unlockedGames, completedGames } =
+    useExperienceStore();
+  const isGenreUnlocked = unlockedGames.includes('genre-game');
+  const isRatingCompleted = completedGames.includes('rating-game');
+  const isGenreCompleted = completedGames.includes('genre-game');
   const allGamesCompleted = isRatingCompleted && isGenreCompleted;
 
   const container = {
@@ -53,9 +48,7 @@ export const GameHub = () => {
             <h1 className="text-4xl md:text-5xl font-serif font-bold tracking-tight">
               Your Journey
             </h1>
-            <p className="text-muted-foreground text-lg">
-              Unlock insights about your movie taste
-            </p>
+            <p className="text-muted-foreground text-lg">Unlock insights about your movie taste</p>
           </motion.div>
         }
         middle={
@@ -69,7 +62,7 @@ export const GameHub = () => {
             <motion.div variants={item} className="w-full">
               <div
                 className={`bg-card/50 border border-border/50 rounded-3xl p-6 md:p-8 relative overflow-hidden group hover:border-primary/20 transition-colors ${
-                  allGamesCompleted ? "cursor-pointer hover:bg-card/80" : ""
+                  allGamesCompleted ? 'cursor-pointer hover:bg-card/80' : ''
                 }`}
                 onClick={allGamesCompleted ? startRatingGame : undefined}
               >
@@ -85,7 +78,7 @@ export const GameHub = () => {
                   <div>
                     <h3 className="text-xl font-bold">Rating Intuition</h3>
                     <p className="text-sm text-muted-foreground">
-                      {allGamesCompleted ? "Click to Replay" : "Completed"}
+                      {allGamesCompleted ? 'Click to Replay' : 'Completed'}
                     </p>
                   </div>
 
@@ -106,8 +99,8 @@ export const GameHub = () => {
               <div
                 className={`h-full bg-card border rounded-3xl p-6 md:p-8 relative overflow-hidden transition-all duration-300 ${
                   isGenreUnlocked
-                    ? "border-accent/50 bg-gradient-to-br from-accent/5 to-transparent hover:shadow-lg hover:shadow-accent/5 hover:scale-[1.02] cursor-pointer"
-                    : "border-border/30 opacity-60"
+                    ? 'border-accent/50 bg-gradient-to-br from-accent/5 to-transparent hover:shadow-lg hover:shadow-accent/5 hover:scale-[1.02] cursor-pointer'
+                    : 'border-border/30 opacity-60'
                 }`}
                 onClick={isGenreUnlocked ? startGenreGame : undefined}
               >
@@ -133,19 +126,19 @@ export const GameHub = () => {
                   <div className="flex-1">
                     <h3 className="text-xl font-bold">
                       {isGenreCompleted
-                        ? "Genre Ranking"
+                        ? 'Genre Ranking'
                         : isGenreUnlocked
-                          ? "Next Chapter"
-                          : "Locked"}
+                          ? 'Next Chapter'
+                          : 'Locked'}
                     </h3>
                     <p className="text-sm text-muted-foreground">
                       {isGenreCompleted
                         ? allGamesCompleted
-                          ? "Click to Replay"
-                          : "Completed"
+                          ? 'Click to Replay'
+                          : 'Completed'
                         : isGenreUnlocked
-                          ? "Continue your journey"
-                          : "Complete previous game to unlock"}
+                          ? 'Continue your journey'
+                          : 'Complete previous game to unlock'}
                     </p>
                   </div>
 

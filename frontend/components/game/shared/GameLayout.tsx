@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React from "react";
-import { cn } from "@/lib/utils";
+import React from 'react';
+import { cn } from '@/lib/utils';
 
 interface GameLayoutProps {
   top?: React.ReactNode;
@@ -20,28 +20,26 @@ export const GameLayout: React.FC<GameLayoutProps> = ({
   bottom,
   className,
   centered = false,
-  maxWidth = "max-w-7xl",
+  maxWidth = 'max-w-7xl',
 }) => {
   const contentWrapper = centered
     ? cn(
-        "flex-1 flex flex-col items-center justify-start md:justify-center w-full mx-auto",
+        'flex-1 flex flex-col items-center justify-start md:justify-center w-full mx-auto',
         maxWidth,
       )
-    : "";
+    : '';
 
   return (
     <div
       className={cn(
-        "flex flex-col h-[100dvh] md:min-h-screen w-full relative overflow-hidden md:overflow-visible",
+        'flex flex-col h-[100dvh] md:min-h-screen w-full relative overflow-hidden md:overflow-visible',
         centered && contentWrapper,
         className,
       )}
     >
       {/* Top Zone - High z-index to stay above overlays if needed */}
       {(top || (!top && !bottom)) && (
-        <div className="shrink-0 z-[60] w-full relative flex flex-col justify-center">
-          {top}
-        </div>
+        <div className="shrink-0 z-[60] w-full relative flex flex-col justify-center">{top}</div>
       )}
 
       {/* Middle Zone */}
@@ -51,9 +49,7 @@ export const GameLayout: React.FC<GameLayoutProps> = ({
 
       {/* Bottom Zone */}
       {bottom && (
-        <div className="shrink-0 z-10 w-full relative flex flex-col justify-center">
-          {bottom}
-        </div>
+        <div className="shrink-0 z-10 w-full relative flex flex-col justify-center">{bottom}</div>
       )}
     </div>
   );

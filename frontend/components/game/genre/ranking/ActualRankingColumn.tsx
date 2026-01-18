@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { type Genre } from "@/store/genre/rankingStore";
-import { RankingItem } from "./RankingItem";
-import { GENRE_RANKING_CONFIG } from "./constants";
+import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { type Genre } from '@/store/genre/rankingStore';
+import { RankingItem } from './RankingItem';
+import { GENRE_RANKING_CONFIG } from './constants';
 
 interface ActualRankingColumnProps {
   genres: Genre[];
@@ -14,11 +14,7 @@ interface ActualRankingColumnProps {
   landedItemId: string | null;
   itemCount: number;
   calculateItemScore: (userIndex: number, actualIndex: number) => number;
-  onScorePosition: (
-    genreId: string,
-    position: { x: number; y: number },
-    score: number,
-  ) => void;
+  onScorePosition: (genreId: string, position: { x: number; y: number }, score: number) => void;
 }
 
 export const ActualRankingColumn: React.FC<ActualRankingColumnProps> = ({
@@ -40,7 +36,7 @@ export const ActualRankingColumn: React.FC<ActualRankingColumnProps> = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{
-        type: "tween",
+        type: 'tween',
         duration: 1.5,
         delay: 0.3,
       }}
@@ -127,11 +123,7 @@ const FlyingRankingItem = ({
   isCorrect: boolean;
   score: number;
   hasJustLanded: boolean;
-  onScorePosition: (
-    genreId: string,
-    position: { x: number; y: number },
-    score: number,
-  ) => void;
+  onScorePosition: (genreId: string, position: { x: number; y: number }, score: number) => void;
   maxScore: number;
   itemCount: number;
 }) => {
@@ -165,8 +157,7 @@ const FlyingRankingItem = ({
   }, [genreId]);
 
   // Don't render until we have a start position to prevent jumping
-  if (!startPos)
-    return <div ref={elementRef} className="opacity-0 w-full h-full" />;
+  if (!startPos) return <div ref={elementRef} className="opacity-0 w-full h-full" />;
 
   return (
     <motion.div
@@ -174,7 +165,7 @@ const FlyingRankingItem = ({
       initial={{ x: startPos.x, y: startPos.y, opacity: 1, scale: 1 }} // Start at source, full size
       animate={{ x: 0, y: 0, opacity: 1, scale: 1 }} // Fly to 0,0 (destination)
       transition={{
-        type: "spring",
+        type: 'spring',
         damping: 24,
         stiffness: 120, // Slightly faster/snappier flight
         mass: 0.8,

@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import React from "react";
-import { motion, Reorder, AnimatePresence } from "framer-motion";
-import { type Genre } from "@/store/genre/rankingStore";
-import { RankingItem } from "./RankingItem";
+import React from 'react';
+import { motion, Reorder, AnimatePresence } from 'framer-motion';
+import { type Genre } from '@/store/genre/rankingStore';
+import { RankingItem } from './RankingItem';
 
 interface DraggableRankingListProps {
   genres: Genre[];

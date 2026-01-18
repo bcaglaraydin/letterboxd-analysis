@@ -14,10 +14,10 @@ export const RATING_GAME_CONFIG = {
 
 /** Score feedback thresholds and messages */
 export const SCORE_FEEDBACK = {
-  PERFECT: { threshold: 20, message: "Spot On.", color: "text-emerald-400" },
-  CLOSE: { threshold: 15, message: "So Close!", color: "text-green-400" },
-  OK: { threshold: 8, message: "Not Bad", color: "text-yellow-400" },
-  MISS: { threshold: 0, message: "Way Off...", color: "text-red-400" },
+  PERFECT: { threshold: 20, message: 'Spot On.', color: 'text-emerald-400' },
+  CLOSE: { threshold: 15, message: 'So Close!', color: 'text-green-400' },
+  OK: { threshold: 8, message: 'Not Bad', color: 'text-yellow-400' },
+  MISS: { threshold: 0, message: 'Way Off...', color: 'text-red-400' },
 } as const;
 
 /** Get feedback for a given score */

@@ -1,23 +1,16 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { AnimatePresence } from "framer-motion";
-import { useRatingGameStore } from "@/store/rating/ratingStore";
-import { cn } from "@/lib/utils";
-import {
-  IntroStep,
-  AveragesStep,
-  HistogramStep,
-  GuiltyPleasuresStep,
-} from "./steps";
+import React, { useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
+import { useRatingGameStore } from '@/store/rating/ratingStore';
+import { cn } from '@/lib/utils';
+import { IntroStep, AveragesStep, HistogramStep, GuiltyPleasuresStep } from './steps';
 
 interface PostGameScreenProps {
   onComplete: () => void;
 }
 
-export const PostGameScreen: React.FC<PostGameScreenProps> = ({
-  onComplete,
-}) => {
+export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) => {
   const { movies, userStats } = useRatingGameStore();
 
   // Step navigation and guilty pleasures state
@@ -44,16 +37,13 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({
   const guiltyPleasures = userStats.guiltyPleasures || [];
   const controversialPicks = userStats.controversialPicks || [];
 
-  const currentList = viewingControversial
-    ? controversialPicks
-    : guiltyPleasures;
+  const currentList = viewingControversial ? controversialPicks : guiltyPleasures;
   const currentIndex = viewingControversial ? cpIndex : gpIndex;
   const currentMovie = currentList[currentIndex];
 
   const handleShowAnother = () => {
     if (viewingControversial) {
-      if (cpIndex < controversialPicks.length - 1)
-        setCpIndex((prev) => prev + 1);
+      if (cpIndex < controversialPicks.length - 1) setCpIndex((prev) => prev + 1);
     } else {
       if (gpIndex < guiltyPleasures.length - 1) setGpIndex((prev) => prev + 1);
     }
@@ -83,19 +73,14 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({
     : !hasMoreInCurrentList && controversialPicks.length === 0;
 
   // Build steps array dynamically
-  const hasGuiltyOrControversial =
-    guiltyPleasures.length > 0 || controversialPicks.length > 0;
+  const hasGuiltyOrControversial = guiltyPleasures.length > 0 || controversialPicks.length > 0;
 
   const steps = [
     // Step 0: Intro
     <IntroStep key="intro" onNext={handleStepCompletion} />,
 
     // Step 1: Averages
-    <AveragesStep
-      key="averages"
-      userStats={userStats}
-      onNext={handleStepCompletion}
-    />,
+    <AveragesStep key="averages" userStats={userStats} onNext={handleStepCompletion} />,
 
     // Step 2: Histogram
     <HistogramStep
@@ -130,8 +115,8 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({
           <div
             key={i}
             className={cn(
-              "w-2 h-2 rounded-full transition-all duration-300 shadow-sm",
-              i === step ? "bg-primary w-6" : "bg-muted-foreground/30",
+              'w-2 h-2 rounded-full transition-all duration-300 shadow-sm',
+              i === step ? 'bg-primary w-6' : 'bg-muted-foreground/30',
             )}
           />
         ))}

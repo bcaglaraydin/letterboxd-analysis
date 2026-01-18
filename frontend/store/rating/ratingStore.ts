@@ -1,6 +1,6 @@
-import { create } from "zustand";
-import { calculateDistanceScore } from "@/hooks/useDistanceScore";
-import { RATING_GAME_CONFIG } from "@/components/game/rating/constants";
+import { create } from 'zustand';
+import { calculateDistanceScore } from '@/hooks/useDistanceScore';
+import { RATING_GAME_CONFIG } from '@/components/game/rating/constants';
 
 export interface Movie {
   movieId: string;
@@ -85,14 +85,14 @@ export const useRatingGameStore = create<GameState>((set, get) => ({
   userStats: null,
 
   theme: {
-    name: "Natural",
-    bgGradient: "from-primary/5 via-background to-background",
-    accentColor: "bg-accent",
-    accentText: "text-accent",
-    orb1Color: "bg-primary/20",
-    orb2Color: "bg-accent/20",
-    sliderColor: "bg-primary",
-    buttonColor: "bg-primary hover:bg-primary/90 text-primary-foreground",
+    name: 'Natural',
+    bgGradient: 'from-primary/5 via-background to-background',
+    accentColor: 'bg-accent',
+    accentText: 'text-accent',
+    orb1Color: 'bg-primary/20',
+    orb2Color: 'bg-accent/20',
+    sliderColor: 'bg-primary',
+    buttonColor: 'bg-primary hover:bg-primary/90 text-primary-foreground',
   },
 
   setMovies: (movies) => set({ movies }),

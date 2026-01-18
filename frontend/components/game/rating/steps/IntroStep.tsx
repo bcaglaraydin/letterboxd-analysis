@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React from "react";
-import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import React from 'react';
+import { motion } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
 
 interface IntroStepProps {
   onNext: () => void;
@@ -19,9 +19,7 @@ export const IntroStep: React.FC<IntroStepProps> = ({ onNext }) => {
         animate={{ scale: 1, opacity: 1 }}
         className="space-y-4 max-w-md mx-auto"
       >
-        <div className="text-xl text-primary font-serif italic">
-          The results are in...
-        </div>
+        <div className="text-xl text-primary font-serif italic">The results are in...</div>
         <h1 className="text-5xl md:text-7xl font-serif font-black tracking-tighter leading-tight">
           Your Movie
           <br />

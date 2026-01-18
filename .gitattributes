@@ -1,0 +1,39 @@
+# Handle line endings automatically for files detected as text
+# and leave binary files untouched.
+* text=auto
+
+# Explicitly declare text files to ensure consistent behavior
+*.ts text
+*.tsx text
+*.js text
+*.mjs text
+*.json text
+*.css text
+*.md text
+*.yaml text
+*.yml text
+*.html text
+*.tf text
+*.hcl text
+
+# Shell scripts should always have LF (required for Unix/Git Bash)
+*.sh text eol=lf
+.husky/* text eol=lf
+
+# Batch files should have CRLF (Windows requirement)  
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files (no conversion)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.pdf binary
+*.zip binary

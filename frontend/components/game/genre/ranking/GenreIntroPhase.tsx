@@ -1,16 +1,14 @@
-"use client";
+'use client';
 
-import React from "react";
-import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import React from 'react';
+import { motion } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
 
 interface GenreIntroPhaseProps {
   onStart: () => void;
 }
 
-export const GenreIntroPhase: React.FC<GenreIntroPhaseProps> = ({
-  onStart,
-}) => {
+export const GenreIntroPhase: React.FC<GenreIntroPhaseProps> = ({ onStart }) => {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -28,8 +26,7 @@ export const GenreIntroPhase: React.FC<GenreIntroPhaseProps> = ({
           🎬 Genre Ranking
         </h1>
         <p className="text-muted-foreground text-lg md:text-xl max-w-md mx-auto">
-          Rank your top 8 genres from most to least watched. How well do you
-          know your taste?
+          Rank your top 8 genres from most to least watched. How well do you know your taste?
         </p>
       </motion.div>
 

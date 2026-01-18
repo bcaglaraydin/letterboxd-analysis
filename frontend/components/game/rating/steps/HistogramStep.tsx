@@ -1,28 +1,17 @@
-"use client";
+'use client';
 
-import React from "react";
-import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { type UserStats } from "@/store/rating/ratingStore";
+import React from 'react';
+import { motion } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { type UserStats } from '@/store/rating/ratingStore';
 
 interface HistogramStepProps {
   userStats: UserStats;
   onNext: () => void;
 }
 
-const HISTOGRAM_LABELS = [
-  "0.5",
-  "1.0",
-  "1.5",
-  "2.0",
-  "2.5",
-  "3.0",
-  "3.5",
-  "4.0",
-  "4.5",
-  "5.0",
-];
+const HISTOGRAM_LABELS = ['0.5', '1.0', '1.5', '2.0', '2.5', '3.0', '3.5', '4.0', '4.5', '5.0'];
 
 const getDistValue = (dist: Record<string, number>, index: number) => {
   const start = index * 0.5;
@@ -32,15 +21,9 @@ const getDistValue = (dist: Record<string, number>, index: number) => {
   return dist[key] || 0;
 };
 
-export const HistogramStep: React.FC<HistogramStepProps> = ({
-  userStats,
-  onNext,
-}) => {
+export const HistogramStep: React.FC<HistogramStepProps> = ({ userStats, onNext }) => {
   const totalComm =
-    Object.values(userStats.communityRatingDistribution).reduce(
-      (a, b) => a + b,
-      0,
-    ) || 1;
+    Object.values(userStats.communityRatingDistribution).reduce((a, b) => a + b, 0) || 1;
 
   return (
     <div
@@ -53,16 +36,13 @@ export const HistogramStep: React.FC<HistogramStepProps> = ({
         className="w-full max-w-5xl space-y-6 md:space-y-8 flex flex-col h-full justify-center"
       >
         <div className="space-y-2 shrink-0">
-          <h2 className="text-2xl md:text-4xl font-serif font-bold">
-            Rating Distribution
-          </h2>
+          <h2 className="text-2xl md:text-4xl font-serif font-bold">Rating Distribution</h2>
           <div className="flex justify-center gap-6 text-xs md:text-sm font-medium">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-primary" /> You
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-muted-foreground/30" />{" "}
-              Community
+              <div className="w-3 h-3 rounded-full bg-muted-foreground/30" /> Community
             </div>
           </div>
         </div>
@@ -71,10 +51,7 @@ export const HistogramStep: React.FC<HistogramStepProps> = ({
         <div className="h-[40vh] md:h-80 flex items-end justify-between gap-1 md:gap-4 px-2 md:px-4 w-full">
           {HISTOGRAM_LABELS.map((label, i) => {
             const userVal = getDistValue(userStats.ratingDistribution, i);
-            const commVal = getDistValue(
-              userStats.communityRatingDistribution,
-              i,
-            );
+            const commVal = getDistValue(userStats.communityRatingDistribution, i);
             const userPercent = (userVal / userStats.totalMovies) * 100;
             const commPercent = (commVal / totalComm) * 100;
             const scaleFactor = 1.5;

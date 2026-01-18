@@ -1,20 +1,17 @@
-"use client";
+'use client';
 
-import React from "react";
-import { motion } from "framer-motion";
-import { ArrowRight, Star } from "lucide-react";
-import { type UserStats } from "@/store/rating/ratingStore";
-import { Button } from "@/components/ui/button";
+import React from 'react';
+import { motion } from 'framer-motion';
+import { ArrowRight, Star } from 'lucide-react';
+import { type UserStats } from '@/store/rating/ratingStore';
+import { Button } from '@/components/ui/button';
 
 interface AveragesStepProps {
   userStats: UserStats;
   onNext: () => void;
 }
 
-export const AveragesStep: React.FC<AveragesStepProps> = ({
-  userStats,
-  onNext,
-}) => {
+export const AveragesStep: React.FC<AveragesStepProps> = ({ userStats, onNext }) => {
   return (
     <div
       key="averages"
@@ -38,7 +35,7 @@ export const AveragesStep: React.FC<AveragesStepProps> = ({
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              transition={{ type: "spring", delay: 0.2 }}
+              transition={{ type: 'spring', delay: 0.2 }}
               className="text-7xl md:text-9xl font-serif font-bold text-foreground"
             >
               {userStats.averageRating.toFixed(1)}
@@ -49,20 +46,14 @@ export const AveragesStep: React.FC<AveragesStepProps> = ({
                   key={i}
                   size={20}
                   className="md:w-8 md:h-8"
-                  fill={
-                    i < Math.round(userStats.averageRating)
-                      ? "currentColor"
-                      : "none"
-                  }
+                  fill={i < Math.round(userStats.averageRating) ? 'currentColor' : 'none'}
                 />
               ))}
             </div>
           </div>
 
           {/* VS Divider (Mobile only) */}
-          <div className="md:hidden text-xl font-black text-muted-foreground/50">
-            - VS -
-          </div>
+          <div className="md:hidden text-xl font-black text-muted-foreground/50">- VS -</div>
 
           {/* Community Stat */}
           <div className="space-y-2 md:space-y-4 opacity-70">
@@ -72,7 +63,7 @@ export const AveragesStep: React.FC<AveragesStepProps> = ({
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              transition={{ type: "spring", delay: 0.4 }}
+              transition={{ type: 'spring', delay: 0.4 }}
               className="text-6xl md:text-8xl font-serif font-bold text-muted-foreground"
             >
               {userStats.communityComparison.averageCommunityRating.toFixed(1)}
@@ -84,12 +75,9 @@ export const AveragesStep: React.FC<AveragesStepProps> = ({
                   size={16}
                   className="md:w-6 md:h-6"
                   fill={
-                    i <
-                    Math.round(
-                      userStats.communityComparison.averageCommunityRating,
-                    )
-                      ? "currentColor"
-                      : "none"
+                    i < Math.round(userStats.communityComparison.averageCommunityRating)
+                      ? 'currentColor'
+                      : 'none'
                   }
                 />
               ))}
@@ -98,13 +86,12 @@ export const AveragesStep: React.FC<AveragesStepProps> = ({
         </div>
 
         <p className="text-lg md:text-xl text-muted-foreground max-w-md mx-auto px-4">
-          You are{" "}
+          You are{' '}
           <span className="text-foreground font-bold">
-            {userStats.averageRating >
-            userStats.communityComparison.averageCommunityRating
-              ? "more generous"
-              : "tougher"}
-          </span>{" "}
+            {userStats.averageRating > userStats.communityComparison.averageCommunityRating
+              ? 'more generous'
+              : 'tougher'}
+          </span>{' '}
           than the rest of the world.
         </p>
 

@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { GameBackground } from "@/components/game/shared/GameBackground";
-import { useRatingGameStore } from "@/store/rating/ratingStore";
-import { useGenreRankingStore } from "@/store/genre/rankingStore";
-import { Loader2, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import Image from "next/image";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { GameBackground } from '@/components/game/shared/GameBackground';
+import { useRatingGameStore } from '@/store/rating/ratingStore';
+import { useGenreRankingStore } from '@/store/genre/rankingStore';
+import { Loader2, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import Image from 'next/image';
 
 export default function LandingPage() {
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -26,17 +26,17 @@ export default function LandingPage() {
     setError(null);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       const response = await fetch(`${apiUrl}/metrics`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: username.trim() }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch data");
+        throw new Error(data.error || 'Failed to fetch data');
       }
 
       startGame({
@@ -50,16 +50,15 @@ export default function LandingPage() {
           previousScore: 0,
         });
       }
-      router.push("/game");
+      router.push('/game');
     } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : "An unknown error occurred";
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
       if (
-        errorMessage.includes("User not found") ||
-        errorMessage.includes("profile is private") ||
-        errorMessage.includes("Request failed with status code 404")
+        errorMessage.includes('User not found') ||
+        errorMessage.includes('profile is private') ||
+        errorMessage.includes('Request failed with status code 404')
       ) {
-        setError("Who is that?");
+        setError('Who is that?');
       } else {
         setError(errorMessage);
       }
@@ -73,7 +72,7 @@ export default function LandingPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
           className="w-full max-w-md space-y-8 text-center"
         >
           <div className="space-y-6">
@@ -112,7 +111,7 @@ export default function LandingPage() {
             {error && (
               <motion.p
                 initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
+                animate={{ opacity: 1, height: 'auto' }}
                 className="text-destructive text-sm font-medium"
               >
                 {error}
