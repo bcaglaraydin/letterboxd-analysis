@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import React from "react";
-import { motion } from "framer-motion";
-import Image from "next/image";
-import { Share2, RotateCcw, ArrowRight } from "lucide-react";
-import { type Movie, type UserStats } from "@/store/rating/ratingStore";
-import { Button } from "@/components/ui/button";
+import React from 'react';
+import { motion } from 'framer-motion';
+import Image from 'next/image';
+import { Share2, RotateCcw, ArrowRight } from 'lucide-react';
+import { type Movie, type UserStats } from '@/store/rating/ratingStore';
+import { Button } from '@/components/ui/button';
 
 interface SummaryStepProps {
   movies: Movie[];
@@ -33,9 +33,7 @@ export const SummaryStep: React.FC<SummaryStepProps> = ({
         <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary via-accent to-primary" />
 
         <div className="space-y-2">
-          <h2 className="text-2xl md:text-3xl font-serif font-bold">
-            Your Round Recap
-          </h2>
+          <h2 className="text-2xl md:text-3xl font-serif font-bold">Your Round Recap</h2>
           <p className="text-muted-foreground text-sm md:text-base">
             5 Movies • {userStats.averageRating.toFixed(1)} Avg
           </p>
@@ -50,16 +48,9 @@ export const SummaryStep: React.FC<SummaryStepProps> = ({
               transition={{ delay: i * 0.1 }}
               className="aspect-[2/3] rounded-md overflow-hidden relative group bg-muted"
             >
-              <Image
-                src={m.poster || ""}
-                alt={m.title}
-                fill
-                className="object-cover"
-              />
+              <Image src={m.poster || ''} alt={m.title} fill className="object-cover" />
               <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className="font-bold text-white text-sm">
-                  {m.userRating}
-                </span>
+                <span className="font-bold text-white text-sm">{m.userRating}</span>
               </div>
             </motion.div>
           ))}

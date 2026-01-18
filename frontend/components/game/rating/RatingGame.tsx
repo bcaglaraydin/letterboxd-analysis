@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { useRatingGameStore } from "@/store/rating/ratingStore";
-import { GameBackground } from "@/components/game/shared/GameBackground";
-import { GameLayout } from "@/components/game/shared/GameLayout";
-import { ScorePanel } from "@/components/game/shared/ScorePanel";
-import { GameRoundIndicator } from "@/components/game/shared/GameRoundIndicator";
-import { MovieCard } from "@/components/game/rating/MovieCard";
-import { StarRating } from "@/components/game/rating/StarRating";
-import { FeedbackOverlay } from "@/components/game/rating/FeedbackOverlay";
-import { PostGameScreen } from "@/components/game/rating/PostGameScreen";
-import { Button } from "@/components/ui/button";
+import React, { useState } from 'react';
+import { useRatingGameStore } from '@/store/rating/ratingStore';
+import { GameBackground } from '@/components/game/shared/GameBackground';
+import { GameLayout } from '@/components/game/shared/GameLayout';
+import { ScorePanel } from '@/components/game/shared/ScorePanel';
+import { GameRoundIndicator } from '@/components/game/shared/GameRoundIndicator';
+import { MovieCard } from '@/components/game/rating/MovieCard';
+import { StarRating } from '@/components/game/rating/StarRating';
+import { FeedbackOverlay } from '@/components/game/rating/FeedbackOverlay';
+import { PostGameScreen } from '@/components/game/rating/PostGameScreen';
+import { Button } from '@/components/ui/button';
 
 interface RatingGameProps {
   onGameComplete: (score: number) => void;
@@ -70,10 +70,7 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
         className="h-[100dvh] !min-h-0 overflow-hidden md:h-auto md:min-h-screen md:overflow-visible w-full max-w-7xl mx-auto"
         top={
           <div className="flex justify-between items-start p-4 md:p-8 w-full relative z-[60]">
-            <GameRoundIndicator
-              currentRound={currentRound}
-              totalRounds={totalRounds}
-            />
+            <GameRoundIndicator currentRound={currentRound} totalRounds={totalRounds} />
 
             <ScorePanel
               score={score}
@@ -95,8 +92,8 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
                   key={currentMovie.movieId}
                   title={currentMovie.title}
                   year={parseInt(currentMovie.releaseYear) || 0}
-                  director={currentMovie.director || "Unknown Director"}
-                  posterUrl={currentMovie.poster || ""}
+                  director={currentMovie.director || 'Unknown Director'}
+                  posterUrl={currentMovie.poster || ''}
                   className="h-full md:h-auto"
                 />
               </div>

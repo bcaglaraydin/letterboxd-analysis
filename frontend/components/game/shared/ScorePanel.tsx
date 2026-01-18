@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useEffect, useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ScorePanelProps {
   /** Current total score to display */
@@ -21,9 +21,9 @@ interface ScorePanelProps {
   /** Custom className for container */
   className?: string;
   /** Size variant */
-  size?: "sm" | "md" | "lg";
+  size?: 'sm' | 'md' | 'lg';
   /** Position of the panel */
-  position?: "static" | "top-right";
+  position?: 'static' | 'top-right';
   /** Maximum points possible per action (for flying point color, default: 15) */
   pointsPerAction?: number;
   /** Whether to show maxScore next to current score (e.g., '45/120', default: false) */
@@ -47,13 +47,13 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
   pointsEarned = null,
   flyFromPosition,
   maxScore = 100,
-  label = "Score",
+  label = 'Score',
   animationDelay = 600,
   countSpeed = 50,
   flyDuration = 0.6,
   className,
-  size = "lg",
-  position = "static",
+  size = 'lg',
+  position = 'static',
   pointsPerAction = 15,
   showMaxScore = false,
 }) => {
@@ -140,26 +140,24 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
 
   const sizeClasses = {
     sm: {
-      label: "text-[8px]",
-      score: "text-3xl",
-      flying: "text-3xl md:text-4xl",
+      label: 'text-[8px]',
+      score: 'text-3xl',
+      flying: 'text-3xl md:text-4xl',
     },
     md: {
-      label: "text-[10px]",
-      score: "text-4xl md:text-5xl",
-      flying: "text-4xl md:text-5xl",
+      label: 'text-[10px]',
+      score: 'text-4xl md:text-5xl',
+      flying: 'text-4xl md:text-5xl',
     },
     lg: {
-      label: "text-[10px]",
-      score: "text-4xl md:text-6xl",
-      flying: "text-4xl md:text-5xl",
+      label: 'text-[10px]',
+      score: 'text-4xl md:text-6xl',
+      flying: 'text-4xl md:text-5xl',
     },
   };
 
   const positionClasses =
-    position === "top-right"
-      ? "fixed top-4 right-4 md:top-6 md:right-6 z-[55]"
-      : "";
+    position === 'top-right' ? 'fixed top-4 right-4 md:top-6 md:right-6 z-[55]' : '';
 
   // Get score color style for flying animation (matches RankingItem color formula)
   const getFlyingPointsColor = (points: number): React.CSSProperties => {
@@ -189,12 +187,12 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
             }}
             transition={{
               duration: flyDuration,
-              ease: "easeInOut",
+              ease: 'easeInOut',
             }}
             className={`fixed z-[9999] font-bold drop-shadow-lg pointer-events-none ${sizeClasses[size].flying} flex items-center justify-center`}
             style={{
-              transform: "translate(-50%, -50%)", // Centering adjustment
-              position: "fixed",
+              transform: 'translate(-50%, -50%)', // Centering adjustment
+              position: 'fixed',
               ...getFlyingPointsColor(flyingPoints.value),
             }}
           >
@@ -204,9 +202,7 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
       )}
 
       {/* Score Counter */}
-      <div
-        className={`flex flex-col items-end gap-0 ${positionClasses} ${className || ""}`}
-      >
+      <div className={`flex flex-col items-end gap-0 ${positionClasses} ${className || ''}`}>
         <span
           className={`uppercase tracking-[0.2em] font-bold text-muted-foreground ${sizeClasses[size].label}`}
         >
@@ -222,9 +218,7 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
         >
           {displayScore}
           {showMaxScore && (
-            <span className="text-muted-foreground/50 font-normal text-[0.5em]">
-              /{maxScore}
-            </span>
+            <span className="text-muted-foreground/50 font-normal text-[0.5em]">/{maxScore}</span>
           )}
         </motion.span>
       </div>

@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import React from "react";
-import { motion } from "framer-motion";
-import Image from "next/image";
-import { ArrowRight, Heart } from "lucide-react";
-import { type Movie } from "@/store/rating/ratingStore";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import React from 'react';
+import { motion } from 'framer-motion';
+import Image from 'next/image';
+import { ArrowRight, Heart } from 'lucide-react';
+import { type Movie } from '@/store/rating/ratingStore';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 interface GuiltyPleasuresStepProps {
   currentMovie: Movie | undefined;
@@ -41,8 +41,8 @@ export const GuiltyPleasuresStep: React.FC<GuiltyPleasuresStepProps> = ({
         key={currentMovie.poster}
         className="absolute inset-0 opacity-20 bg-cover bg-center blur-xl scale-110 transition-transform ease-linear animate-slow-zoom"
         style={{
-          backgroundImage: `url(${currentMovie.poster || ""})`,
-          transitionDuration: "20s",
+          backgroundImage: `url(${currentMovie.poster || ''})`,
+          transitionDuration: '20s',
         }}
       />
       <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px]" />
@@ -60,8 +60,8 @@ export const GuiltyPleasuresStep: React.FC<GuiltyPleasuresStepProps> = ({
             className="relative rounded-xl overflow-hidden shadow-2xl shadow-black/50 border-4 border-white/10 w-32 md:w-72 aspect-[2/3]"
           >
             <Image
-              src={currentMovie.poster || ""}
-              alt={currentMovie.title || ""}
+              src={currentMovie.poster || ''}
+              alt={currentMovie.title || ''}
               fill
               className="object-cover"
             />
@@ -79,38 +79,34 @@ export const GuiltyPleasuresStep: React.FC<GuiltyPleasuresStepProps> = ({
               animate={{ opacity: 1 }}
               className="text-sm text-muted-foreground italic"
             >
-              You also have some{" "}
-              <span className="text-amber-400 font-bold">
-                Controversial Picks
-              </span>{" "}
-              that you loved more than most...
+              You also have some{' '}
+              <span className="text-amber-400 font-bold">Controversial Picks</span> that you loved
+              more than most...
             </motion.p>
           )}
 
           <div
             className={cn(
-              "inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] md:text-sm font-bold uppercase tracking-widest shadow-lg",
+              'inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] md:text-sm font-bold uppercase tracking-widest shadow-lg',
               !viewingControversial
-                ? "bg-rose-600 text-white border border-rose-400"
-                : "bg-amber-600 text-white border border-amber-400",
+                ? 'bg-rose-600 text-white border border-rose-400'
+                : 'bg-amber-600 text-white border border-amber-400',
             )}
           >
             <Heart size={14} className="fill-current" />
-            {!viewingControversial ? "Guilty Pleasure" : "Controversial Pick"}
+            {!viewingControversial ? 'Guilty Pleasure' : 'Controversial Pick'}
           </div>
 
           <h2 className="text-2xl md:text-5xl font-serif font-bold leading-none text-foreground">
             {!viewingControversial
               ? "You loved it. They didn't."
-              : "You saw something they missed."}
+              : 'You saw something they missed.'}
           </h2>
 
           <p className="text-sm md:text-lg text-muted-foreground">
-            While the community gave{" "}
-            <span className="font-bold text-foreground">
-              {currentMovie.title}
-            </span>{" "}
-            a {currentMovie.communityRating}, you saw it differently.
+            While the community gave{' '}
+            <span className="font-bold text-foreground">{currentMovie.title}</span> a{' '}
+            {currentMovie.communityRating}, you saw it differently.
           </p>
 
           <div className="grid grid-cols-2 gap-3 md:gap-4 pt-2">
@@ -157,8 +153,7 @@ export const GuiltyPleasuresStep: React.FC<GuiltyPleasuresStepProps> = ({
           onClick={onContinue}
           className="px-6 py-3 h-auto rounded-full flex items-center gap-2 backdrop-blur shadow-lg border border-border font-medium ring-1 ring-border/50 animate-pulse hover:animate-none"
         >
-          {isLastOfEverything ? "See Summary" : "Continue"}{" "}
-          <ArrowRight size={16} />
+          {isLastOfEverything ? 'See Summary' : 'Continue'} <ArrowRight size={16} />
         </Button>
       </div>
     </div>

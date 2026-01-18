@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { motion, LayoutGroup } from "framer-motion";
-import { ArrowRight, Lock } from "lucide-react";
-import { useGenreRankingStore } from "@/store/genre/rankingStore";
-import { RankingItem } from "./RankingItem";
-import { ScorePanel } from "@/components/game/shared/ScorePanel";
-import { GameRoundIndicator } from "@/components/game/shared/GameRoundIndicator";
-import { GameLayout } from "@/components/game/shared/GameLayout";
-import { useRankingScore } from "@/hooks/useDistanceScore";
-import { GENRE_RANKING_CONFIG } from "./constants";
-import { GenreIntroPhase } from "./GenreIntroPhase";
-import { DraggableRankingList } from "./DraggableRankingList";
-import { ActualRankingColumn } from "./ActualRankingColumn";
-import { useRevealAnimation } from "./useRevealAnimation";
-import { Button } from "@/components/ui/button";
+import React, { useState } from 'react';
+import { motion, LayoutGroup } from 'framer-motion';
+import { ArrowRight, Lock } from 'lucide-react';
+import { useGenreRankingStore } from '@/store/genre/rankingStore';
+import { RankingItem } from './RankingItem';
+import { ScorePanel } from '@/components/game/shared/ScorePanel';
+import { GameRoundIndicator } from '@/components/game/shared/GameRoundIndicator';
+import { GameLayout } from '@/components/game/shared/GameLayout';
+import { useRankingScore } from '@/hooks/useDistanceScore';
+import { GENRE_RANKING_CONFIG } from './constants';
+import { GenreIntroPhase } from './GenreIntroPhase';
+import { DraggableRankingList } from './DraggableRankingList';
+import { ActualRankingColumn } from './ActualRankingColumn';
+import { useRevealAnimation } from './useRevealAnimation';
+import { Button } from '@/components/ui/button';
 
 interface GenreRankingGameProps {
   onGameComplete: (score: number) => void;
@@ -89,26 +89,22 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
   const getGenre = (id: string) => genres.find((g) => g.id === id);
 
   // Intro Phase - Use extracted component
-  if (phase === "intro") {
+  if (phase === 'intro') {
     return <GenreIntroPhase onStart={nextPhase} />;
   }
 
   // Ranking Phase OR Reveal Phase
-  if (phase === "ranking" || phase === "reveal" || phase === "complete") {
-    const isRevealing = phase === "reveal" || phase === "complete";
-    const showTwoColumns = isRevealing && revealStage !== "ranking";
+  if (phase === 'ranking' || phase === 'reveal' || phase === 'complete') {
+    const isRevealing = phase === 'reveal' || phase === 'complete';
+    const showTwoColumns = isRevealing && revealStage !== 'ranking';
     const showActualColumn =
-      revealStage === "slots-appear" ||
-      revealStage === "item-flying" ||
-      revealStage === "complete" ||
-      phase === "complete";
+      revealStage === 'slots-appear' ||
+      revealStage === 'item-flying' ||
+      revealStage === 'complete' ||
+      phase === 'complete';
 
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="w-full h-full"
-      >
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full">
         <GameLayout
           className="p-3 md:p-6 md:py-8"
           top={
@@ -134,10 +130,7 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
                 </div>
               ) : (
                 /* Header during ranking phase */
-                <motion.div
-                  className="text-center mb-2 md:mb-6 pt-2 md:pt-4"
-                  layout="position"
-                >
+                <motion.div className="text-center mb-2 md:mb-6 pt-2 md:pt-4" layout="position">
                   <motion.h2
                     className="text-lg md:text-2xl font-serif font-bold text-foreground"
                     initial={{ opacity: 0, y: -20 }}
@@ -161,10 +154,10 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
             <div className="w-full max-w-[57.5rem] mx-auto flex flex-col justify-center">
               <LayoutGroup>
                 <motion.div
-                  className={`w-full grid gap-1 md:gap-6 ${showTwoColumns ? "grid-cols-2" : "grid-cols-1 max-w-md mx-auto"}`}
+                  className={`w-full grid gap-1 md:gap-6 ${showTwoColumns ? 'grid-cols-2' : 'grid-cols-1 max-w-md mx-auto'}`}
                   layout
                   transition={{
-                    type: "tween",
+                    type: 'tween',
                     duration: 2,
                     ease: [0.25, 0.1, 0.25, 1],
                   }}
@@ -173,7 +166,7 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
                     layout
                     className="w-full h-full flex flex-col relative"
                     transition={{
-                      type: "tween",
+                      type: 'tween',
                       duration: 2,
                       ease: [0.25, 0.1, 0.25, 1],
                     }}

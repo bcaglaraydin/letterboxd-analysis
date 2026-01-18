@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { Star } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useRatingGameStore } from "@/store/rating/ratingStore";
+import React, { useState } from 'react';
+import { Star } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useRatingGameStore } from '@/store/rating/ratingStore';
 
 interface StarRatingProps {
   value: number;
@@ -23,10 +23,7 @@ export const StarRating: React.FC<StarRatingProps> = ({
 
   const displayValue = hoverValue !== null ? hoverValue : value;
 
-  const handleMouseMove = (
-    e: React.MouseEvent<HTMLDivElement>,
-    starIndex: number,
-  ) => {
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>, starIndex: number) => {
     if (readOnly) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
@@ -76,7 +73,7 @@ export const StarRating: React.FC<StarRatingProps> = ({
 
   return (
     <div
-      className={cn("flex items-center gap-1 touch-none", className)}
+      className={cn('flex items-center gap-1 touch-none', className)}
       onMouseLeave={handleMouseLeave}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -85,15 +82,14 @@ export const StarRating: React.FC<StarRatingProps> = ({
       {[0, 1, 2, 3, 4].map((index) => {
         const starValue = index + 1;
         const isFull = displayValue >= starValue;
-        const isHalf =
-          displayValue >= starValue - 0.5 && displayValue < starValue;
+        const isHalf = displayValue >= starValue - 0.5 && displayValue < starValue;
 
         return (
           <div
             key={index}
             className={cn(
-              "relative w-10 h-10 transition-transform duration-100",
-              !readOnly && "cursor-pointer hover:scale-110",
+              'relative w-10 h-10 transition-transform duration-100',
+              !readOnly && 'cursor-pointer hover:scale-110',
             )}
             onMouseMove={(e) => handleMouseMove(e, index)}
             onClick={handleClick}
@@ -107,12 +103,12 @@ export const StarRating: React.FC<StarRatingProps> = ({
             {/* Filled Star (Clipped for half) */}
             <div
               className={cn(
-                "absolute inset-0 overflow-hidden",
-                isHalf ? "w-1/2" : isFull ? "w-full" : "w-0",
+                'absolute inset-0 overflow-hidden',
+                isHalf ? 'w-1/2' : isFull ? 'w-full' : 'w-0',
               )}
             >
               <Star
-                className={cn("w-10 h-10 fill-current", theme.accentText)}
+                className={cn('w-10 h-10 fill-current', theme.accentText)}
                 strokeWidth={0} // Fill only
               />
             </div>
@@ -120,10 +116,7 @@ export const StarRating: React.FC<StarRatingProps> = ({
             {/* Border for Filled/Half (to keep definition) */}
             {(isFull || isHalf) && (
               <Star
-                className={cn(
-                  "absolute inset-0 w-full h-full",
-                  theme.accentText,
-                )}
+                className={cn('absolute inset-0 w-full h-full', theme.accentText)}
                 strokeWidth={1.5}
               />
             )}

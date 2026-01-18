@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { create } from "zustand";
+import { create } from 'zustand';
 
 export interface Genre {
   id: string;
@@ -10,7 +10,7 @@ export interface Genre {
 
 interface GenreGameState {
   // Game flow
-  phase: "intro" | "ranking" | "confirming" | "reveal" | "complete";
+  phase: 'intro' | 'ranking' | 'confirming' | 'reveal' | 'complete';
 
   // Genres
   genres: Genre[];
@@ -22,11 +22,7 @@ interface GenreGameState {
   currentScore: number; // Score for this game (0-100)
 
   // Actions
-  startGame: (data: {
-    genres: Genre[];
-    actualRanking: string[];
-    previousScore: number;
-  }) => void;
+  startGame: (data: { genres: Genre[]; actualRanking: string[]; previousScore: number }) => void;
   setUserRanking: (ranking: string[]) => void;
   moveGenre: (fromIndex: number, toIndex: number) => void;
   confirmRanking: () => void;
@@ -46,10 +42,7 @@ export const genreToColor = (name: string): string => {
 
 // Calculate score based on ranking distance (0-100)
 // Each position error costs points. Closer = more points.
-const calculateScore = (
-  userRanking: string[],
-  actualRanking: string[],
-): number => {
+const calculateScore = (userRanking: string[], actualRanking: string[]): number => {
   const n = userRanking.length; // 8 genres
   let totalError = 0;
 
@@ -69,7 +62,7 @@ const calculateScore = (
 };
 
 export const useGenreRankingStore = create<GenreGameState>((set, get) => ({
-  phase: "intro",
+  phase: 'intro',
   genres: [],
   userRanking: [],
   actualRanking: [],
@@ -80,7 +73,7 @@ export const useGenreRankingStore = create<GenreGameState>((set, get) => ({
     // Shuffle genres for initial display
     const shuffled = [...data.genres].sort(() => Math.random() - 0.5);
     set({
-      phase: "ranking",
+      phase: 'ranking',
       genres: data.genres,
       userRanking: shuffled.map((g) => g.id), // Start with shuffled order
       actualRanking: data.actualRanking,
@@ -103,21 +96,21 @@ export const useGenreRankingStore = create<GenreGameState>((set, get) => ({
     const { userRanking, actualRanking } = get();
     const score = calculateScore(userRanking, actualRanking);
     set({
-      phase: "reveal",
+      phase: 'reveal',
       currentScore: score,
     });
   },
 
   nextPhase: () => {
     const { phase } = get();
-    if (phase === "intro") set({ phase: "ranking" });
-    else if (phase === "ranking") set({ phase: "confirming" });
-    else if (phase === "reveal") set({ phase: "complete" });
+    if (phase === 'intro') set({ phase: 'ranking' });
+    else if (phase === 'ranking') set({ phase: 'confirming' });
+    else if (phase === 'reveal') set({ phase: 'complete' });
   },
 
   resetGame: () =>
     set({
-      phase: "intro",
+      phase: 'intro',
       genres: [],
       userRanking: [],
       actualRanking: [],

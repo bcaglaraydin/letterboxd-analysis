@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback } from 'react';
 
 /**
  * Pure function for distance-based scoring (for use outside React components).
@@ -48,8 +48,7 @@ export const useDistanceScore = ({
   // Since we don't know the "units" here, we derive from maxDistance
   // Actually, the caller should pass maxScore that represents their max total
   // and maxDistance that represents max error for ONE item/round
-  const pointsPerUnit =
-    maxDistance > 0 ? maxScore / (maxDistance + 1) : maxScore;
+  const pointsPerUnit = maxDistance > 0 ? maxScore / (maxDistance + 1) : maxScore;
 
   const calculateScore = useCallback(
     (distance: number) => {

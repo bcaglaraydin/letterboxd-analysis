@@ -15,7 +15,7 @@ on:
         default: false
     outputs:
       terragrunt_output:
-        description: "The value of the requested output key"
+        description: 'The value of the requested output key'
         value: ${{ jobs.apply.outputs.terragrunt_output }}
 
 env:
@@ -57,7 +57,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
+          cache: 'npm'
           cache-dependency-path: backend/package-lock.json
 
       - name: Install Backend Dependencies

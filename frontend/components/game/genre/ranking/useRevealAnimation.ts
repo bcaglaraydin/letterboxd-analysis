@@ -1,14 +1,9 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { REVEAL_ANIMATION_TIMING } from "./constants";
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { REVEAL_ANIMATION_TIMING } from './constants';
 
-export type RevealStage =
-  | "ranking"
-  | "ranking-shift"
-  | "slots-appear"
-  | "item-flying"
-  | "complete";
+export type RevealStage = 'ranking' | 'ranking-shift' | 'slots-appear' | 'item-flying' | 'complete';
 
 interface UseRevealAnimationOptions {
   /** Current game phase */
@@ -63,27 +58,19 @@ export function useRevealAnimation({
   previousScore,
 }: UseRevealAnimationOptions): RevealAnimationState {
   // Reveal animation states
-  const [revealStage, setRevealStage] = useState<RevealStage>("ranking");
+  const [revealStage, setRevealStage] = useState<RevealStage>('ranking');
   const [revealIndex, setRevealIndex] = useState(-1);
-  const [revealedActualIds, setRevealedActualIds] = useState<Set<string>>(
-    new Set(),
-  );
+  const [revealedActualIds, setRevealedActualIds] = useState<Set<string>>(new Set());
   const [landedItemId, setLandedItemId] = useState<string | null>(null);
   const [flyingPoints, setFlyingPoints] = useState<number | null>(null);
-  const [flyPosition, setFlyPosition] = useState<
-    { x: number; y: number } | undefined
-  >(undefined);
+  const [flyPosition, setFlyPosition] = useState<{ x: number; y: number } | undefined>(undefined);
   const [totalScore, setTotalScore] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const lastProcessedIdRef = useRef<string | null>(null);
 
   // Handler for when RankingItem reports its score badge position
   const handleScorePosition = useCallback(
-    (
-      genreId: string,
-      position: { x: number; y: number },
-      genreScore: number,
-    ) => {
+    (genreId: string, position: { x: number; y: number }, genreScore: number) => {
       if (lastProcessedIdRef.current === genreId) return;
       lastProcessedIdRef.current = genreId;
 
@@ -98,9 +85,9 @@ export function useRevealAnimation({
 
   // Reset states when going back to ranking phase
   useEffect(() => {
-    if (phase === "ranking" || phase === "intro") {
+    if (phase === 'ranking' || phase === 'intro') {
       const resetTimer = setTimeout(() => {
-        setRevealStage("ranking");
+        setRevealStage('ranking');
         setRevealIndex(-1);
         setRevealedActualIds(new Set());
         setLandedItemId(null);
@@ -116,19 +103,19 @@ export function useRevealAnimation({
 
   // Master Orchestrator for Reveal Sequence
   useEffect(() => {
-    if (phase !== "reveal") return;
+    if (phase !== 'reveal') return;
 
     const shiftTimer = setTimeout(() => {
-      setRevealStage("ranking-shift");
+      setRevealStage('ranking-shift');
       setTotalScore(0);
     }, REVEAL_ANIMATION_TIMING.SHIFT_DELAY);
 
     const slotsTimer = setTimeout(() => {
-      setRevealStage("slots-appear");
+      setRevealStage('slots-appear');
     }, REVEAL_ANIMATION_TIMING.SLOTS_APPEAR_DELAY);
 
     const flyTimer = setTimeout(() => {
-      setRevealStage("item-flying");
+      setRevealStage('item-flying');
       setRevealIndex(0);
     }, REVEAL_ANIMATION_TIMING.ITEM_FLYING_DELAY);
 
@@ -141,7 +128,7 @@ export function useRevealAnimation({
 
   // Sequential item-by-item reveal animation
   useEffect(() => {
-    if (revealStage !== "item-flying") return;
+    if (revealStage !== 'item-flying') return;
     if (revealIndex < 0 || revealIndex >= actualRanking.length) return;
 
     const genreId = userRanking[revealIndex];
@@ -163,7 +150,7 @@ export function useRevealAnimation({
         setRevealIndex((prev) => prev + 1);
       } else {
         completionTimer = setTimeout(() => {
-          setRevealStage("complete");
+          setRevealStage('complete');
           setIsComplete(true);
         }, REVEAL_ANIMATION_TIMING.COMPLETION_DELAY);
       }

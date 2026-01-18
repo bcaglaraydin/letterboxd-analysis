@@ -1,13 +1,13 @@
-import React, { useRef, useEffect } from "react";
-import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
-import { genreToColor, type Genre } from "@/store/genre/rankingStore";
-import { useRankingScore } from "@/hooks/useDistanceScore";
+import React, { useRef, useEffect } from 'react';
+import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
+import { genreToColor, type Genre } from '@/store/genre/rankingStore';
+import { useRankingScore } from '@/hooks/useDistanceScore';
 
 interface RankingItemProps {
   genre: Genre;
   index: number;
-  variant?: "static" | "ghost" | "actual-slot" | "actual-filled" | "draggable";
+  variant?: 'static' | 'ghost' | 'actual-slot' | 'actual-filled' | 'draggable';
   hasLanded?: boolean;
   isRevealed?: boolean;
   isCorrect?: boolean;
@@ -33,7 +33,7 @@ interface RankingItemProps {
 export const RankingItem = ({
   genre,
   index,
-  variant = "static",
+  variant = 'static',
   hasLanded = false,
   isRevealed = false,
   isCorrect = false,
@@ -66,12 +66,7 @@ export const RankingItem = ({
 
   // Report position when hasJustLanded triggers
   useEffect(() => {
-    if (
-      hasJustLanded &&
-      scoreBadgeRef.current &&
-      onScorePosition &&
-      !hasReportedRef.current
-    ) {
+    if (hasJustLanded && scoreBadgeRef.current && onScorePosition && !hasReportedRef.current) {
       hasReportedRef.current = true;
       const rect = scoreBadgeRef.current.getBoundingClientRect();
       // Calculate center of the badge in viewport coordinates
@@ -83,43 +78,36 @@ export const RankingItem = ({
 
   // Common base styles - mobile uses h-full to fill parent container, desktop uses fixed height
   const baseClasses =
-    "flex items-center gap-2 md:gap-4 p-1.5 md:p-4 rounded-md md:rounded-xl border-2 transition-all h-full md:h-[72px]";
+    'flex items-center gap-2 md:gap-4 p-1.5 md:p-4 rounded-md md:rounded-xl border-2 transition-all h-full md:h-[72px]';
 
   // Variant-specific styles
   const variantStyles = {
-    static: cn(baseClasses, "bg-card/50 border-border/50"),
-    ghost: cn(
-      baseClasses,
-      "bg-card border-border shadow-md z-10",
-      hasLanded && "invisible",
-    ),
-    "actual-slot": cn(baseClasses, "border-dashed border-muted-foreground/30"),
-    "actual-filled": cn(
-      baseClasses,
-      "bg-card shadow-sm z-20 absolute inset-0 w-full",
-    ),
+    static: cn(baseClasses, 'bg-card/50 border-border/50'),
+    ghost: cn(baseClasses, 'bg-card border-border shadow-md z-10', hasLanded && 'invisible'),
+    'actual-slot': cn(baseClasses, 'border-dashed border-muted-foreground/30'),
+    'actual-filled': cn(baseClasses, 'bg-card shadow-sm z-20 absolute inset-0 w-full'),
     draggable: cn(
       baseClasses,
-      "bg-card border-border cursor-grab active:cursor-grabbing",
-      "shadow-sm hover:shadow-md md:shadow-md md:hover:shadow-lg transition-shadow",
-      isDragging && "shadow-lg md:shadow-xl",
+      'bg-card border-border cursor-grab active:cursor-grabbing',
+      'shadow-sm hover:shadow-md md:shadow-md md:hover:shadow-lg transition-shadow',
+      isDragging && 'shadow-lg md:shadow-xl',
     ),
   };
 
   // Determine border color based on variant/state
   const getBorderColor = () => {
-    if (variant === "static" || variant === "draggable") return undefined;
-    if (variant === "actual-slot") return undefined;
+    if (variant === 'static' || variant === 'draggable') return undefined;
+    if (variant === 'actual-slot') return undefined;
 
     if (isRevealed) {
-      return isCorrect ? "#22c55e" : undefined;
+      return isCorrect ? '#22c55e' : undefined;
     }
-    return "hsl(var(--border))";
+    return 'hsl(var(--border))';
   };
 
   const getBackgroundColor = () => {
-    if (isRevealed && variant === "actual-filled") {
-      return isCorrect ? "rgba(34,197,94,0.1)" : undefined;
+    if (isRevealed && variant === 'actual-filled') {
+      return isCorrect ? 'rgba(34,197,94,0.1)' : undefined;
     }
     return undefined;
   };
@@ -130,21 +118,21 @@ export const RankingItem = ({
       className={cn(variantStyles[variant], className)}
       style={{
         borderColor: getBorderColor(),
-        ...(variant !== "actual-slot" && {
+        ...(variant !== 'actual-slot' && {
           borderLeftColor: color,
-          borderLeftWidth: "3px",
-          borderLeftStyle: "solid",
+          borderLeftWidth: '3px',
+          borderLeftStyle: 'solid',
         }),
         backgroundColor: getBackgroundColor(),
         ...style,
       }}
     >
       {/* Rank Badge - Hide for empty slots */}
-      {variant !== "actual-slot" && (
+      {variant !== 'actual-slot' && (
         <motion.div
           layout="position"
           className={cn(
-            "w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm font-bold shrink-0 text-white",
+            'w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm font-bold shrink-0 text-white',
           )}
           style={{ backgroundColor: color }}
         >
@@ -153,14 +141,12 @@ export const RankingItem = ({
       )}
 
       {/* Genre Name - Hide for empty slots, dynamic font size for long names */}
-      {variant !== "actual-slot" && (
+      {variant !== 'actual-slot' && (
         <motion.span
           layout="position"
           className={cn(
-            "font-serif font-semibold text-foreground flex-1 min-w-0 leading-tight",
-            genre.name.length > 10
-              ? "text-xs md:text-lg"
-              : "text-sm md:text-lg",
+            'font-serif font-semibold text-foreground flex-1 min-w-0 leading-tight',
+            genre.name.length > 10 ? 'text-xs md:text-lg' : 'text-sm md:text-lg',
           )}
         >
           {genre.name}
@@ -168,7 +154,7 @@ export const RankingItem = ({
       )}
 
       {/* Average Rating Display (Only for actual-filled or revealed items) */}
-      {(variant === "actual-filled" || (isRevealed && variant === "static")) &&
+      {(variant === 'actual-filled' || (isRevealed && variant === 'static')) &&
         genre.averageRating !== undefined && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -180,7 +166,7 @@ export const RankingItem = ({
         )}
 
       {/* Drag Handle - only for draggable variant */}
-      {variant === "draggable" && showDragHandle && (
+      {variant === 'draggable' && showDragHandle && (
         <div className="flex flex-col gap-0.5 opacity-40">
           <div className="w-3 md:w-4 h-0.5 bg-muted-foreground rounded" />
           <div className="w-3 md:w-4 h-0.5 bg-muted-foreground rounded" />
@@ -190,7 +176,7 @@ export const RankingItem = ({
 
       {/* In-Card Score Badge (Replaces Check/X) */}
       <AnimatePresence>
-        {isRevealed && variant === "actual-filled" && score !== undefined && (
+        {isRevealed && variant === 'actual-filled' && score !== undefined && (
           <motion.div
             ref={scoreBadgeRef}
             initial={{ opacity: 0, scale: 0.5 }}
@@ -198,10 +184,8 @@ export const RankingItem = ({
               opacity: showScoreBadge ? 1 : 0,
               scale: showScoreBadge ? 1 : 0.5,
             }}
-            transition={{ type: "spring", stiffness: 500, damping: 14 }}
-            className={cn(
-              "font-bold text-xs md:text-base ml-auto shrink-0 w-8 md:w-10 text-right",
-            )}
+            transition={{ type: 'spring', stiffness: 500, damping: 14 }}
+            className={cn('font-bold text-xs md:text-base ml-auto shrink-0 w-8 md:w-10 text-right')}
             style={{
               color: `hsl(${Math.round((score / pointsPerItem) * 120)}, 70%, 35%)`,
             }}
