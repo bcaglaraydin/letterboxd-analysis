@@ -8,8 +8,8 @@ import { useExperienceStore } from "@/store/experienceStore";
 import { GameBackground } from "@/components/game/shared/GameBackground";
 import { GameLayout } from "@/components/game/shared/GameLayout";
 
-import { RATING_GAME_CONFIG } from "@/components/game/rating-game/constants";
-import { GENRE_RANKING_CONFIG } from "@/components/game/genre-ranking/constants";
+import { RATING_GAME_CONFIG } from "@/components/game/rating/constants";
+import { GENRE_RANKING_CONFIG } from "@/components/game/genre/ranking/constants";
 
 export const GameHub = () => {
   const {

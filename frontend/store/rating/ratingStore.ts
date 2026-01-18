@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { calculateDistanceScore } from "@/hooks/useDistanceScore";
-import { RATING_GAME_CONFIG } from "@/components/game/rating-game/constants";
+import { RATING_GAME_CONFIG } from "@/components/game/rating/constants";
 
 export interface Movie {
   movieId: string;
@@ -71,7 +71,7 @@ interface GameState {
   startGame: (data: { movies: Movie[]; userStats: UserStats }) => void;
 }
 
-export const useGameStore = create<GameState>((set, get) => ({
+export const useRatingGameStore = create<GameState>((set, get) => ({
   currentRound: 1,
   totalRounds: RATING_GAME_CONFIG.TOTAL_ROUNDS,
   score: 0,

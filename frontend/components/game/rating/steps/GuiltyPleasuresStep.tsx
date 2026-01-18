@@ -4,7 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { ArrowRight, Heart } from "lucide-react";
-import { type Movie } from "@/store/gameStore";
+import { type Movie } from "@/store/rating/ratingStore";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 

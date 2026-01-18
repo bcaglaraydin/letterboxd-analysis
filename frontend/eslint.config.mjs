@@ -1,5 +1,6 @@
 import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
 import tseslint from "typescript-eslint";
+import importPlugin from "eslint-plugin-import";
 
 const eslintConfig = [
   {
@@ -20,6 +21,19 @@ const eslintConfig = [
         },
       ],
       "@typescript-eslint/no-explicit-any": "warn",
+      "import/no-unresolved": "error",
+    },
+    plugins: {
+      import: importPlugin,
+    },
+    settings: {
+      "import/resolver": {
+        typescript: {
+          alwaysTryTypes: true,
+          project: "./tsconfig.json",
+        },
+        node: true,
+      },
     },
   },
 ];

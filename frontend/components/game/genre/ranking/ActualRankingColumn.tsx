@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { type Genre } from "@/store/genreGameStore";
+import { type Genre } from "@/store/genre/rankingStore";
 import { RankingItem } from "./RankingItem";
 import { GENRE_RANKING_CONFIG } from "./constants";
 

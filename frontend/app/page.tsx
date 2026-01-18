@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { GameBackground } from "@/components/game/shared/GameBackground";
-import { useGameStore } from "@/store/gameStore";
-import { useGenreGameStore } from "@/store/genreGameStore";
+import { useRatingGameStore } from "@/store/rating/ratingStore";
+import { useGenreRankingStore } from "@/store/genre/rankingStore";
 import { Loader2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -15,8 +15,8 @@ export default function LandingPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const startGame = useGameStore((state) => state.startGame);
-  const startGenreGame = useGenreGameStore((state) => state.startGame);
+  const startGame = useRatingGameStore((state) => state.startGame);
+  const startGenreGame = useGenreRankingStore((state) => state.startGame);
 
   const handleStart = async (e: React.FormEvent) => {
     e.preventDefault();

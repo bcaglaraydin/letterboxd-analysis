@@ -4,7 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { type UserStats } from "@/store/gameStore";
+import { type UserStats } from "@/store/rating/ratingStore";
 
 interface HistogramStepProps {
   userStats: UserStats;
