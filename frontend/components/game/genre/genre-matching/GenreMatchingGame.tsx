@@ -44,8 +44,7 @@ const GenreChipAnimated = ({
           'bg-card/60 hover:bg-card/80',
           genre.tier === 'niche' && 'border-accent/50 hover:border-accent',
           genre.tier === 'mid-tier' && 'border-primary/50 hover:border-primary',
-          genre.tier === 'popular' &&
-            'border-muted-foreground/30 hover:border-muted-foreground/50',
+          genre.tier === 'popular' && 'border-muted-foreground/30 hover:border-muted-foreground/50',
         );
     }
   };
@@ -536,5 +535,3 @@ export function GenreMatchingGame() {
     </LayoutGroup>
   );
 }
-
-

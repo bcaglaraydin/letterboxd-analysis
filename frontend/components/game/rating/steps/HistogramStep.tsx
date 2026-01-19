@@ -81,13 +81,13 @@ export const HistogramStep: React.FC<HistogramStepProps> = ({ userStats, onNext 
                   />
                 </div>
                 <div className="flex items-center justify-center mt-1 md:mt-2">
-                   <StarRating 
-                     value={parseFloat(label)} 
-                     readOnly 
-                     starSize="w-1.5 h-1.5 md:w-3 md:h-3" 
-                     showEmptyStars={false}
-                     className="gap-[0.5px] justify-center"
-                   />
+                  <StarRating
+                    value={parseFloat(label)}
+                    readOnly
+                    starSize="w-1.5 h-1.5 md:w-3 md:h-3"
+                    showEmptyStars={false}
+                    className="gap-[0.5px] justify-center"
+                  />
                 </div>
               </div>
             );
