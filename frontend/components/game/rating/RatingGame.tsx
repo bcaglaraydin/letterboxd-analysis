@@ -6,7 +6,7 @@ import { GameBackground } from '@/components/game/shared/GameBackground';
 import { GameLayout } from '@/components/game/shared/GameLayout';
 import { ScorePanel } from '@/components/game/shared/ScorePanel';
 import { GameRoundIndicator } from '@/components/game/shared/GameRoundIndicator';
-import { MovieCard } from '@/components/game/rating/MovieCard';
+import { MovieCard } from '@/components/game/shared/MovieCard';
 import { StarRating } from '@/components/game/rating/StarRating';
 import { FeedbackOverlay } from '@/components/game/rating/FeedbackOverlay';
 import { PostGameScreen } from '@/components/game/rating/PostGameScreen';
