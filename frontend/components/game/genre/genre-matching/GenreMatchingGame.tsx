@@ -119,6 +119,8 @@ export function GenreMatchingGame() {
   const [totalScore, setTotalScore] = useState(0);
   const [lastPointsEarned, setLastPointsEarned] = useState<number | null>(null);
 
+  const [heldIncorrectIds, setHeldIncorrectIds] = useState<Set<string>>(new Set());
+
   // Ref for reveal timeout
   const revealTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -156,6 +158,9 @@ export function GenreMatchingGame() {
   // Check if chip should be in collected zone
   const isInCollectedZone = useCallback(
     (genreId: string): boolean => {
+      // Keep if explicitly held (delaying return of incorrect items)
+      if (heldIncorrectIds.has(genreId)) return true;
+
       const state = getChipState(genreId);
       // In collected zone if: selected, correct, or missed (during showing-missed/complete)
       if (state === 'selected' || state === 'correct' || state === 'missed') {
@@ -163,7 +168,7 @@ export function GenreMatchingGame() {
       }
       return false;
     },
-    [getChipState],
+    [getChipState, heldIncorrectIds],
   );
 
   // Toggle genre selection (only during selecting phase)
@@ -221,18 +226,46 @@ export function GenreMatchingGame() {
       }
     }
 
-    // Update state
-    setEvaluatedGenres((prev) => new Map(prev).set(genreId, result));
+    // Handle flow based on result
+    if (result === 'incorrect') {
+      // 1. Hold it (prevents immediate flyback)
+      setHeldIncorrectIds((prev) => new Set(prev).add(genreId));
+      // 2. Mark evaluated (turns Red immediately)
+      setEvaluatedGenres((prev) => new Map(prev).set(genreId, result));
 
-    if (points !== 0) {
-      setTotalScore((prev) => Math.max(0, prev + points));
-      setLastPointsEarned(points);
+      // 3. Update points
+      if (points !== 0) {
+        setTotalScore((prev) => Math.max(0, prev + points));
+        setLastPointsEarned(points);
+      }
+
+      // 4. Wait for user to see Red, then release
+      revealTimeoutRef.current = setTimeout(() => {
+        setHeldIncorrectIds((prev) => {
+          const next = new Set(prev);
+          next.delete(genreId);
+          return next;
+        });
+
+        // 5. Wait for flyback animation, then next
+        setTimeout(() => {
+          revealNext(queue, index + 1);
+        }, 400);
+      }, 650);
+    } else {
+      // Correct or Missed
+      setEvaluatedGenres((prev) => new Map(prev).set(genreId, result));
+
+      if (points !== 0) {
+        setTotalScore((prev) => Math.max(0, prev + points));
+        setLastPointsEarned(points);
+      }
+
+      // Continue to next after standard delay
+      revealTimeoutRef.current = setTimeout(() => {
+        revealNext(queue, index + 1);
+      }, 600);
     }
-
-    // Continue to next after delay
-    revealTimeoutRef.current = setTimeout(() => {
-      revealNext(queue, index + 1);
-    }, 600);
   };
 
   // Lock selections and start reveal
