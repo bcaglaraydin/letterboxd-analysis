@@ -76,20 +76,22 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
   // Previous points for detecting new earnings
   const prevPointsRef = useRef(pointsEarned);
 
-  // Calculate dynamic color based on performance
-  const ratio = maxScore > 0 ? displayScore / maxScore : 0;
-  const hue = Math.min(120, Math.max(0, ratio * 120)); // 0 (Red) -> 120 (Green)
-  const scoreColorStyle = { color: `hsl(${hue}, 70%, 35%)` };
+  // Calculate dynamic color based on performance (supports negative scores)
+  const getScoreColorStyle = () => {
+    if (displayScore >= 0) {
+      const ratio = maxScore > 0 ? displayScore / maxScore : 0;
+      const hue = Math.min(120, Math.max(0, ratio * 120)); // 0 (Red) -> 120 (Green)
+      return { color: `hsl(${hue}, 70%, 35%)` };
+    } else {
+      // Negative score: red shade
+      return { color: `hsl(0, 70%, 45%)` };
+    }
+  };
+  const scoreColorStyle = getScoreColorStyle();
 
-  // Trigger flying animation when pointsEarned changes
+  // Trigger flying animation when pointsEarned changes (supports negative values)
   useEffect(() => {
-    if (
-      pointsEarned !== null &&
-      pointsEarned > 0 &&
-      pointsEarned !== prevPointsRef.current &&
-      flyFromPosition &&
-      counterRef.current
-    ) {
+    if (pointsEarned !== null && pointsEarned !== 0 && flyFromPosition && counterRef.current) {
       // Measure destination dynamically
       const destRect = counterRef.current.getBoundingClientRect();
       const targetX = destRect.left + destRect.width / 2;
@@ -97,7 +99,7 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
 
       setFlyingPoints({
         value: pointsEarned,
-        key: Date.now(),
+        key: Date.now(), // Unique key ensures animation triggers even for same value
         startX: flyFromPosition.x,
         startY: flyFromPosition.y,
         targetX,
@@ -107,19 +109,22 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
     prevPointsRef.current = pointsEarned;
   }, [pointsEarned, flyFromPosition]);
 
-  // Animate score counting up
+  // Animate score counting (bi-directional: up or down)
   useEffect(() => {
-    if (displayScore >= score) return;
+    if (displayScore === score) return;
+
+    const direction = score > displayScore ? 1 : -1;
 
     // Delay start to match flying animation arrival
     const startTimeout = setTimeout(() => {
       const timer = setInterval(() => {
         setDisplayScore((prev) => {
-          if (prev < score) {
-            return prev + 1;
+          const next = prev + direction;
+          if ((direction > 0 && next >= score) || (direction < 0 && next <= score)) {
+            clearInterval(timer);
+            return score;
           }
-          clearInterval(timer);
-          return prev;
+          return next;
         });
       }, countSpeed);
 
@@ -130,9 +135,11 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [score]);
 
-  // When score decreases (game reset), snap to new value
+  // When score resets (e.g., new game), snap to new value immediately
   useEffect(() => {
-    if (score < prevScoreRef.current) {
+    // Detect large sudden drops (reset scenario, not gradual decrease)
+    const diff = Math.abs(score - prevScoreRef.current);
+    if (score === 0 && diff > 10) {
       setDisplayScore(score);
     }
     prevScoreRef.current = score;
@@ -159,11 +166,21 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
   const positionClasses =
     position === 'top-right' ? 'fixed top-4 right-4 md:top-6 md:right-6 z-[55]' : '';
 
-  // Get score color style for flying animation (matches RankingItem color formula)
+  // Get score color style for flying animation (supports negative values)
   const getFlyingPointsColor = (points: number): React.CSSProperties => {
-    const ratio = pointsPerAction > 0 ? points / pointsPerAction : 0;
-    const hue = Math.round(Math.min(1, Math.max(0, ratio)) * 120); // 0 = red, 120 = green
-    return { color: `hsl(${hue}, 70%, 35%)` };
+    if (points > 0) {
+      // Positive: Red (0) -> Green (120) based on points/maxPointsPerAction ratio
+      const ratio = pointsPerAction > 0 ? points / pointsPerAction : 0;
+      const hue = Math.round(Math.min(1, Math.max(0, ratio)) * 120);
+      return { color: `hsl(${hue}, 70%, 35%)` };
+    } else {
+      // Negative: Deep red (0) for max penalty, lighter red/orange (30) for small penalty
+      // Assuming max penalty is around -5 (popular tier)
+      const maxPenalty = 5;
+      const ratio = Math.min(1, Math.abs(points) / maxPenalty);
+      const hue = Math.round((1 - ratio) * 30); // 0-30 range (deep red to orange-red)
+      return { color: `hsl(${hue}, 80%, 45%)` };
+    }
   };
 
   return (
@@ -196,7 +213,8 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
               ...getFlyingPointsColor(flyingPoints.value),
             }}
           >
-            +{flyingPoints.value}
+            {flyingPoints.value > 0 ? '+' : ''}
+            {flyingPoints.value}
           </motion.div>
         </AnimatePresence>
       )}
