@@ -71,8 +71,6 @@ export const FeedbackOverlay: React.FC<FeedbackOverlayProps> = ({
             </div>
           </div>
 
-
-
           <div className="py-4 space-y-3 border-t border-border mt-4">
             <div className="flex flex-col items-center gap-1">
               <span className="text-muted-foreground text-sm uppercase tracking-widest">
@@ -83,7 +81,7 @@ export const FeedbackOverlay: React.FC<FeedbackOverlayProps> = ({
                 <span className="text-foreground font-bold text-lg">{userRating.toFixed(1)}</span>
               </div>
             </div>
-            
+
             <div className="flex flex-col items-center gap-1">
               <span className="text-muted-foreground text-sm uppercase tracking-widest">
                 Actual Rating

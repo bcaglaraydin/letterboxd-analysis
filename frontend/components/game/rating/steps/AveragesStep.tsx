@@ -40,7 +40,6 @@ export const AveragesStep: React.FC<AveragesStepProps> = ({ userStats, onNext })
             >
               {userStats.averageRating.toFixed(1)}
             </motion.div>
-
           </div>
 
           {/* VS Divider (Mobile only) */}
@@ -59,7 +58,6 @@ export const AveragesStep: React.FC<AveragesStepProps> = ({ userStats, onNext })
             >
               {userStats.communityComparison.averageCommunityRating.toFixed(1)}
             </motion.div>
-
           </div>
         </div>
 
