@@ -5,6 +5,8 @@
 
 export type GenreTier = 'niche' | 'mid-tier' | 'popular';
 
+export type ChipDisplayState = 'default' | 'selected' | 'correct' | 'incorrect' | 'missed';
+
 export interface Genre {
   id: string;
   name: string;
