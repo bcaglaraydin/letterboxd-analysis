@@ -4,7 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Star, Film, Lock, ArrowRight, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useExperienceStore } from '@/store/experienceStore';
+import { useExperienceStore } from '@/store/core/experienceStore';
 import { GameBackground } from '@/components/game/shared/GameBackground';
 import { GameLayout } from '@/components/game/shared/GameLayout';
 

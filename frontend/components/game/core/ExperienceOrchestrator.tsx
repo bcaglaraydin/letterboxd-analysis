@@ -2,10 +2,10 @@
 
 import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useExperienceStore } from '@/store/experienceStore';
-import { RatingGame } from './rating/RatingGame';
+import { useExperienceStore } from '@/store/core/experienceStore';
+import { RatingGame } from '../rating/RatingGame';
 import { GameHub } from './GameHub';
-import { GenreRankingGame } from './genre/ranking/GenreRankingGame';
+import { GenreRankingGame } from '../genre/ranking/GenreRankingGame';
 
 export const ExperienceOrchestrator = () => {
   const { currentPhase, completeRatingGame, completeGenreGame } = useExperienceStore();
