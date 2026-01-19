@@ -241,8 +241,14 @@ export function GenreMatchingGame() {
 
       // 3. Report chip position for flying animation
       const chipEl = chipRefsMap.current.get(genreId);
+      console.log('[DEBUG] Incorrect reveal:', {
+        genreId,
+        chipElFound: !!chipEl,
+        allRefs: Array.from(chipRefsMap.current.keys()),
+      });
       if (chipEl) {
         const rect = chipEl.getBoundingClientRect();
+        console.log(`[DEBUG] Chip rect for ${genreId}: left=${rect.left}, top=${rect.top}, width=${rect.width}, height=${rect.height}`);
         setFlyFromPosition({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
       }
 
@@ -271,8 +277,15 @@ export function GenreMatchingGame() {
 
       // Report chip position for flying animation (for correct selections)
       const chipEl = chipRefsMap.current.get(genreId);
+      console.log('[DEBUG] Correct/Missed reveal:', {
+        genreId,
+        result,
+        chipElFound: !!chipEl,
+        allRefs: Array.from(chipRefsMap.current.keys()),
+      });
       if (chipEl) {
         const rect = chipEl.getBoundingClientRect();
+        console.log(`[DEBUG] Chip rect for ${genreId}: left=${rect.left}, top=${rect.top}, width=${rect.width}, height=${rect.height}`);
         setFlyFromPosition({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
       }
 
@@ -507,8 +520,17 @@ export function GenreMatchingGame() {
                         isDisabled={phase !== 'selecting'}
                         onClick={() => handleGenreClick(genre.id)}
                         chipRef={(el) => {
-                          if (el) chipRefsMap.current.set(genre.id, el);
-                          else chipRefsMap.current.delete(genre.id);
+                          if (el) {
+                            // Defer check until after layout to get accurate dimensions
+                            requestAnimationFrame(() => {
+                              const rect = el.getBoundingClientRect();
+                              if (rect.width > 0 && rect.height > 0) {
+                                chipRefsMap.current.set(genre.id, el);
+                              }
+                            });
+                          } else {
+                            chipRefsMap.current.delete(genre.id);
+                          }
                         }}
                       />
                     ))}
@@ -551,8 +573,17 @@ export function GenreMatchingGame() {
                       isDisabled={phase !== 'selecting'}
                       onClick={() => handleGenreClick(genre.id)}
                       chipRef={(el) => {
-                        if (el) chipRefsMap.current.set(genre.id, el);
-                        else chipRefsMap.current.delete(genre.id);
+                        if (el) {
+                          // Defer check until after layout to get accurate dimensions
+                          requestAnimationFrame(() => {
+                            const rect = el.getBoundingClientRect();
+                            if (rect.width > 0 && rect.height > 0) {
+                              chipRefsMap.current.set(genre.id, el);
+                            }
+                          });
+                        } else {
+                          chipRefsMap.current.delete(genre.id);
+                        }
                       }}
                     />
                   ))}
