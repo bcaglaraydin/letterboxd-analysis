@@ -15,6 +15,94 @@ import { Genre, GenreTier, GamePhase, TIER_POINTS, TIER_INFO } from './types';
 
 type ChipDisplayState = 'default' | 'selected' | 'correct' | 'incorrect' | 'missed';
 
+// Extracted Chip Component
+const GenreChipAnimated = ({
+  genre,
+  state,
+  isDisabled,
+  onClick,
+}: {
+  genre: Genre;
+  state: ChipDisplayState;
+  isDisabled: boolean;
+  onClick?: () => void;
+}) => {
+  const points = TIER_POINTS[genre.tier];
+
+  const getStateStyle = () => {
+    switch (state) {
+      case 'selected':
+        return 'bg-primary/20 border-primary ring-2 ring-primary/30 shadow-md';
+      case 'correct':
+        return 'bg-green-500/20 border-green-500 text-green-300 shadow-lg shadow-green-500/20';
+      case 'incorrect':
+        return 'bg-destructive/20 border-destructive text-destructive opacity-60 line-through';
+      case 'missed':
+        return 'border-dashed border-amber-500/60 bg-amber-500/10 text-amber-400';
+      default:
+        return cn(
+          'bg-card/60 hover:bg-card/80',
+          genre.tier === 'niche' && 'border-accent/50 hover:border-accent',
+          genre.tier === 'mid-tier' && 'border-primary/50 hover:border-primary',
+          genre.tier === 'popular' &&
+            'border-muted-foreground/30 hover:border-muted-foreground/50',
+        );
+    }
+  };
+
+  const getPointsLabel = () => {
+    if (state === 'correct') return `+${points.correct}`;
+    if (state === 'incorrect') return `${points.incorrect}`;
+    return null;
+  };
+
+  const pointsLabel = getPointsLabel();
+
+  return (
+    <motion.button
+      layout
+      layoutId={`genre-${genre.id}`}
+      type="button"
+      onClick={onClick}
+      disabled={isDisabled}
+      whileTap={{ scale: isDisabled ? 1 : 0.95 }}
+      whileHover={{ scale: isDisabled ? 1 : 1.03 }}
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{
+        opacity: 1,
+        scale: 1,
+        transition: { type: 'spring', stiffness: 500, damping: 30 },
+      }}
+      exit={{ opacity: 0, scale: 0.8 }}
+      className={cn(
+        'relative px-2 py-1 md:px-2.5 md:py-1 lg:px-3 lg:py-1.5 rounded-full border transition-colors duration-200',
+        'text-xs md:text-xs lg:text-sm font-medium',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
+        !isDisabled && 'cursor-pointer',
+        isDisabled && 'cursor-default',
+        getStateStyle(),
+      )}
+    >
+      <span className="inline-flex items-center gap-1">
+        {genre.name}
+        {pointsLabel && (
+          <motion.span
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className={cn(
+              'text-[8px] md:text-[10px] font-bold',
+              state === 'correct' && 'text-green-400',
+              state === 'incorrect' && 'text-destructive',
+            )}
+          >
+            {pointsLabel}
+          </motion.span>
+        )}
+      </span>
+    </motion.button>
+  );
+};
+
 /**
  * GenreMatchingGame - Redesigned with Flying Animation Mechanics
  * Layout: Available genres LEFT, Movie card + collected zone RIGHT
@@ -209,86 +297,6 @@ export function GenreMatchingGame() {
     [genresByTier, isInCollectedZone],
   );
 
-  // Chip component with animations
-  const GenreChipAnimated = ({ genre, onClick }: { genre: Genre; onClick?: () => void }) => {
-    const state = getChipState(genre.id);
-    const points = TIER_POINTS[genre.tier];
-    const isDisabled = phase !== 'selecting';
-
-    const getStateStyle = () => {
-      switch (state) {
-        case 'selected':
-          return 'bg-primary/20 border-primary ring-2 ring-primary/30 shadow-md';
-        case 'correct':
-          return 'bg-green-500/20 border-green-500 text-green-300 shadow-lg shadow-green-500/20';
-        case 'incorrect':
-          return 'bg-destructive/20 border-destructive text-destructive opacity-60 line-through';
-        case 'missed':
-          return 'border-dashed border-amber-500/60 bg-amber-500/10 text-amber-400';
-        default:
-          return cn(
-            'bg-card/60 hover:bg-card/80',
-            genre.tier === 'niche' && 'border-accent/50 hover:border-accent',
-            genre.tier === 'mid-tier' && 'border-primary/50 hover:border-primary',
-            genre.tier === 'popular' &&
-              'border-muted-foreground/30 hover:border-muted-foreground/50',
-          );
-      }
-    };
-
-    const getPointsLabel = () => {
-      if (state === 'correct') return `+${points.correct}`;
-      if (state === 'incorrect') return `${points.incorrect}`;
-      return null;
-    };
-
-    const pointsLabel = getPointsLabel();
-
-    return (
-      <motion.button
-        layout
-        layoutId={`genre-${genre.id}`}
-        type="button"
-        onClick={onClick}
-        disabled={isDisabled}
-        whileTap={{ scale: isDisabled ? 1 : 0.95 }}
-        whileHover={{ scale: isDisabled ? 1 : 1.03 }}
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{
-          opacity: 1,
-          scale: 1,
-          transition: { type: 'spring', stiffness: 500, damping: 30 },
-        }}
-        exit={{ opacity: 0, scale: 0.8 }}
-        className={cn(
-          'relative px-2 py-1 md:px-2.5 md:py-1 lg:px-3 lg:py-1.5 rounded-full border transition-colors duration-200',
-          'text-xs md:text-xs lg:text-sm font-medium',
-          'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
-          !isDisabled && 'cursor-pointer',
-          isDisabled && 'cursor-default',
-          getStateStyle(),
-        )}
-      >
-        <span className="inline-flex items-center gap-1">
-          {genre.name}
-          {pointsLabel && (
-            <motion.span
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className={cn(
-                'text-[8px] md:text-[10px] font-bold',
-                state === 'correct' && 'text-green-400',
-                state === 'incorrect' && 'text-destructive',
-              )}
-            >
-              {pointsLabel}
-            </motion.span>
-          )}
-        </span>
-      </motion.button>
-    );
-  };
-
   // Render tier section
   const renderTierSection = (tier: GenreTier) => {
     const genres = getTierGenres(tier);
@@ -321,6 +329,8 @@ export function GenreMatchingGame() {
               <GenreChipAnimated
                 key={genre.id}
                 genre={genre}
+                state={getChipState(genre.id)}
+                isDisabled={phase !== 'selecting'}
                 onClick={() => handleGenreClick(genre.id)}
               />
             ))}
@@ -408,6 +418,8 @@ export function GenreMatchingGame() {
                       <GenreChipAnimated
                         key={genre.id}
                         genre={genre}
+                        state={getChipState(genre.id)}
+                        isDisabled={phase !== 'selecting'}
                         onClick={() => handleGenreClick(genre.id)}
                       />
                     ))}
@@ -419,7 +431,7 @@ export function GenreMatchingGame() {
               </motion.div>
 
               {/* GENRES: Takes remaining space on mobile, scrolls if needed */}
-              <div className="order-3 md:order-1 w-full md:w-[38%] lg:w-[32%] md:shrink-0 bg-card/30 rounded-lg p-1 md:p-3 lg:p-4 border border-border/20 overflow-y-auto flex flex-col justify-center flex-1 md:flex-initial min-h-0">
+              <div className="order-3 md:order-1 w-full md:w-[38%] lg:w-[32%] md:shrink-0 bg-card/30 rounded-lg p-1 md:p-3 lg:p-4 border border-border/20 overflow-y-auto no-scrollbar flex flex-col justify-center flex-1 md:flex-initial min-h-0">
                 <motion.div className="space-y-1 md:space-y-2 lg:space-y-3" layout>
                   {renderTierSection('niche')}
                   {renderTierSection('mid-tier')}
@@ -454,6 +466,8 @@ export function GenreMatchingGame() {
                     <GenreChipAnimated
                       key={genre.id}
                       genre={genre}
+                      state={getChipState(genre.id)}
+                      isDisabled={phase !== 'selecting'}
                       onClick={() => handleGenreClick(genre.id)}
                     />
                   ))}
@@ -511,3 +525,5 @@ export function GenreMatchingGame() {
     </LayoutGroup>
   );
 }
+
+
