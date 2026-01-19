@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
-import { Lock, ArrowRight, RotateCcw, Sparkles } from 'lucide-react';
+import { Lock, ArrowRight, RotateCcw, Sparkles, X } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { GameLayout } from '@/components/game/shared/GameLayout';
@@ -61,7 +61,6 @@ const GenreChipAnimated = ({
   return (
     <motion.button
       layout
-      layoutId={`genre-${genre.id}`}
       type="button"
       onClick={onClick}
       disabled={isDisabled}
@@ -71,11 +70,11 @@ const GenreChipAnimated = ({
       animate={{
         opacity: 1,
         scale: 1,
-        transition: { type: 'spring', stiffness: 500, damping: 30 },
+        transition: { type: 'spring', stiffness: 600, damping: 25, mass: 0.8 },
       }}
-      exit={{ opacity: 0, scale: 0.8 }}
+      exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.15 } }}
       className={cn(
-        'relative px-2 py-1 md:px-2.5 md:py-1 lg:px-3 lg:py-1.5 rounded-full border transition-colors duration-200',
+        'relative px-2 py-1 md:px-2.5 md:py-1 lg:px-3 lg:py-1.5 rounded-full border transition-colors duration-200 shrink-0',
         'text-xs md:text-xs lg:text-sm font-medium',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
         !isDisabled && 'cursor-pointer',
@@ -483,6 +482,18 @@ export function GenreMatchingGame() {
         }
         bottom={
           <div className="flex justify-center gap-2 py-1 md:py-3 min-h-[40px] md:min-h-[60px]">
+            {phase === 'selecting' && collectedGenreIds.size > 0 && (
+              <Button
+                onClick={() => setCollectedGenreIds(new Set())}
+                size="sm"
+                variant="outline"
+                className="gap-1 md:gap-2 text-xs md:text-sm text-muted-foreground border-muted-foreground/20 hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive transition-colors"
+              >
+                <X className="w-3 h-3 md:w-4 md:h-4" />
+                Clear
+              </Button>
+            )}
+
             {phase === 'selecting' && (
               <Button
                 onClick={handleLock}
