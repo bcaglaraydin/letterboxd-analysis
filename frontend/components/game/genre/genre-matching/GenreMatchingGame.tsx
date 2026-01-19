@@ -373,6 +373,38 @@ export function GenreMatchingGame() {
     );
   };
 
+  // Calculate specific points for this card to drive animation
+  const maxCardPoints = useMemo(() => {
+    return Array.from(correctGenreIds).reduce((sum, id) => {
+      const genre = MOCK_GENRES.find((g) => g.id === id);
+      return sum + (genre ? TIER_POINTS[genre.tier].correct : 0);
+    }, 0);
+  }, [correctGenreIds]);
+
+  const currentCardPoints = useMemo(() => {
+    let score = 0;
+    evaluatedGenres.forEach((result, id) => {
+      const genre = MOCK_GENRES.find((g) => g.id === id);
+      if (genre) {
+        if (result === 'correct') score += TIER_POINTS[genre.tier].correct;
+        else if (result === 'incorrect') score += TIER_POINTS[genre.tier].incorrect;
+      }
+    });
+    return Math.max(0, score);
+  }, [evaluatedGenres]);
+
+  const getDynamicStyle = () => {
+    if (phase === 'selecting') return {};
+
+    const ratio = maxCardPoints > 0 ? currentCardPoints / maxCardPoints : 0;
+    const hue = Math.round(Math.min(120, Math.max(0, ratio * 120)));
+
+    return {
+      backgroundColor: `hsla(${hue}, 70%, 50%, 0.1)`,
+      borderColor: `hsla(${hue}, 70%, 40%, 0.3)`,
+    };
+  };
+
   return (
     <LayoutGroup>
       <GameLayout
@@ -429,21 +461,16 @@ export function GenreMatchingGame() {
               <motion.div
                 className={cn(
                   'order-2 md:hidden w-full rounded-lg border border-dashed p-1 transition-colors duration-300 shrink-0',
-                  collectedGenres.length > 0
-                    ? 'border-primary/50 bg-primary/5'
-                    : 'border-muted-foreground/30 bg-muted/10',
-                  phase === 'complete' && 'border-green-500/50 bg-green-500/5',
+                  phase === 'selecting' &&
+                    (collectedGenres.length > 0
+                      ? 'border-primary/50 bg-primary/5'
+                      : 'border-muted-foreground/30 bg-muted/10'),
                 )}
+                style={getDynamicStyle()}
               >
                 <div className="text-[9px] text-muted-foreground mb-0.5 flex items-center gap-1">
                   <Sparkles className="w-2 h-2" />
-                  <span>
-                    {phase === 'complete'
-                      ? 'Correct'
-                      : phase === 'selecting'
-                        ? 'Your Selections'
-                        : 'Evaluating...'}
-                  </span>
+                  <span>Your Selections</span>
                 </div>
                 <div className="flex flex-wrap gap-0.5 min-h-[18px]">
                   <AnimatePresence mode="popLayout">
@@ -457,9 +484,6 @@ export function GenreMatchingGame() {
                       />
                     ))}
                   </AnimatePresence>
-                  {collectedGenres.length === 0 && phase === 'selecting' && (
-                    <span className="text-[9px] text-muted-foreground/50 italic">Tap</span>
-                  )}
                 </div>
               </motion.div>
 
@@ -477,21 +501,16 @@ export function GenreMatchingGame() {
             <motion.div
               className={cn(
                 'hidden md:block w-full rounded-lg border border-dashed p-2 lg:p-3 transition-colors duration-300 shrink-0',
-                collectedGenres.length > 0
-                  ? 'border-primary/50 bg-primary/5'
-                  : 'border-muted-foreground/30 bg-muted/10',
-                phase === 'complete' && 'border-green-500/50 bg-green-500/5',
+                phase === 'selecting' &&
+                  (collectedGenres.length > 0
+                    ? 'border-primary/50 bg-primary/5'
+                    : 'border-muted-foreground/30 bg-muted/10'),
               )}
+              style={getDynamicStyle()}
             >
               <div className="text-[10px] lg:text-xs text-muted-foreground mb-1 flex items-center gap-1">
                 <Sparkles className="w-3 h-3 lg:w-4 lg:h-4" />
-                <span>
-                  {phase === 'complete'
-                    ? 'Correct Genres'
-                    : phase === 'selecting'
-                      ? 'Your Selections'
-                      : 'Evaluating...'}
-                </span>
+                <span>Your Selections</span>
               </div>
               <div className="flex flex-wrap gap-1 lg:gap-1.5 min-h-[28px] lg:min-h-[40px]">
                 <AnimatePresence mode="popLayout">
@@ -505,11 +524,6 @@ export function GenreMatchingGame() {
                     />
                   ))}
                 </AnimatePresence>
-                {collectedGenres.length === 0 && phase === 'selecting' && (
-                  <span className="text-[10px] text-muted-foreground/50 italic">
-                    Tap genres to select
-                  </span>
-                )}
               </div>
             </motion.div>
           </div>
