@@ -13,8 +13,6 @@ interface GenreChipProps {
   onClick?: () => void;
   disabled?: boolean;
   className?: string;
-  /** For flying animation coordinate calculation */
-  onPositionReady?: (position: { x: number; y: number }) => void;
 }
 
 // Color styling based on tier
@@ -37,7 +35,7 @@ const tierColors: Record<GenreTier, { border: string; bg: string; selectedBg: st
 };
 
 export const GenreChip = forwardRef<HTMLButtonElement, GenreChipProps>(
-  ({ genre, state, onClick, disabled = false, className, onPositionReady }, ref) => {
+  ({ genre, state, onClick, disabled = false, className }, ref) => {
     const tierStyle = tierColors[genre.tier];
     const points = TIER_POINTS[genre.tier];
 

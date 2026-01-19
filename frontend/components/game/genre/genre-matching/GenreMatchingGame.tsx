@@ -273,7 +273,7 @@ export function GenreMatchingGame() {
     setPhase('locked');
 
     // Build reveal queue: selected genres first, then missed correct ones
-    const selectedList = Array.from(collectedGenreIds);
+    const selectedList = MOCK_GENRES.filter((g) => collectedGenreIds.has(g.id)).map((g) => g.id);
     const missedList = MOCK_GENRES.filter(
       (g) => correctGenreIds.has(g.id) && !collectedGenreIds.has(g.id),
     ).map((g) => g.id);
