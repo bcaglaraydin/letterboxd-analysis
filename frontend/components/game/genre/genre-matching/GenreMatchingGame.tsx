@@ -34,11 +34,13 @@ const GenreChipAnimated = ({
       case 'selected':
         return 'bg-primary/20 border-primary ring-2 ring-primary/30 shadow-md';
       case 'correct':
-        return 'bg-green-500/20 border-green-500 text-green-300 shadow-lg shadow-green-500/20';
+        // Solid green for maximum readability
+        return 'bg-green-600 border-green-700 text-white shadow-md font-bold ring-1 ring-green-700/50';
       case 'incorrect':
-        return 'bg-destructive/20 border-destructive text-destructive opacity-60 line-through';
+        // Clear red text, no opacity, no line-through for readability
+        return 'bg-destructive/15 border-destructive text-destructive font-semibold';
       case 'missed':
-        return 'border-dashed border-amber-500/60 bg-amber-500/10 text-amber-400';
+        return 'border-dashed border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium';
       default:
         return cn(
           'bg-card/60 hover:bg-card/80',
