@@ -21,11 +21,13 @@ const GenreChipAnimated = ({
   state,
   isDisabled,
   onClick,
+  chipRef,
 }: {
   genre: Genre;
   state: ChipDisplayState;
   isDisabled: boolean;
   onClick?: () => void;
+  chipRef?: (el: HTMLButtonElement | null) => void;
 }) => {
   const points = TIER_POINTS[genre.tier];
 
@@ -61,6 +63,7 @@ const GenreChipAnimated = ({
 
   return (
     <motion.button
+      ref={chipRef}
       layout
       type="button"
       onClick={onClick}
@@ -120,9 +123,12 @@ export function GenreMatchingGame() {
   const [lastPointsEarned, setLastPointsEarned] = useState<number | null>(null);
 
   const [heldIncorrectIds, setHeldIncorrectIds] = useState<Set<string>>(new Set());
+  const [flyFromPosition, setFlyFromPosition] = useState<{ x: number; y: number } | undefined>();
 
   // Ref for reveal timeout
   const revealTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Map to store refs for each genre chip element (for flying animation positioning)
+  const chipRefsMap = useRef<Map<string, HTMLButtonElement>>(new Map());
 
   const currentFilm = MOCK_FILMS[currentFilmIndex];
   const correctGenreIds = useMemo(
@@ -233,9 +239,16 @@ export function GenreMatchingGame() {
       // 2. Mark evaluated (turns Red immediately)
       setEvaluatedGenres((prev) => new Map(prev).set(genreId, result));
 
-      // 3. Update points
+      // 3. Report chip position for flying animation
+      const chipEl = chipRefsMap.current.get(genreId);
+      if (chipEl) {
+        const rect = chipEl.getBoundingClientRect();
+        setFlyFromPosition({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+      }
+
+      // 4. Update points (allow negative total)
       if (points !== 0) {
-        setTotalScore((prev) => Math.max(0, prev + points));
+        setTotalScore((prev) => prev + points);
         setLastPointsEarned(points);
       }
 
@@ -250,21 +263,29 @@ export function GenreMatchingGame() {
         // 5. Wait for flyback animation, then next
         setTimeout(() => {
           revealNext(queue, index + 1);
-        }, 400);
-      }, 650);
+        }, 500);
+      }, 900);
     } else {
       // Correct or Missed
       setEvaluatedGenres((prev) => new Map(prev).set(genreId, result));
 
+      // Report chip position for flying animation (for correct selections)
+      const chipEl = chipRefsMap.current.get(genreId);
+      if (chipEl) {
+        const rect = chipEl.getBoundingClientRect();
+        setFlyFromPosition({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+      }
+
+      // Update points (allow negative total)
       if (points !== 0) {
-        setTotalScore((prev) => Math.max(0, prev + points));
+        setTotalScore((prev) => prev + points);
         setLastPointsEarned(points);
       }
 
       // Continue to next after standard delay
       revealTimeoutRef.current = setTimeout(() => {
         revealNext(queue, index + 1);
-      }, 600);
+      }, 850);
     }
   };
 
@@ -297,6 +318,7 @@ export function GenreMatchingGame() {
     setPhase('selecting');
     setEvaluatedGenres(new Map());
     setLastPointsEarned(null);
+    setFlyFromPosition(undefined);
   }, []);
 
   // Move to next film
@@ -416,9 +438,12 @@ export function GenreMatchingGame() {
             <ScorePanel
               score={totalScore}
               pointsEarned={lastPointsEarned}
-              size="sm"
+              flyFromPosition={flyFromPosition}
+              size="lg"
               label="Score"
               maxScore={120}
+              pointsPerAction={15}
+              flyDuration={1.0}
             />
           </div>
         }
@@ -481,6 +506,10 @@ export function GenreMatchingGame() {
                         state={getChipState(genre.id)}
                         isDisabled={phase !== 'selecting'}
                         onClick={() => handleGenreClick(genre.id)}
+                        chipRef={(el) => {
+                          if (el) chipRefsMap.current.set(genre.id, el);
+                          else chipRefsMap.current.delete(genre.id);
+                        }}
                       />
                     ))}
                   </AnimatePresence>
@@ -521,6 +550,10 @@ export function GenreMatchingGame() {
                       state={getChipState(genre.id)}
                       isDisabled={phase !== 'selecting'}
                       onClick={() => handleGenreClick(genre.id)}
+                      chipRef={(el) => {
+                        if (el) chipRefsMap.current.set(genre.id, el);
+                        else chipRefsMap.current.delete(genre.id);
+                      }}
                     />
                   ))}
                 </AnimatePresence>
