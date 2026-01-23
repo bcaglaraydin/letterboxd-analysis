@@ -34,77 +34,66 @@ describe('generateGenreGame', () => {
     });
 
     it('ranks genres by average rating (highest rated first)', () => {
+      // Create enough films so genres are in popular group (top 50% by count)
       const films = [
         { genres: ['Action'], userRating: 2.0 },
         { genres: ['Action'], userRating: 2.0 },
-        { genres: ['Action'], userRating: 3.0 }, // Avg: ~2.33
+        { genres: ['Action'], userRating: 3.0 }, // Avg: ~2.33, Count: 3
         { genres: ['Drama'], userRating: 5.0 },
-        { genres: ['Drama'], userRating: 5.0 }, // Avg: 5.0
-        { genres: ['Comedy'], userRating: 1.0 }, // Avg: 1.0
+        { genres: ['Drama'], userRating: 5.0 }, // Avg: 5.0, Count: 2
+        { genres: ['Comedy'], userRating: 1.0 },
+        { genres: ['Comedy'], userRating: 1.0 }, // Avg: 1.0, Count: 2
       ];
+      // Sorted by count: Action(3), Drama(2), Comedy(2)
+      // midPoint = ceil(3/2) = 2, so popular = [Action, Drama]
+      // Only popular genres selected, Comedy is in niche group
       const result = generateGenreGame(films);
 
+      // actualRanking should be sorted by rating: Drama(5.0), Action(2.33)
       expect(result.actualRanking[0]).toBe('Drama');
       expect(result.actualRanking[1]).toBe('Action');
-      expect(result.actualRanking[2]).toBe('Comedy');
+      // Comedy is NOT included (it's in the niche group)
+      expect(result.actualRanking).not.toContain('Comedy');
     });
 
-    it('selects Popular (Top 50%) first, then Niche, both sorted by Rating', () => {
-      // Counts: A=10, B=10, C=10 (Popular, Median=10)
-      //         D=1, E=1 (Niche)
+    it('selects only Popular (Top 50% by count) genres, sorted by Rating', () => {
+      // Current implementation ONLY picks from popular genres (top 50% by count)
       const films = [];
-      // Popular (Count 10)
+      // Popular (Count 10) - These will be selected
       for (let i = 0; i < 10; i++) films.push({ genres: ['A'], userRating: 2.0 }); // Avg 2.0
       for (let i = 0; i < 10; i++) films.push({ genres: ['B'], userRating: 4.0 }); // Avg 4.0
       for (let i = 0; i < 10; i++) films.push({ genres: ['C'], userRating: 3.0 }); // Avg 3.0
 
-      // Niche (Count 1) - But very high rated!
+      // Niche (Count 1) - These will NOT be selected
       films.push({ genres: ['D'], userRating: 5.0 }); // Avg 5.0
       films.push({ genres: ['E'], userRating: 1.0 }); // Avg 1.0
 
-      // All Genres:
-      // A (Count 10, Rate 2.0)
-      // B (Count 10, Rate 4.0)
-      // C (Count 10, Rate 3.0)
-      // D (Count 1, Rate 5.0)
-      // E (Count 1, Rate 1.0)
+      // Sorted by count: A(10), B(10), C(10), D(1), E(1)
+      // midPoint = ceil(5/2) = 3, so popular = [A, B, C]
+      // Niche = [D, E] (not selected at all)
 
-      // Counts: 10, 10, 10, 1, 1. Sorted: 1, 1, 10, 10, 10.
-      // Median (index 2 of 5) = 10.
-      // Threshold = 10.
-      // Popular: A, B, C.
-      // Niche: D, E.
-
-      // Case 1: Limit 2. Should pick Top 2 Popular (by Rating): B (4.0) and C (3.0).
-      // Note: logic is "Pop sorted by Rate" + "Niche sorted by Rate".
-      // Pop sorted: B(4.0), C(3.0), A(2.0).
-      // Niche sorted: D(5.0), E(1.0).
-      // Combined: B, C, A, D, E.
-
+      // Case 1: Limit 2. Should pick from Popular sorted by Rating: B(4.0), A(2.0)
+      // Using selectEvenly which picks indices 0 and length-1
       let result = generateGenreGame(films, { limit: 2 });
       let names = result.genres.map((g) => g.name);
-      // Wait, once selected (B, C), actual ranking is B(4.0), C(3.0).
-      expect(names).toContain('B');
-      expect(names).toContain('C');
-      expect(names).not.toContain('A');
-      expect(names).not.toContain('D'); // D is 5.0 but niche, so skipped in favor of popular C
-
-      // Case 2: Limit 4. Should pick all 3 Popular (B, C, A) + 1 Niche (D).
-      result = generateGenreGame(films, { limit: 4 });
-      names = result.genres.map((g) => g.name);
-      expect(names).toContain('B'); // Pop 1
-      expect(names).toContain('C'); // Pop 2
-      expect(names).toContain('A'); // Pop 3
-      expect(names).toContain('D'); // Niche 1 (High rate)
+      expect(names).toContain('B'); // Highest rated popular
+      expect(names).toContain('A'); // Lowest rated popular (via selectEvenly)
+      expect(names).not.toContain('D'); // D is niche, not selected
       expect(names).not.toContain('E');
 
-      // Ranking Check for Case 2: D(5.0), B(4.0), C(3.0), A(2.0).
-      // Even though D was picked last (Tier 2), it is ranked #1 because it has highest rating.
+      // Case 2: Limit 3. Should pick all 3 Popular: B(4.0), C(3.0), A(2.0)
+      result = generateGenreGame(films, { limit: 3 });
+      names = result.genres.map((g) => g.name);
+      expect(names).toContain('B');
+      expect(names).toContain('C');
+      expect(names).toContain('A');
+      expect(names).not.toContain('D'); // Still niche
+
+      // Ranking for Case 2: B(4.0), C(3.0), A(2.0)
       const ranking = result.actualRanking;
-      expect(ranking[0]).toBe('D');
-      expect(ranking[1]).toBe('B');
-      expect(ranking[2]).toBe('C');
-      expect(ranking[3]).toBe('A');
+      expect(ranking[0]).toBe('B');
+      expect(ranking[1]).toBe('C');
+      expect(ranking[2]).toBe('A');
     });
   });
 
@@ -135,12 +124,21 @@ describe('generateGenreGame', () => {
       expect(result.genres).toHaveLength(8);
     });
 
-    it('returns fewer if not enough genres exist', () => {
-      const films = [{ genres: ['Action'] }, { genres: ['Drama'] }, { genres: ['Comedy'] }];
+    it('returns fewer if not enough popular genres exist', () => {
+      // 3 genres total, but only top 50% (2 genres) are "popular"
+      const films = [
+        { genres: ['Action'] },
+        { genres: ['Action'] }, // Count: 2
+        { genres: ['Drama'] }, // Count: 1
+        { genres: ['Comedy'] }, // Count: 1
+      ];
+      // Sorted by count: Action(2), Drama(1), Comedy(1)
+      // midPoint = ceil(3/2) = 2, popular = [Action, Drama]
+      // Only 2 popular genres, so we get 2 even with limit 10
 
       const result = generateGenreGame(films, { limit: 10 });
 
-      expect(result.genres).toHaveLength(3);
+      expect(result.genres).toHaveLength(2);
     });
   });
 
@@ -173,12 +171,26 @@ describe('generateGenreGame', () => {
     });
 
     it('actualRanking remains in correct order (not shuffled)', () => {
-      const films = [{ genres: ['Action'] }, { genres: ['Action'] }, { genres: ['Drama'] }];
+      // Need 4+ genres so popular group has at least 2
+      // With 4 genres: midPoint = ceil(4/2) = 2, so popular = top 2 by count
+      const films = [];
+      // Action: 4 films, Avg 3.0
+      for (let i = 0; i < 4; i++) films.push({ genres: ['Action'], userRating: 3.0 });
+      // Drama: 4 films, Avg 4.0
+      for (let i = 0; i < 4; i++) films.push({ genres: ['Drama'], userRating: 4.0 });
+      // Comedy: 1 film (niche)
+      films.push({ genres: ['Comedy'], userRating: 5.0 });
+      // Horror: 1 film (niche)
+      films.push({ genres: ['Horror'], userRating: 1.0 });
+
+      // Sorted by count: Action(4), Drama(4), Comedy(1), Horror(1)
+      // midPoint = ceil(4/2) = 2, popular = [Action, Drama]
 
       // Run multiple times to ensure consistency
       for (let i = 0; i < 5; i++) {
         const result = generateGenreGame(films);
-        expect(result.actualRanking).toEqual(['Action', 'Drama']);
+        // Drama has higher rating (4.0), so it should be first
+        expect(result.actualRanking).toEqual(['Drama', 'Action']);
       }
     });
   });
