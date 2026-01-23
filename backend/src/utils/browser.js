@@ -73,6 +73,7 @@ class BrowserSession {
     if (!this.page || this.page.isClosed()) {
       this.page = await this.context.newPage();
       this.activePages++;
+      this.isWarm = false; // Reset warm status for new page
 
       // Evasion: Mask navigator.webdriver
       await this.page.addInitScript(() => {
@@ -88,7 +89,7 @@ class BrowserSession {
     return this.page;
   }
 
-  async releasePage(page) {
+  async releasePage(_page) {
     // In persistent mode, we DO NOT close the page.
     // We keep it open for the next request.
     // The browser.close() method will handle cleanup.
@@ -101,6 +102,7 @@ class BrowserSession {
       this.browser = null;
       this.context = null;
       this.activePages = 0;
+      this.isWarm = false;
     }
   }
 }
@@ -136,9 +138,6 @@ export async function closeBrowserSession() {
 async function simulateHumanInteraction(page) {
   try {
     // Random mouse movements
-    const width = 1200;
-    const height = 800;
-
     // Move to random center-ish point
     const x = Math.floor(Math.random() * 400) + 400; // 400-800
     const y = Math.floor(Math.random() * 300) + 200; // 200-500
@@ -168,23 +167,33 @@ export async function fetchHtmlWithBrowser(url) {
   try {
     page = await session.getPage();
 
-    console.log(`[Browser] Navigating to ${url}...`);
+    console.log(`[Browser] Navigating to ${url}... (Warm: ${!!session.isWarm})`);
     // Use domcontentloaded (networkidle times out with Cloudflare)
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
-    // Wait for Cloudflare challenge to complete
-    await page.waitForTimeout(5000);
-
-    // Try to pass challenge with interaction
-    await simulateHumanInteraction(page);
+    if (!session.isWarm) {
+      // First time or cold session: Wait for challenge + simulate interaction
+      console.log('[Browser] Cold session. Waiting for Cloudflare challenge...');
+      await page.waitForTimeout(5000);
+      await simulateHumanInteraction(page);
+    } else {
+      // Warm session: Just a small delay to be safe
+      await page.waitForTimeout(1000);
+    }
 
     try {
-      await page.waitForSelector(LETTERBOXD_READY_SELECTORS, { timeout: 15000 });
-      console.log('[Browser] Cloudflare challenge likely passed.');
+      // Check if we passed the challenge
+      // If warm, we expect this to return almost immediately
+      await page.waitForSelector(LETTERBOXD_READY_SELECTORS, { timeout: 10000 });
+      if (!session.isWarm) {
+        console.log('[Browser] Cloudflare challenge passed. Session marked as warm.');
+        session.isWarm = true;
+      }
     } catch {
       console.warn(
         '[Browser] Timeout waiting for specific selectors. Returning page content anyway.'
       );
+      // NOTE: We do NOT set isWarm = true here because we aren't sure.
     }
 
     const content = await page.content();
