@@ -1,8 +1,26 @@
 import { load } from 'cheerio';
 import pLimit from 'p-limit';
 import { fetchWithRetry } from '../utils/http.js';
+import { fetchHtmlWithBrowser } from '../utils/browser.js';
 
 const BASE_URL = 'https://letterboxd.com';
+
+/**
+ * Fetches HTML, falling back to headless browser if blocked by 403.
+ * @param {string} url - The URL to fetch.
+ * @returns {Promise<string>} - The HTML content.
+ */
+async function fetchHtmlWithFallback(url) {
+  try {
+    return await fetchWithRetry(url);
+  } catch (err) {
+    if (err.response?.status === 403) {
+      console.warn(`[Scraper] 403 Forbidden on ${url}. Failing over to headless browser...`);
+      return await fetchHtmlWithBrowser(url);
+    }
+    throw err;
+  }
+}
 
 /**
  * Fetches film statistics (e.g., watched count) from the CSI endpoint.
@@ -48,7 +66,7 @@ export async function scrapeUserFilmsList(username) {
   const baseUrl = `${BASE_URL}/${username}/films/`;
 
   // 1. Fetch Profile & Determine Pagination
-  const firstPageHtml = await fetchWithRetry(baseUrl);
+  const firstPageHtml = await fetchHtmlWithFallback(baseUrl);
   const $ = load(firstPageHtml);
 
   // Check if user exists/has films
@@ -74,7 +92,7 @@ export async function scrapeUserFilmsList(username) {
     pageUrls.map((url) =>
       listLimit(async () => {
         try {
-          const html = await fetchWithRetry(url);
+          const html = await fetchHtmlWithFallback(url);
           const $ = load(html);
           const pageFilms = [];
 
@@ -131,7 +149,7 @@ export async function scrapeUserFilms(username) {
   const baseUrl = `https://letterboxd.com/${username}/films/`;
 
   // 1. Fetch Profile & Determine Pagination
-  const firstPageHtml = await fetchWithRetry(baseUrl);
+  const firstPageHtml = await fetchHtmlWithFallback(baseUrl);
   const $ = load(firstPageHtml);
 
   // Check if user exists/has films
@@ -157,7 +175,7 @@ export async function scrapeUserFilms(username) {
     pageUrls.map((url) =>
       listLimit(async () => {
         try {
-          const html = await fetchWithRetry(url);
+          const html = await fetchHtmlWithFallback(url);
           const $ = load(html);
           const pageFilms = [];
 
@@ -211,7 +229,7 @@ export async function scrapeUserFilms(username) {
       filmLimit(async () => {
         try {
           // Fetch Details Page
-          const html = await fetchWithRetry(film.url);
+          const html = await fetchHtmlWithFallback(film.url);
           const $film = load(html);
 
           // --- JSON-LD Extraction ---
@@ -329,7 +347,7 @@ function parseJsonLd($film, slug) {
 export async function scrapeFilmDetails(slug, url) {
   try {
     // Fetch Details Page
-    const html = await fetchWithRetry(url);
+    const html = await fetchHtmlWithFallback(url);
     const $film = load(html);
 
     // --- JSON-LD Extraction ---
