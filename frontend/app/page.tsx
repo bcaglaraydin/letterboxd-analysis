@@ -60,7 +60,7 @@ export default function LandingPage() {
       ) {
         setError('Who is that?');
       } else {
-        setError(errorMessage);
+        setError('Something went wrong. Please try again.');
       }
       setIsLoading(false);
     }
