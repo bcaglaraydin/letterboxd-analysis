@@ -14,12 +14,17 @@ dependency "films" {
   config_path = "../dynamodb/films"
 }
 
+dependency "deployment_bucket" {
+  config_path = "../lambda-deployment-bucket"
+}
+
 inputs = {
   function_name = "letterboxd-analysis-metrics-dev"
   handler       = "src/handlers/retrieveMetricsHandler.handler"
   memory_size   = 512
   timeout       = 30
   source_dir    = "${get_terragrunt_dir()}/../../../../backend"
+  deployment_bucket = dependency.deployment_bucket.outputs.bucket_name
 
   environment_variables = {
     NODE_ENV    = "development"

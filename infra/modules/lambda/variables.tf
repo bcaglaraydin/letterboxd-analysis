@@ -14,6 +14,11 @@ variable "source_dir" {
   type = string
 }
 
+variable "deployment_bucket" {
+  description = "S3 bucket name for Lambda code deployment"
+  type        = string
+}
+
 variable "environment_variables" {
   type    = map(string)
   default = {}

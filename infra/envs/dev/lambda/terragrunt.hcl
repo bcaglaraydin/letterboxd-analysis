@@ -18,6 +18,10 @@ dependency "dynamodb" {
   config_path = "../dynamodb/films"
 }
 
+dependency "deployment_bucket" {
+  config_path = "../lambda-deployment-bucket"
+}
+
 inputs = {
   function_name = "letterboxd-analysis-backend-dev"
   handler       = "src/index.handler"
@@ -29,6 +33,7 @@ inputs = {
   memory_size = 1024
   timeout     = 600
   source_dir    = "${get_terragrunt_dir()}/../../../../backend"
+  deployment_bucket = dependency.deployment_bucket.outputs.bucket_name
 
   inline_policy_json = jsonencode({
     Version = "2012-10-17"
