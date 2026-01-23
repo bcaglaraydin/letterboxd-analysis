@@ -2,7 +2,7 @@ import chromium from '@sparticuz/chromium';
 import playwright from 'playwright-core';
 
 // Selectors that indicate the page has fully loaded (Cloudflare challenge passed)
-const LETTERBOXD_READY_SELECTORS = '.site-footer, .poster-list, #content';
+const LETTERBOXD_READY_SELECTORS = '.poster-grid, .site-body, .navitem';
 
 /**
  * Shared browser session for reuse across multiple requests.
@@ -144,6 +144,13 @@ async function simulateHumanInteraction(page) {
 
     await page.mouse.move(x, y, { steps: 5 });
 
+    // Simulate a click (randomly)
+    if (Math.random() > 0.5) {
+      await page.mouse.down();
+      await page.waitForTimeout(Math.floor(Math.random() * 100) + 50);
+      await page.mouse.up();
+    }
+
     // Small random scroll
     await page.mouse.wheel(0, Math.floor(Math.random() * 100) + 50);
 
@@ -171,29 +178,52 @@ export async function fetchHtmlWithBrowser(url) {
     // Use domcontentloaded (networkidle times out with Cloudflare)
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
-    if (!session.isWarm) {
-      // First time or cold session: Wait for challenge + simulate interaction
-      console.log('[Browser] Cold session. Waiting for Cloudflare challenge...');
-      await page.waitForTimeout(5000);
-      await simulateHumanInteraction(page);
-    } else {
-      // Warm session: Just a small delay to be safe
-      await page.waitForTimeout(1000);
+    // Warm session: Just a small delay to be safe
+    if (session.isWarm) {
+      await page.waitForTimeout(2000); // 2s delay
     }
 
+    // Logic to handle potential challenge even if warm
+    let passed = false;
     try {
-      // Check if we passed the challenge
-      // If warm, we expect this to return almost immediately
-      await page.waitForSelector(LETTERBOXD_READY_SELECTORS, { timeout: 10000 });
-      if (!session.isWarm) {
-        console.log('[Browser] Cloudflare challenge passed. Session marked as warm.');
-        session.isWarm = true;
-      }
+      // Short timeout check for warm session, longer for cold
+      const timeout = session.isWarm ? 5000 : 20000;
+      await page.waitForSelector(LETTERBOXD_READY_SELECTORS, { timeout });
+      passed = true;
     } catch {
-      console.warn(
-        '[Browser] Timeout waiting for specific selectors. Returning page content anyway.'
-      );
-      // NOTE: We do NOT set isWarm = true here because we aren't sure.
+      if (session.isWarm) {
+        console.warn('[Browser] Warm session challenge verification failed. Retrying as cold...');
+        session.isWarm = false;
+      }
+    }
+
+    if (!passed) {
+      // Loop to try solving challenge (max 3 attempts)
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        console.log(`[Browser] Waiting for Cloudflare challenge (Attempt ${attempt}/3)...`);
+        await page.waitForTimeout(5000 * attempt); // Increasing wait
+        await simulateHumanInteraction(page);
+
+        try {
+          await page.waitForSelector(LETTERBOXD_READY_SELECTORS, { timeout: 10000 });
+          console.log('[Browser] Cloudflare challenge passed.');
+          passed = true;
+          session.isWarm = true;
+          break;
+        } catch {
+          console.warn(`[Browser] Attempt ${attempt} failed. Retrying...`);
+        }
+      }
+
+      if (!passed) {
+        console.warn(
+          '[Browser] Failed to pass challenge after 3 attempts. Returning content anyway.'
+        );
+        // NOTE: isWarm remains false
+      }
+    } else if (!session.isWarm) {
+      console.log('[Browser] Cloudflare challenge passed. Session marked as warm.');
+      session.isWarm = true;
     }
 
     const content = await page.content();
