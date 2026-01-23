@@ -1,9 +1,12 @@
 import { load } from 'cheerio';
 import pLimit from 'p-limit';
 import { fetchWithRetry } from '../utils/http.js';
-import { fetchHtmlWithBrowser } from '../utils/browser.js';
+import { fetchHtmlWithBrowser, closeBrowserSession } from '../utils/browser.js';
 
 const BASE_URL = 'https://letterboxd.com';
+
+// Limit browser fallback concurrency to 1 to avoid Cloudflare rate limiting
+const browserLimit = pLimit(1);
 
 /**
  * Fetches HTML, falling back to headless browser if blocked by 403.
@@ -16,7 +19,8 @@ async function fetchHtmlWithFallback(url) {
   } catch (err) {
     if (err.response?.status === 403) {
       console.warn(`[Scraper] 403 Forbidden on ${url}. Failing over to headless browser...`);
-      return await fetchHtmlWithBrowser(url);
+      // Use browser limit to control concurrency of browser requests
+      return await browserLimit(() => fetchHtmlWithBrowser(url));
     }
     throw err;
   }
@@ -136,6 +140,10 @@ export async function scrapeUserFilmsList(username) {
 
   const allFilmsBasic = filmBasicInfos.flat();
   console.log(`Extracted ${allFilmsBasic.length} films from list pages.`);
+
+  // Clean up browser session to free resources
+  await closeBrowserSession();
+
   return allFilmsBasic;
 }
 

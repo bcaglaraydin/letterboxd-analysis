@@ -21,8 +21,8 @@ dependency "deployment_bucket" {
 inputs = {
   function_name = "letterboxd-analysis-metrics-dev"
   handler       = "src/handlers/retrieveMetricsHandler.handler"
-  memory_size   = 512
-  timeout       = 30
+  memory_size   = 1024
+  timeout       = 120
   source_dir    = "${get_terragrunt_dir()}/../../../../backend"
   deployment_bucket = dependency.deployment_bucket.outputs.bucket_name
 
