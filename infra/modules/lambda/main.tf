@@ -14,15 +14,25 @@ data "archive_file" "lambda_zip" {
   ]
 }
 
+# Upload Lambda code to S3 first (raises limit from 50MB to 250MB)
+resource "aws_s3_object" "lambda_code" {
+  bucket = var.deployment_bucket
+  key    = "${var.function_name}/lambda.zip"
+  source = data.archive_file.lambda_zip.output_path
+  etag   = data.archive_file.lambda_zip.output_md5
+}
+
 resource "aws_lambda_function" "this" {
-  filename         = data.archive_file.lambda_zip.output_path
-  function_name    = var.function_name
-  role             = aws_iam_role.iam_for_lambda.arn
-  handler          = var.handler
-  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
-  runtime          = var.runtime
-  memory_size      = var.memory_size
-  timeout          = var.timeout
+  s3_bucket         = var.deployment_bucket
+  s3_key            = aws_s3_object.lambda_code.key
+  s3_object_version = aws_s3_object.lambda_code.version_id
+  function_name     = var.function_name
+  role              = aws_iam_role.iam_for_lambda.arn
+  handler           = var.handler
+  source_code_hash  = data.archive_file.lambda_zip.output_base64sha256
+  runtime           = var.runtime
+  memory_size       = var.memory_size
+  timeout           = var.timeout
 
   environment {
     variables = var.environment_variables

@@ -46,9 +46,16 @@ jobs:
       output_key: queue_name
     secrets: inherit
 
+  deploy-lambda-deployment-bucket:
+    name: Deploy Lambda Deployment Bucket
+    uses: ./.github/workflows/terragrunt-apply.yaml
+    with:
+      working_directory: infra/envs/dev/lambda-deployment-bucket
+    secrets: inherit
+
   deploy-lambda-coord:
     name: Deploy Lambda Coord
-    needs: [deploy-s3, deploy-dynamodb, deploy-sqs]
+    needs: [deploy-s3, deploy-dynamodb, deploy-sqs, deploy-lambda-deployment-bucket]
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/lambda
@@ -57,7 +64,7 @@ jobs:
 
   deploy-lambda-worker:
     name: Deploy Lambda Worker
-    needs: [deploy-s3, deploy-dynamodb, deploy-sqs]
+    needs: [deploy-s3, deploy-dynamodb, deploy-sqs, deploy-lambda-deployment-bucket]
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/lambda-worker
@@ -66,7 +73,7 @@ jobs:
 
   deploy-lambda-metrics:
     name: Deploy Lambda Metrics
-    needs: [deploy-s3, deploy-dynamodb, deploy-sqs]
+    needs: [deploy-s3, deploy-dynamodb, deploy-sqs, deploy-lambda-deployment-bucket]
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/lambda-metrics
