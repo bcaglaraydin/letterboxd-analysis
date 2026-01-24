@@ -62,7 +62,7 @@ export const handler = async (event) => {
 
     // Check count of VALID metadata (must have year/director etc to be useful)
     let validCount = 0;
-    filmSlugs.forEach((slug) => {
+    filmSlugStrings.forEach((slug) => {
       const meta = metadataMap.get(slug);
       if (meta && meta.year && meta.year !== '????') {
         validCount++;
