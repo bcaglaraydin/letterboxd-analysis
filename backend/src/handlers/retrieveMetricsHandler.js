@@ -1,5 +1,4 @@
-import { batchGet, putItem } from '../services/dynamoDbService.js';
-import { scrapeUserFilmsList } from '../services/letterboxdScrapingService.js';
+import { batchGet, getItem } from '../services/dynamoDbService.js';
 import { closeBrowserSession } from '../utils/browser.js';
 import { generateRatingGame } from '../games/ratingGame.js';
 
@@ -19,37 +18,69 @@ export const handler = async (event) => {
       const username = body.username;
       console.log(`Starting game for user: ${username}`);
 
-      // 1. Scrape User's Film List
-      const userFilms = await scrapeUserFilmsList(username);
-      if (userFilms.length < 5) {
-        return {
-          statusCode: 400,
-          body: JSON.stringify({ error: 'User needs at least 5 rated films to play.' }),
-        };
-      }
+      // 1. Check if User List is Cached
+      let userFilms = [];
+      let listCached = false;
+      const userItemKey = { slug: `USER#${username}` };
 
-      // 1.5 Store User List (for status checking)
-      // We store the list of slugs so statusHandler knows what to check for completeness
       if (FILMS_TABLE) {
         try {
-          // Store item USER#<username>
-          // Set TTL to 1 hour
-          const ttl = Math.floor(Date.now() / 1000) + 3600;
-          const userItem = {
-            slug: `USER#${username}`,
-            films: userFilms.map((f) => ({ slug: f.slug, userRating: f.userRating })),
-            totalFilms: userFilms.length,
-            ttl,
-          };
-          // Import putItem dynamically or assume imported (need to add import)
-          await putItem(FILMS_TABLE, userItem);
+          const cachedList = await getItem(FILMS_TABLE, userItemKey);
+          if (cachedList && cachedList.films && cachedList.films.length > 0) {
+            console.log(`Found cached list for ${username}: ${cachedList.films.length} films`);
+            userFilms = cachedList.films;
+            listCached = true;
+          }
         } catch (err) {
-          console.error('Failed to store user list payload:', err);
+          console.error('Failed to fetch cached user list:', err);
         }
       }
 
-      // 2. Fetch Metadata (Check DB first)
+      // 2. If List Missing: Dispatch "Scrape List" Task & Return Processing
+      if (!listCached) {
+        console.log(`User list not found in cache. Dispatching background scrape task.`);
+
+        if (process.env.SQS_QUEUE_URL) {
+          const { sendMessageBatch } = await import('../services/sqsQueueService.js');
+          const queueUrl = process.env.SQS_QUEUE_URL;
+          try {
+            // Dispatch action: 'scrape_user_list'
+            await sendMessageBatch(queueUrl, [{ action: 'scrape_user_list', username }]);
+          } catch (sqsErr) {
+            console.error('Failed to dispatch user scrape task:', sqsErr);
+            return {
+              statusCode: 500,
+              body: JSON.stringify({ error: 'Failed to start background job.' }),
+            };
+          }
+        } else {
+          console.warn('SQS_QUEUE_URL not set. Cannot scrape in background.');
+          return {
+            statusCode: 500,
+            body: JSON.stringify({ error: 'Background processing not configured.' }),
+          };
+        }
+
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            username: username,
+            status: 'processing',
+            totalFilms: 0,
+            cachedFilms: 0,
+            ratingGame: null,
+            userStats: null,
+            genreGame: null,
+          }),
+        };
+      }
+
+      // 3. If List Exists: Check Metadata & Proceed
+      // We assume userFilms contains objects: { slug, userRating }
+
       const uniqueSlugs = [...new Set(userFilms.map((f) => f.slug))].map((slug) => ({ slug }));
+      console.log(`Checking metadata for ${uniqueSlugs.length} films...`);
+
       let dbItems = [];
       if (FILMS_TABLE) {
         try {
@@ -61,7 +92,8 @@ export const handler = async (event) => {
       const metadataMap = new Map();
       dbItems.forEach((item) => metadataMap.set(item.slug, item));
 
-      // 2.5 Dispatch Missing Films to SQS (Background Processing)
+      // 4. Dispatch Missing Films (Recursion/Repair)
+      // Even if list exists, some metadata might be missing if previous run failed/timed out.
       const cachedSlugs = new Set(dbItems.map((i) => i.slug));
       const missingFilms = userFilms.filter(
         (f) => !cachedSlugs.has(f.slug) || !metadataMap.get(f.slug)?.year
@@ -71,41 +103,75 @@ export const handler = async (event) => {
         const { sendMessageBatch } = await import('../services/sqsQueueService.js');
         const queueUrl = process.env.SQS_QUEUE_URL;
 
-        // Dispatch in background (we await the dispatch call itself but workers process async)
-        // Only send SLUGs to worker
+        // Dispatch in background
+        console.log(`Dispatching ${missingFilms.length} missing films (repair/fill)...`);
         const messages = missingFilms.map((f) => ({ slug: f.slug }));
         try {
-          console.log(`Dispatching ${messages.length} missing films to SQS...`);
           await sendMessageBatch(queueUrl, messages);
         } catch (sqsErr) {
           console.error('Failed to dispatch to SQS:', sqsErr);
         }
       }
 
-      // 3. Generate Rating Game Data (Will scrape 5 random if needed)
+      // 5. Check Game Readiness
+      // If we have "enough" films with metadata, we can try to generate a game.
+      // But if user has 1000 films and we only have 5, generateRatingGame might look for 5 random ones.
+      // If it picks 5 missing ones, it might try to scrape synchronously?
+      // RatingGame logic tries to scrape if missing, BUT we want to avoid synchronous scraping if possible to avoid timeout.
+      // Ideally, if metadata coverage is low, we return "Processing".
+
+      // Heuristic: If we don't have enough metadata for a game (e.g. < 10 films?), just say processing.
+      if (dbItems.length < 10 && userFilms.length >= 10) {
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            username: username,
+            status: 'processing',
+            totalFilms: userFilms.length,
+            cachedFilms: dbItems.length,
+          }),
+        };
+      }
+
+      // 6. Generate Rating Game Data
       let ratingGameData;
       try {
         ratingGameData = await generateRatingGame(userFilms, metadataMap);
       } catch (err) {
+        // If generation fails (e.g. scraping 5 films takes too long or fails), return error or processing?
+        // If it throws "User needs at least 5 rated films", we return 400.
+        // If it throws because it couldn't scrape metadata, we might want to return Processing.
+        if (err.message.includes('User needs at least')) {
+          return {
+            statusCode: 400,
+            body: JSON.stringify({ error: err.message }),
+          };
+        }
+        console.warn(
+          'Game generation failed (likely metadata missing), returning processing:',
+          err
+        );
         return {
-          statusCode: 400,
-          body: JSON.stringify({ error: err.message }),
+          statusCode: 200,
+          body: JSON.stringify({
+            username: username,
+            status: 'processing',
+            totalFilms: userFilms.length,
+            cachedFilms: dbItems.length,
+          }),
         };
       }
-
-      // 4. Return Immediate Response (Partial)
-      // We do NOT generate Genre Game or User Stats yet as data is incomplete
 
       return {
         statusCode: 200,
         body: JSON.stringify({
           username: username,
-          status: 'processing', // Indicates background work is active
+          status: 'processing', // Still 'processing' because Stats/GenreGame aren't ready until full scrape
           totalFilms: userFilms.length,
           cachedFilms: dbItems.length,
-          ratingGame: ratingGameData,
-          userStats: null, // Will be fetched later
-          genreGame: null, // Will be fetched later
+          ratingGame: ratingGameData, // Partial game is ready
+          userStats: null,
+          genreGame: null,
         }),
       };
     }
