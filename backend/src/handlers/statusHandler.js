@@ -1,5 +1,6 @@
 import { getItem, batchGet } from '../services/dynamoDbService.js';
 import { generateGenreGame } from '../games/genreGame.js';
+import { generateRatingGame } from '../games/ratingGame.js';
 import {
   calculateRatingDistribution,
   calculateBasicStats,
@@ -127,6 +128,10 @@ export const handler = async (event) => {
     // Generate Genre Game
     const genreGameData = generateGenreGame(allFilmsWithMeta, { limit: 8 });
 
+    // Generate Rating Game
+    // We reuse allFilmsWithMeta which has the merged metadata
+    const ratingGameData = await generateRatingGame(userFilms, metadataMap);
+
     // Calculate User Stats
     const userRatings = userFilms.map((f) => f.userRating).filter((r) => r !== null);
     const ratingDist = calculateRatingDistribution(userRatings);
@@ -168,6 +173,7 @@ export const handler = async (event) => {
         status: 'ready',
         progress: 1,
         userStats: stats,
+        ratingGame: ratingGameData,
         genreGame: genreGameData,
       }),
     };
