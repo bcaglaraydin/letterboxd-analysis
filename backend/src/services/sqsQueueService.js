@@ -1,6 +1,6 @@
 import { SQSClient, SendMessageBatchCommand } from '@aws-sdk/client-sqs';
 
-const sqsClient = new SQSClient();
+const sqsClient = new SQSClient({ region: process.env.AWS_REGION || 'us-east-1' });
 
 /**
  * Sends a batch of messages to an SQS queue.

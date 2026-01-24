@@ -80,9 +80,18 @@ jobs:
       install_backend_deps: true
     secrets: inherit
 
+  deploy-lambda-status:
+    name: Deploy Lambda Status
+    needs: [deploy-s3, deploy-dynamodb, deploy-sqs, deploy-lambda-deployment-bucket]
+    uses: ./.github/workflows/terragrunt-apply.yaml
+    with:
+      working_directory: infra/envs/dev/lambda-status
+      install_backend_deps: true
+    secrets: inherit
+
   deploy-gateway:
     name: Deploy Gateway
-    needs: [deploy-lambda-coord, deploy-lambda-worker, deploy-lambda-metrics]
+    needs: [deploy-lambda-coord, deploy-lambda-worker, deploy-lambda-metrics, deploy-lambda-status]
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/api-gateway
