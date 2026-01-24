@@ -33,14 +33,13 @@ inputs = {
   environment_variables = {
     NODE_ENV          = "development"
     FILMS_TABLE       = dependency.films.outputs.table_name
+    SQS_QUEUE_URL     = dependency.sqs.outputs.queue_url
     BROWSER_MAX_PAGES = "3"
   }
 
   sqs_event_source_arn = dependency.sqs.outputs.queue_arn
   sqs_batch_size       = 10
   sqs_batch_window     = 0
-
-
 
   policy_arns = [
     "arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole"
@@ -54,9 +53,15 @@ inputs = {
           "dynamodb:PutItem",
           "dynamodb:BatchWriteItem",
           "dynamodb:GetItem",
+          "dynamodb:BatchGetItem"
         ]
         Effect   = "Allow"
         Resource = dependency.films.outputs.table_arn
+      },
+      {
+        Action   = "sqs:SendMessage"
+        Effect   = "Allow"
+        Resource = dependency.sqs.outputs.queue_arn
       }
     ]
   })
