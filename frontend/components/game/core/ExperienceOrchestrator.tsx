@@ -26,6 +26,22 @@ export const ExperienceOrchestrator = () => {
     let interval: NodeJS.Timeout;
     const check = async () => {
       const data = await pollBackgroundStatus();
+      
+      // PROGRESSIVE LOADING
+      if (data?.status === 'partial_ready') {
+         if (data.ratingGame) {
+             // Hydrate Rating Game on the fly
+             // NOTE: userStats might be empty here, verify if RatingGame needs it.
+             // RatingGame mostly needs 'movies'. UserStats are for PostGameScreen.
+             // PostGameScreen won't show until game ends. Hopefully full stats ready by then.
+             startRatingGame({
+               movies: data.ratingGame.movies,
+               userStats: data.userStats || null
+             });
+         }
+      }
+
+      // FULL READY
       if (data?.status === 'ready') {
         // Hydrate Stores Explicitly
         if (data.ratingGame) {
@@ -40,7 +56,7 @@ export const ExperienceOrchestrator = () => {
             previousScore: 0,
           });
         }
-        setReady(); // Transition State
+        setReady(); // Stops polling, Transitions State
       }
     };
 

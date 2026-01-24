@@ -12,7 +12,7 @@ const FILMS_TABLE = process.env.FILMS_TABLE;
 
 export const handler = async (event) => {
   try {
-    const { username } = event.queryStringParameters || {};
+    const minFilms = parseInt(event.queryStringParameters.minFilms || '5', 10);
 
     if (!username) {
       return {
@@ -83,12 +83,39 @@ export const handler = async (event) => {
     });
 
     const progress = validCount / filmSlugs.length;
+    const isReady = progress >= 1; // Strict 100% completion
 
-    // Threshold: 95% complete is good enough? Or strict 100%?
-    // Let's go with 98% to account for permanent failures.
-    const isReady = progress >= 0.98;
-
+    // PROGRESSIVE LOADING:
+    // If we have enough films for the game but not 100%, return partial_ready
     if (!isReady) {
+      if (validCount >= minFilms) {
+        console.log(`[Status] Partial Ready: ${username} has ${validCount}/${minFilms} films.`);
+
+        // Generate Rating Game with Partial Data
+        const partialUserFilms = filmSlugs
+          .filter((f) => {
+            const s = typeof f === 'string' ? f : f.slug;
+            const meta = metadataMap.get(s);
+            return meta && meta.year && meta.year !== '????';
+          })
+          .map((f) => {
+            if (typeof f === 'string') return { slug: f, userRating: null };
+            return f;
+          });
+
+        const ratingGameData = await generateRatingGame(partialUserFilms, metadataMap);
+
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            status: 'partial_ready',
+            progress: parseFloat(progress.toFixed(2)),
+            ratingGame: ratingGameData,
+            // No userStats or genreGame yet
+          }),
+        };
+      }
+
       return {
         statusCode: 200,
         body: JSON.stringify({
