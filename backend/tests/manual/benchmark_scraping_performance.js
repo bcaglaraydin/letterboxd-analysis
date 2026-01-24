@@ -1,4 +1,12 @@
-import { scrapeUserFilms } from '../src/services/letterboxdScrapingService.js';
+/**
+ * @file benchmark_scraping_performance.js
+ * @description Benchmark scraping performance with various concurrency settings.
+ * Use this to tune `SCRAPING_CONCURRENCY_LIST` and `SCRAPING_CONCURRENCY_FILM`.
+ *
+ * Usage: node backend/tests/manual/benchmark_scraping_performance.js
+ */
+
+import { scrapeUserFilms } from '../../src/services/letterboxdScrapingService.js';
 import { performance } from 'perf_hooks';
 
 const USERNAME = 'bcaglaraydin';
