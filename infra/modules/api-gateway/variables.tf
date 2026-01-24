@@ -8,6 +8,7 @@ variable "integrations" {
     lambda_invoke_arn    = string
     lambda_function_name = string
     route_key            = string
+    timeout_milliseconds = optional(number, 30000)
   }))
 }
 

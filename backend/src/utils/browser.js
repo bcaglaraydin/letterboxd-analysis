@@ -17,14 +17,16 @@ const MAX_CHALLENGE_ATTEMPTS = 3;
 const LETTERBOXD_READY_SELECTORS = '.poster-grid, .site-body, .navitem';
 
 /**
- * Shared browser session for reuse across multiple requests.
- * This avoids launching a new browser for every 403 fallback.
+ * Shared browser session with page pool for parallel requests.
+ * All pages share cookies/session after first Cloudflare bypass.
  */
 class BrowserSession {
   constructor() {
     this.browser = null;
     this.context = null;
-    this.activePages = 0;
+    this.maxConcurrentPages = parseInt(process.env.BROWSER_MAX_PAGES || '3', 10);
+    this.activeFetches = 0;
+    this.isWarm = false;
   }
 
   async getBrowser() {
@@ -93,23 +95,31 @@ class BrowserSession {
   async getPage() {
     await this.getBrowser();
 
-    // Reuse the existing page if available (Persistent Page Strategy)
-    if (!this.page || this.page.isClosed()) {
-      this.page = await this.context.newPage();
-      this.activePages++;
-      this.isWarm = false; // Reset warm status for new page
-
-      // Block images/fonts to save bandwidth (keep CSS for Cloudflare)
-      await this.page.route('**/*.{png,jpg,jpeg,gif,svg,woff,woff2}', (route) => route.abort());
+    // Wait for available slot in the pool
+    while (this.activeFetches >= this.maxConcurrentPages) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
+    this.activeFetches++;
 
-    return this.page;
+    // Create new page for this request (shares context cookies)
+    const page = await this.context.newPage();
+
+    // Block images/fonts to save bandwidth (keep CSS for Cloudflare)
+    await page.route('**/*.{png,jpg,jpeg,gif,svg,woff,woff2}', (route) => route.abort());
+
+    return page;
   }
 
-  async releasePage(_page) {
-    // In persistent mode, we DO NOT close the page.
-    // We keep it open for the next request.
-    // The browser.close() method will handle cleanup.
+  async releasePage(page) {
+    // Close the page to free resources
+    try {
+      if (page && !page.isClosed()) {
+        await page.close();
+      }
+    } catch {
+      // Ignore close errors
+    }
+    this.activeFetches--;
   }
 
   async close() {
@@ -118,7 +128,7 @@ class BrowserSession {
       await this.browser.close();
       this.browser = null;
       this.context = null;
-      this.activePages = 0;
+      this.activeFetches = 0;
       this.isWarm = false;
     }
   }

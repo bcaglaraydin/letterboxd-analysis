@@ -5,7 +5,7 @@ import { fetchHtmlWithBrowser } from '../utils/browser.js';
 
 const BASE_URL = 'https://letterboxd.com';
 
-// Limit browser fallback concurrency to 1 to avoid Cloudflare rate limiting
+// Browser must be single-threaded due to Playwright page.goto limitations
 const browserLimit = pLimit(1);
 
 /**
@@ -400,8 +400,9 @@ export async function scrapeFilmDetails(slug, url) {
       }
     });
 
-    // Fetch Stats (Watched Count)
-    const stats = await fetchFilmStats(slug);
+    // Skip stats fetch - not critical for game and causes significant delays
+    // due to Cloudflare challenges on the CSI endpoint
+    const watchedCount = 0;
 
     return {
       slug,
@@ -419,7 +420,7 @@ export async function scrapeFilmDetails(slug, url) {
       posterUrl,
       averageRating,
       ratingCount,
-      watchedCount: stats.watchedCount,
+      watchedCount,
       scrapedAt: new Date().toISOString(),
     };
   } catch (err) {
