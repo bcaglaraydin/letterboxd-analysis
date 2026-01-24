@@ -25,21 +25,22 @@ dependency "deployment_bucket" {
 inputs = {
   function_name = "letterboxd-analysis-worker-dev"
   handler       = "src/handlers/processFilmMetadataHandler.handler"
-  memory_size   = 1024
+  memory_size   = 2048
   timeout       = 300
   source_dir    = "${get_terragrunt_dir()}/../../../../backend"
   deployment_bucket = dependency.deployment_bucket.outputs.bucket_name
 
   environment_variables = {
-    NODE_ENV                  = "development"
-    FILMS_TABLE               = dependency.films.outputs.table_name
-    SCRAPING_CONCURRENCY_LIST = "10"
-    SCRAPING_CONCURRENCY_FILM = "10"
+    NODE_ENV          = "development"
+    FILMS_TABLE       = dependency.films.outputs.table_name
+    BROWSER_MAX_PAGES = "3"
   }
 
   sqs_event_source_arn = dependency.sqs.outputs.queue_arn
-  sqs_batch_size       = 100
-  sqs_batch_window     = 5
+  sqs_batch_size       = 10
+  sqs_batch_window     = 0
+
+  reserved_concurrent_executions = 50
 
   policy_arns = [
     "arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole"
