@@ -48,7 +48,8 @@ export const handler = async (event) => {
     }
 
     // 2. Check Completeness (BatchGet Metadata)
-    const uniqueSlugs = [...new Set(filmSlugs)].map((slug) => ({ slug }));
+    const filmSlugStrings = filmSlugs.map((f) => (typeof f === 'string' ? f : f.slug));
+    const uniqueSlugs = [...new Set(filmSlugStrings)].map((slug) => ({ slug }));
 
     // We fetch ALL metadata to check completeness AND to generate stats if ready.
     // This might be heavy if user has 2000 films.
