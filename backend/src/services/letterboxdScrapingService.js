@@ -1,7 +1,7 @@
 import { load } from 'cheerio';
 import pLimit from 'p-limit';
 import { fetchWithRetry } from '../utils/http.js';
-import { fetchHtmlWithBrowser, closeBrowserSession } from '../utils/browser.js';
+import { fetchHtmlWithBrowser } from '../utils/browser.js';
 
 const BASE_URL = 'https://letterboxd.com';
 
@@ -34,9 +34,7 @@ async function fetchHtmlWithFallback(url) {
 async function fetchFilmStats(filmSlug) {
   const statsUrl = `${BASE_URL}/csi/film/${filmSlug}/stats/`;
   try {
-    const html = await fetchWithRetry(statsUrl, {
-      headers: { 'x-requested-with': 'XMLHttpRequest' },
-    });
+    const html = await fetchHtmlWithFallback(statsUrl);
     const $ = load(html);
 
     // Extract "Watched by" count from the tooltip title or label
@@ -141,8 +139,8 @@ export async function scrapeUserFilmsList(username) {
   const allFilmsBasic = filmBasicInfos.flat();
   console.log(`Extracted ${allFilmsBasic.length} films from list pages.`);
 
-  // Clean up browser session to free resources
-  await closeBrowserSession();
+  // Note: Browser session is NOT closed here to allow reuse for metadata scraping
+  // It will be closed at the handler level after all scraping is complete
 
   return allFilmsBasic;
 }
