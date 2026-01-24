@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import { handler as scrapeHandler } from './src/handlers/triggerFilmScrapingHandler.js';
 import { handler as metricsHandler } from './src/handlers/retrieveMetricsHandler.js';
+import { handler as statusHandler } from './src/handlers/statusHandler.js';
 
 const app = express();
 const PORT = 4000;
@@ -14,7 +15,8 @@ app.use(express.json());
 const wrapLambda = (handler) => async (req, res) => {
   console.log(`Received request ${req.method} ${req.path}:`, req.body);
   const event = {
-    body: JSON.stringify(req.body),
+    body: typeof req.body === 'string' ? req.body : JSON.stringify(req.body),
+    queryStringParameters: req.query,
   };
   try {
     const result = await handler(event);
@@ -28,6 +30,7 @@ const wrapLambda = (handler) => async (req, res) => {
 
 app.post('/', wrapLambda(scrapeHandler));
 app.post('/metrics', wrapLambda(metricsHandler));
+app.get('/metrics/status', wrapLambda(statusHandler));
 
 app.listen(PORT, () => {
   console.log(`Local backend server running at http://localhost:${PORT}`);
