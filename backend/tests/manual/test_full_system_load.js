@@ -1,3 +1,14 @@
+/**
+ * @file test_full_system_load.js
+ * @description Simulates a full user flow under load.
+ * 1. Clears the DynamoDB Films table.
+ * 2. Triggers a scrape (POST /).
+ * 3. Waits for background workers.
+ * 4. Fetches Metrics (POST /metrics).
+ *
+ * Usage: node backend/tests/manual/test_full_system_load.js
+ */
+
 import 'dotenv/config';
 import { DynamoDBClient, ScanCommand, BatchWriteItemCommand } from '@aws-sdk/client-dynamodb';
 import axios from 'axios';
