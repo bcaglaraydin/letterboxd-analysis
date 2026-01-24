@@ -8,7 +8,23 @@ import { GameHub } from './GameHub';
 import { GenreRankingGame } from '../genre/ranking/GenreRankingGame';
 
 export const ExperienceOrchestrator = () => {
-  const { currentPhase, completeRatingGame, completeGenreGame } = useExperienceStore();
+  const {
+    currentPhase,
+    completeRatingGame,
+    completeGenreGame,
+    backgroundStatus,
+    checkBackgroundStatus,
+  } = useExperienceStore();
+
+  React.useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (backgroundStatus === 'processing') {
+      interval = setInterval(() => {
+        checkBackgroundStatus();
+      }, 5000);
+    }
+    return () => clearInterval(interval);
+  }, [backgroundStatus, checkBackgroundStatus]);
 
   return (
     <div className="w-full h-full min-h-screen bg-background overflow-hidden relative">

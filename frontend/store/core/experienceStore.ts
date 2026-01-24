@@ -1,6 +1,13 @@
 import { create } from 'zustand';
+import { UserStats } from '../rating/ratingStore';
+import { Genre } from '../genre/rankingStore';
 
 export type GamePhase = 'rating-game' | 'hub' | 'genre-game';
+
+interface GenreGameData {
+  genres: Genre[];
+  actualRanking: string[];
+}
 
 interface ExperienceState {
   currentPhase: GamePhase;
@@ -10,6 +17,8 @@ interface ExperienceState {
   };
   unlockedGames: string[];
   completedGames: string[];
+  backgroundStatus: 'idle' | 'processing' | 'ready';
+  username: string | null;
 
   // Actions
   completeRatingGame: (score: number) => void;
@@ -17,9 +26,13 @@ interface ExperienceState {
   startRatingGame: () => void;
   completeGenreGame: (score: number) => void;
   resetExperience: () => void;
+  setProcessing: (username: string) => void;
+  setReady: () => void;
+  checkBackgroundStatus: () => Promise<void>;
+  fetchFullStats: () => Promise<{ userStats: UserStats; genreGame: GenreGameData }>;
 }
 
-export const useExperienceStore = create<ExperienceState>((set) => ({
+export const useExperienceStore = create<ExperienceState>((set, get) => ({
   currentPhase: 'rating-game',
   scores: {
     rating: 0,
@@ -27,6 +40,8 @@ export const useExperienceStore = create<ExperienceState>((set) => ({
   },
   unlockedGames: ['rating-game'],
   completedGames: [],
+  backgroundStatus: 'idle',
+  username: null,
 
   completeRatingGame: (score) =>
     set((state) => ({
@@ -59,5 +74,38 @@ export const useExperienceStore = create<ExperienceState>((set) => ({
       scores: { rating: 0, genre: 0 },
       unlockedGames: ['rating-game'],
       completedGames: [],
+      backgroundStatus: 'idle',
+      username: null,
     }),
+
+  setProcessing: (username) => set({ backgroundStatus: 'processing', username }),
+  setReady: () => set({ backgroundStatus: 'ready' }),
+
+  checkBackgroundStatus: async () => {
+    const { username, backgroundStatus } = get();
+    if (!username || backgroundStatus !== 'processing') return;
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const response = await fetch(`${apiUrl}/metrics/status?username=${username}`);
+      const data = await response.json();
+
+      if (data.status === 'ready') {
+        set({ backgroundStatus: 'ready' });
+      }
+    } catch (err) {
+      console.error('Failed to check status:', err);
+    }
+  },
+
+  fetchFullStats: async () => {
+    const { username } = get();
+    if (!username) throw new Error('No username');
+
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    // We re-check status which should return the full data now
+    const response = await fetch(`${apiUrl}/metrics/status?username=${username}`);
+    const data = await response.json();
+    return data;
+  },
 }));

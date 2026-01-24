@@ -1,14 +1,7 @@
-import { batchGet } from '../services/dynamoDbService.js';
+import { batchGet, putItem } from '../services/dynamoDbService.js';
 import { scrapeUserFilmsList } from '../services/letterboxdScrapingService.js';
 import { closeBrowserSession } from '../utils/browser.js';
-import { generateGenreGame } from '../games/genreGame.js';
 import { generateRatingGame } from '../games/ratingGame.js';
-import {
-  calculateRatingDistribution,
-  calculateBasicStats,
-  calculateCommunityComparison,
-  findGuiltyPleasure,
-} from '../services/statsService.js';
 
 const FILMS_TABLE = process.env.FILMS_TABLE;
 
@@ -35,6 +28,26 @@ export const handler = async (event) => {
         };
       }
 
+      // 1.5 Store User List (for status checking)
+      // We store the list of slugs so statusHandler knows what to check for completeness
+      if (FILMS_TABLE) {
+        try {
+          // Store item USER#<username>
+          // Set TTL to 1 hour
+          const ttl = Math.floor(Date.now() / 1000) + 3600;
+          const userItem = {
+            slug: `USER#${username}`,
+            films: userFilms.map((f) => ({ slug: f.slug, userRating: f.userRating })),
+            totalFilms: userFilms.length,
+            ttl,
+          };
+          // Import putItem dynamically or assume imported (need to add import)
+          await putItem(FILMS_TABLE, userItem);
+        } catch (err) {
+          console.error('Failed to store user list payload:', err);
+        }
+      }
+
       // 2. Fetch Metadata (Check DB first)
       const uniqueSlugs = [...new Set(userFilms.map((f) => f.slug))].map((slug) => ({ slug }));
       let dbItems = [];
@@ -48,7 +61,28 @@ export const handler = async (event) => {
       const metadataMap = new Map();
       dbItems.forEach((item) => metadataMap.set(item.slug, item));
 
-      // 3. Generate Rating Game Data
+      // 2.5 Dispatch Missing Films to SQS (Background Processing)
+      const cachedSlugs = new Set(dbItems.map((i) => i.slug));
+      const missingFilms = userFilms.filter(
+        (f) => !cachedSlugs.has(f.slug) || !metadataMap.get(f.slug)?.year
+      );
+
+      if (process.env.SQS_QUEUE_URL && missingFilms.length > 0) {
+        const { sendMessageBatch } = await import('../services/sqsQueueService.js');
+        const queueUrl = process.env.SQS_QUEUE_URL;
+
+        // Dispatch in background (we await the dispatch call itself but workers process async)
+        // Only send SLUGs to worker
+        const messages = missingFilms.map((f) => ({ slug: f.slug }));
+        try {
+          console.log(`Dispatching ${messages.length} missing films to SQS...`);
+          await sendMessageBatch(queueUrl, messages);
+        } catch (sqsErr) {
+          console.error('Failed to dispatch to SQS:', sqsErr);
+        }
+      }
+
+      // 3. Generate Rating Game Data (Will scrape 5 random if needed)
       let ratingGameData;
       try {
         ratingGameData = await generateRatingGame(userFilms, metadataMap);
@@ -59,63 +93,19 @@ export const handler = async (event) => {
         };
       }
 
-      // 4. Generate Genre Ranking Game Data
-      // Construct allFilmsWithMeta using the map we already have
-      const allFilmsWithMeta = userFilms.map((f) => {
-        const meta = metadataMap.get(f.slug) || {};
-        return {
-          ...f,
-          ...meta,
-          userRating: f.userRating,
-          poster: meta.posterUrl || f.posterUrl,
-          title: meta.title || f.title || f.slug,
-        };
-      });
-
-      const genreGameData = generateGenreGame(allFilmsWithMeta, { limit: 8 });
-
-      // 5. Calculate User Stats
-      const userRatings = userFilms.map((f) => f.userRating).filter((r) => r !== null);
-      const ratingDist = calculateRatingDistribution(userRatings);
-      const basicStats = calculateBasicStats(userRatings);
-      const commStats = calculateCommunityComparison(allFilmsWithMeta);
-      const commRatings = allFilmsWithMeta
-        .map((f) => f.averageRating)
-        .filter((r) => r != null && r > 0);
-      const commDist = calculateRatingDistribution(commRatings);
-
-      // 6. Guilty Pleasure & Controversial Picks
-      const candidates = allFilmsWithMeta
-        .filter((f) => f.averageRating)
-        .map((f) => ({
-          ...f,
-          communityRating: f.averageRating,
-        }));
-
-      const { guiltyPleasures, controversialPicks } = findGuiltyPleasure(candidates);
-
-      const stats = {
-        totalMovies: userFilms.length,
-        averageRating: basicStats.average,
-        ratingDistribution: ratingDist,
-        generosity: {
-          median: basicStats.median,
-          average: basicStats.average,
-          stdDev: basicStats.stdDev,
-        },
-        communityComparison: commStats,
-        communityRatingDistribution: commDist,
-        guiltyPleasures,
-        controversialPicks,
-      };
+      // 4. Return Immediate Response (Partial)
+      // We do NOT generate Genre Game or User Stats yet as data is incomplete
 
       return {
         statusCode: 200,
         body: JSON.stringify({
           username: username,
-          userStats: stats,
+          status: 'processing', // Indicates background work is active
+          totalFilms: userFilms.length,
+          cachedFilms: dbItems.length,
           ratingGame: ratingGameData,
-          genreGame: genreGameData,
+          userStats: null, // Will be fetched later
+          genreGame: null, // Will be fetched later
         }),
       };
     }

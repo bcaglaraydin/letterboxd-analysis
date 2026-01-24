@@ -6,18 +6,34 @@ import { useRatingGameStore } from '@/store/rating/ratingStore';
 import { cn } from '@/lib/utils';
 import { IntroStep, AveragesStep, HistogramStep, GuiltyPleasuresStep } from './steps';
 
+import { useExperienceStore } from '@/store/core/experienceStore';
+import { useGenreRankingStore } from '@/store/genre/rankingStore';
+import { Loader2 } from 'lucide-react';
+
 interface PostGameScreenProps {
   onComplete: () => void;
 }
 
 export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) => {
-  const { movies, userStats } = useRatingGameStore();
+  const { userStats, setUserStats } = useRatingGameStore(); // Added setUserStats
+  const { backgroundStatus, fetchFullStats } = useExperienceStore();
+  const startGenreGame = useGenreRankingStore((s) => s.startGame);
 
   // Step navigation and guilty pleasures state
   const [step, setStep] = useState(0);
   const [gpIndex, setGpIndex] = useState(0);
   const [cpIndex, setCpIndex] = useState(0);
   const [viewingControversial, setViewingControversial] = useState(false);
+
+  // Fetch Logic
+  React.useEffect(() => {
+    if (backgroundStatus === 'ready' && !userStats) {
+      fetchFullStats().then((data) => {
+        if (data.userStats) setUserStats(data.userStats);
+        if (data.genreGame) startGenreGame({ ...data.genreGame, previousScore: 0 });
+      });
+    }
+  }, [backgroundStatus, userStats, fetchFullStats, setUserStats, startGenreGame]);
 
   // Auto-switch to controversial if no guilty pleasures
   React.useEffect(() => {
@@ -30,12 +46,27 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) =>
     }
   }, [userStats]);
 
-  // Safety check if stats aren't ready
-  if (!userStats || movies.length === 0) return null;
+  // Loading Gate
+  if (!userStats) {
+    return (
+      <div className="fixed inset-0 bg-background/95 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-6 text-center">
+        <div className="relative mb-6">
+          <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full" />
+          <Loader2 className="w-16 h-16 text-primary animate-spin relative z-10" />
+        </div>
+        <h2 className="text-3xl font-serif text-primary mb-2">Analyzing your cinema history...</h2>
+        <p className="text-muted-foreground text-lg max-w-md">
+          We&apos;re crunching the numbers on your ratings, directors, and genres. Usually takes
+          about 20-30 seconds.
+        </p>
+      </div>
+    );
+  }
 
-  // --- Logic Helpers ---
-  const guiltyPleasures = userStats.guiltyPleasures || [];
-  const controversialPicks = userStats.controversialPicks || [];
+  // Safety check if stats aren't ready (Redundant but keeps Typescript happy for derived vars)
+  // Actually, safe access is better.
+  const guiltyPleasures = userStats?.guiltyPleasures || [];
+  const controversialPicks = userStats?.controversialPicks || [];
 
   const currentList = viewingControversial ? controversialPicks : guiltyPleasures;
   const currentIndex = viewingControversial ? cpIndex : gpIndex;
@@ -73,8 +104,6 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) =>
     : !hasMoreInCurrentList && controversialPicks.length === 0;
 
   // Build steps array dynamically
-  const hasGuiltyOrControversial = guiltyPleasures.length > 0 || controversialPicks.length > 0;
-
   const steps = [
     // Step 0: Intro
     <IntroStep key="intro" onNext={handleStepCompletion} />,
@@ -86,11 +115,15 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) =>
     <HistogramStep
       key="histogram"
       userStats={userStats}
-      onNext={hasGuiltyOrControversial ? handleStepCompletion : onComplete}
+      onNext={
+        guiltyPleasures.length > 0 || controversialPicks.length > 0
+          ? handleStepCompletion
+          : onComplete
+      }
     />,
 
     // Step 3: Guilty Pleasures (conditionally included)
-    hasGuiltyOrControversial ? (
+    guiltyPleasures.length > 0 || controversialPicks.length > 0 ? (
       <GuiltyPleasuresStep
         key="guilty"
         currentMovie={currentMovie}

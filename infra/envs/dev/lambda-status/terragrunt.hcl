@@ -18,25 +18,17 @@ dependency "deployment_bucket" {
   config_path = "../lambda-deployment-bucket"
 }
 
-dependency "sqs" {
-  config_path = "../sqs"
-}
-
 inputs = {
-  function_name = "letterboxd-analysis-metrics-dev"
-  handler       = "src/handlers/retrieveMetricsHandler.handler"
-  memory_size   = 2048
-  timeout       = 300
+  function_name = "letterboxd-analysis-status-dev"
+  handler       = "src/handlers/statusHandler.handler"
+  memory_size   = 1024
+  timeout       = 30
   source_dir    = "${get_terragrunt_dir()}/../../../../backend"
   deployment_bucket = dependency.deployment_bucket.outputs.bucket_name
 
   environment_variables = {
-    NODE_ENV          = "development"
-    FILMS_TABLE       = dependency.films.outputs.table_name
-    SQS_QUEUE_URL     = dependency.sqs.outputs.queue_url
-    BROWSER_MAX_PAGES = "5"
-    SCRAPING_CONCURRENCY_LIST = "5"
-    SCRAPING_CONCURRENCY_FILM = "5"
+    NODE_ENV    = "development"
+    FILMS_TABLE = dependency.films.outputs.table_name
   }
 
   policy_arns = [
@@ -48,18 +40,11 @@ inputs = {
     Statement = [
       {
         Action = [
-          "dynamodb:BatchGetItem",
           "dynamodb:GetItem",
-          "dynamodb:BatchWriteItem",
-          "dynamodb:PutItem"
+          "dynamodb:BatchGetItem"
         ]
         Effect   = "Allow"
         Resource = dependency.films.outputs.table_arn
-      },
-      {
-        Action   = "sqs:SendMessage"
-        Effect   = "Allow"
-        Resource = dependency.sqs.outputs.queue_arn
       }
     ]
   })
