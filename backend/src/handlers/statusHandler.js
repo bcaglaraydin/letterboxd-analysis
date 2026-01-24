@@ -29,13 +29,25 @@ export const handler = async (event) => {
     const userItemKey = { slug: `USER#${username}` };
     const userItem = await getItem(FILMS_TABLE, userItemKey);
 
-    if (!userItem || !userItem.films) {
-      // If we don't have the user list, maybe it hasn't started or expired?
-      // Or new user?
-      // Return 404 or "processing" with 0 progress?
+    if (!userItem) {
+      // Not started yet or not found
       return {
-        statusCode: 200, // Return 200 processing to avoid frontend erroring out immediately
-        body: JSON.stringify({ status: 'processing', progress: 0 }),
+        statusCode: 200,
+        body: JSON.stringify({
+          status: 'processing',
+          progress: 0,
+        }),
+      };
+    }
+
+    // Check for explicit Error state from Worker
+    if (userItem.status === 'error') {
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          status: 'error',
+          message: userItem.error || 'Failed to analyze profile',
+        }),
       };
     }
 
