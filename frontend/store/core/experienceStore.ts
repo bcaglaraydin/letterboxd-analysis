@@ -86,9 +86,23 @@ export const useExperienceStore = create<ExperienceState>((set, get) => ({
     if (!username || backgroundStatus !== 'processing') return null;
 
     try {
+      // Pass minFilms for progressive loading
+      // Ideally we import RATING_GAME_CONFIG, but for now we hardcode 5 or use a param
+      const minFilms = 5; 
+      
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      const response = await fetch(`${apiUrl}/metrics/status?username=${username}`);
+      const response = await fetch(`${apiUrl}/metrics/status?username=${username}&minFilms=${minFilms}`);
       const data = await response.json();
+      
+      // PROGRESSIVE LOADING HANDLING
+      if (data.status === 'partial_ready' && data.ratingGame) {
+          // If we haven't started playing yet, this is our signal to start!
+          return {
+              ...data,
+              isPartial: true // Flag for orchestrator
+          };
+      }
+      
       return data;
     } catch (err) {
       console.error('Failed to check status:', err);

@@ -27,7 +27,18 @@ export const handler = async (event) => {
           return;
         }
 
-        // --- ACTION: SCRAPE FILM (Default) ---
+        // --- ACTION: SCRAPE BATCH ---
+        if (body.action === 'scrape_batch') {
+          const { slugs } = body;
+          if (!slugs || !Array.isArray(slugs)) {
+            console.warn('Batch message missing slugs array:', body);
+            return;
+          }
+          await handleBatchFilmScrape(slugs);
+          return;
+        }
+
+        // --- ACTION: SCRAPE FILM (Default/Legacy) ---
         // Existing logic for film metadata scraping (message is just { slug: ... } or { action: 'scrape_film', slug: ... })
         const slug = body.slug;
         if (!slug) {
@@ -121,10 +132,48 @@ async function handleUserListScrape(username) {
   if (missingFilms.length > 0 && SQS_QUEUE_URL) {
     console.log(`[Worker] Dispatching ${missingFilms.length} missing films for ${username}`);
     const messages = missingFilms.map((f) => ({ slug: f.slug }));
-    await sendMessageBatch(SQS_QUEUE_URL, messages);
+    // await sendMessageBatch(SQS_QUEUE_URL, messages);
+    // ^ OLD WAY: 1 message per film.
+
+    // NEW WAY: Batch Dispatch (Chunk size 10)
+    // We put 10 slugs into ONE message.
+    const BATCH_SIZE = 10;
+    const chunkedMessages = [];
+
+    for (let i = 0; i < missingFilms.length; i += BATCH_SIZE) {
+      const chunk = missingFilms.slice(i, i + BATCH_SIZE).map((f) => f.slug);
+      chunkedMessages.push({
+        action: 'scrape_batch',
+        slugs: chunk,
+      });
+    }
+
+    console.log(
+      `[Worker] Dispatching ${chunkedMessages.length} BATCH messages (covering ${missingFilms.length} films).`
+    );
+    await sendMessageBatch(SQS_QUEUE_URL, chunkedMessages);
   } else {
     console.log(`[Worker] All ${userFilms.length} films have metadata cached.`);
   }
+}
+
+/**
+ * Scrapes a batch of films sequentially in the same Lambda/Browser session.
+ */
+async function handleBatchFilmScrape(slugs) {
+  if (!slugs || slugs.length === 0) return;
+
+  console.log(`[Worker] Starting Batch Scrape for ${slugs.length} films...`);
+
+  for (const slug of slugs) {
+    try {
+      await handleFilmScrape(slug);
+    } catch (err) {
+      console.error(`[Worker] Failed to scrape ${slug} in batch:`, err);
+      // Continue to next film in batch
+    }
+  }
+  console.log(`[Worker] Batch Scrape Complete.`);
 }
 
 /**
