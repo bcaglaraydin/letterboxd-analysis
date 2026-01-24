@@ -93,6 +93,12 @@ jobs:
         working-directory: backend
         run: npm ci
 
+      - name: Install Playwright Browsers
+        working-directory: backend
+        run: |
+          npx playwright install chromium
+          npx playwright install-deps chromium
+
       - name: Run Unit Tests
         working-directory: backend
         run: npm run test:unit
