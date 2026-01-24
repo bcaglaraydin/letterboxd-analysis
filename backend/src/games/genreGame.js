@@ -63,13 +63,13 @@ export const generateGenreGame = (films, options = {}) => {
   popularGroup.sort(sortByRating);
   nicheGroup.sort(sortByRating);
 
-  // Determine how many to pick from each.
-  // We ONLY want Popular genres for now, as requested.
-  // We take 'limit' items from the popular group.
-  const popularCount = limit;
-  // const nicheCount = 0; // Unused
-
   // Helper to pick evenly distributed items
+  /**
+   * Selects N items evenly distributed from a sorted array.
+   * @param {Array} items - Sorted array of items.
+   * @param {number} n - Number of items to select.
+   * @returns {Array} - Selected items.
+   */
   const selectEvenly = (items, n) => {
     if (n <= 0) return [];
     if (n >= items.length) return [...items];
@@ -87,15 +87,10 @@ export const generateGenreGame = (films, options = {}) => {
     return selected;
   };
 
-  const selectedPopular = selectEvenly(popularGroup, popularCount);
-  // const selectedNiche = selectEvenly(nicheGroup, nicheCount);
+  const selectedPopular = selectEvenly(popularGroup, limit);
 
-  // Combine
+  // Combine selected genres
   let finalSelection = [...selectedPopular];
-
-  // If we somehow didn't reach the limit using only popular (because popular group was too small),
-  // we strictly stick to popular per requirement "only uses popular genres".
-  // So we accept we might have fewer than limit.
 
   // 4. Determine Actual Ranking for the Game (Global Sort by Rating)
   const rankedGenres = [...finalSelection].sort((a, b) => b.average - a.average);

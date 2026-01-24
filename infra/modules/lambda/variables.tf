@@ -69,3 +69,9 @@ variable "log_retention_days" {
   type        = number
   default     = 7
 }
+
+variable "reserved_concurrent_executions" {
+  description = "Reserved concurrent executions for this Lambda. Guarantees availability and prevents account-wide concurrency exhaustion. -1 = use account default (no reservation)."
+  type        = number
+  default     = -1
+}

@@ -1,3 +1,7 @@
+locals {
+  aws_region = "eu-west-1"
+}
+
 remote_state {
   backend = "s3"
   generate = {
@@ -7,7 +11,7 @@ remote_state {
   config = {
     bucket         = "terraform-${get_aws_account_id()}-state"
     key            = "${path_relative_to_include()}/terraform.tfstate"
-    region         = "eu-west-1"
+    region         = local.aws_region
     encrypt        = true
     skip_bucket_root_access = true
     skip_bucket_enforced_tls = true
@@ -16,6 +20,6 @@ remote_state {
 }
 
 inputs = {
-  aws_region = "eu-west-1"
+  aws_region = local.aws_region
   project_name = "letterboxd-analysis"
 }

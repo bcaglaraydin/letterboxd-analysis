@@ -89,7 +89,7 @@ export async function scrapeUserFilmsList(username) {
     pageUrls.push(`${baseUrl}page/${i}/`);
   }
 
-  const listLimit = pLimit(5); // Limit concurrency for list pages
+  const listLimit = pLimit(parseInt(process.env.SCRAPING_CONCURRENCY_LIST || '5', 10));
   const filmBasicInfos = await Promise.all(
     pageUrls.map((url) =>
       listLimit(async () => {

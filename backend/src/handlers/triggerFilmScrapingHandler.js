@@ -95,10 +95,10 @@ export const handler = async (event) => {
       }),
     };
   } catch (error) {
-    console.error('Error:', error);
+    console.error('[TriggerFilmScraping] Handler error:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message }),
+      body: JSON.stringify({ error: 'An unexpected error occurred' }),
     };
   }
 };
