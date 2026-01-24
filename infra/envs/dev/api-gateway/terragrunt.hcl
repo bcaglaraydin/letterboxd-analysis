@@ -27,6 +27,7 @@ inputs = {
       lambda_invoke_arn    = dependency.lambda_metrics.outputs.invoke_arn
       lambda_function_name = dependency.lambda_metrics.outputs.function_name
       route_key            = "POST /metrics"
+      timeout_milliseconds = 30000  # Max for HTTP API
     }
   }
 }
