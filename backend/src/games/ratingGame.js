@@ -5,7 +5,6 @@ import { shuffle } from '../utils/array.js';
 const FILMS_TABLE = process.env.FILMS_TABLE;
 const MIN_RATED_FILMS = 5;
 const GAME_MOVIE_COUNT = 5;
-const MAX_FAILURES = 2;
 
 /**
  * Generates data for the Rating Game.
@@ -29,39 +28,50 @@ export const generateRatingGame = async (userFilms, metadataMap, options = {}) =
 
   // 3. Ensure Metadata for Game Movies (Scrape if missing, skip failures)
   const gameMoviesWithMetadata = [];
-  let failureCount = 0;
+  let index = 0;
 
-  for (const film of shuffled) {
-    if (gameMoviesWithMetadata.length >= gameMovieCount) break;
+  while (gameMoviesWithMetadata.length < gameMovieCount && index < shuffled.length) {
+    // Take a batch of candidates to try filling the game
+    const batchSize = gameMovieCount - gameMoviesWithMetadata.length + 2; // Fetch a few extras in case of failure
+    const batchCandidates = shuffled.slice(index, index + batchSize);
+    index += batchSize;
 
-    let meta = metadataMap.get(film.slug);
-    // Re-scrape if metadata is missing or looks like a failed scrape (year is '????')
-    if (!meta || !meta.year || meta.year === '????') {
-      console.log(`Scraping missing metadata for game movie: ${film.slug}`);
-      try {
-        const url = `https://letterboxd.com/film/${film.slug}/`;
-        meta = await scrapeFilmDetails(film.slug, url);
-        if (FILMS_TABLE) await batchWrite(FILMS_TABLE, [meta]);
-      } catch (err) {
-        console.error(`Failed to scrape ${film.slug}`, err);
-        failureCount++;
-        if (failureCount > MAX_FAILURES) {
-          throw new Error('Too many films failed to load metadata. Please try again.');
+    const batchResults = await Promise.all(
+      batchCandidates.map(async (film) => {
+        try {
+          let meta = metadataMap.get(film.slug);
+          // Re-scrape if metadata is missing or looks like a failed scrape (year is '????')
+          if (!meta || !meta.year || meta.year === '????') {
+            console.log(`Scraping missing metadata for game movie: ${film.slug}`);
+            const url = `https://letterboxd.com/film/${film.slug}/`;
+            meta = await scrapeFilmDetails(film.slug, url);
+            if (FILMS_TABLE) await batchWrite(FILMS_TABLE, [meta]);
+          }
+          return { film, meta };
+        } catch (err) {
+          console.error(`Failed to scrape ${film.slug}`, err);
+          return null; // Failed
         }
-        continue; // Skip this film, try next
-      }
-    }
+      })
+    );
 
-    gameMoviesWithMetadata.push({
-      movieId: film.slug,
-      userRating: film.userRating,
-      communityRating: meta.averageRating || 0,
-      releaseYear: meta.year,
-      runtimeMinutes: meta.runtime,
-      title: meta.title,
-      director: meta.director,
-      poster: meta.posterUrl || film.posterUrl,
-    });
+    // Process results
+    for (const result of batchResults) {
+      if (!result) continue; // Skip failures
+      if (gameMoviesWithMetadata.length >= gameMovieCount) break;
+
+      const { film, meta } = result;
+      gameMoviesWithMetadata.push({
+        movieId: film.slug,
+        userRating: film.userRating,
+        communityRating: meta.averageRating || 0,
+        releaseYear: meta.year,
+        runtimeMinutes: meta.runtime,
+        title: meta.title,
+        director: meta.director,
+        poster: meta.posterUrl || film.posterUrl,
+      });
+    }
   }
 
   // Check if we got enough movies

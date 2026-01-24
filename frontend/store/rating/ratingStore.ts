@@ -68,7 +68,8 @@ interface GameState {
   submitGuess: (guess: number) => void;
   nextRound: () => void;
   resetGame: () => void;
-  startGame: (data: { movies: Movie[]; userStats: UserStats }) => void;
+  startGame: (data: { movies: Movie[]; userStats: UserStats | null }) => void;
+  setUserStats: (stats: UserStats) => void;
 }
 
 export const useRatingGameStore = create<GameState>((set, get) => ({
@@ -111,6 +112,8 @@ export const useRatingGameStore = create<GameState>((set, get) => ({
       isGameOver: false,
     });
   },
+
+  setUserStats: (stats) => set({ userStats: stats }),
 
   submitGuess: (guess) => {
     const { movies, currentMovieIndex, score, history, currentRound } = get();

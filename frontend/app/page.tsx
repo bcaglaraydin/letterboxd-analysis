@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { GameBackground } from '@/components/game/shared/GameBackground';
 import { useRatingGameStore } from '@/store/rating/ratingStore';
 import { useGenreRankingStore } from '@/store/genre/rankingStore';
+import { useExperienceStore } from '@/store/core/experienceStore';
 import { Loader2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -37,6 +38,19 @@ export default function LandingPage() {
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to fetch data');
+      }
+
+      // Handle Async Processing Status
+      if (data.status === 'processing' || data.status === 'ready') {
+        // Import useExperienceStore (need to add import at top)
+        const setProcessing = useExperienceStore.getState().setProcessing;
+        const setReady = useExperienceStore.getState().setReady;
+
+        if (data.status === 'processing') {
+          setProcessing(username);
+        } else {
+          setReady(); // If already ready (e.g. cached)
+        }
       }
 
       startGame({

@@ -41,9 +41,9 @@ resource "aws_apigatewayv2_integration" "this" {
   api_id           = aws_apigatewayv2_api.this.id
   integration_type = "AWS_PROXY"
 
-  integration_uri        = each.value.lambda_invoke_arn
-  integration_method     = "POST"
-  timeout_milliseconds   = each.value.timeout_milliseconds
+  integration_uri      = each.value.lambda_invoke_arn
+  integration_method   = "POST"
+  timeout_milliseconds = each.value.timeout_milliseconds
 }
 
 resource "aws_apigatewayv2_route" "this" {
