@@ -240,9 +240,7 @@ export async function fetchHtmlWithBrowser(url) {
       }
 
       if (!passed) {
-        console.warn(
-          `[Browser] Failed to pass challenge after ${MAX_CHALLENGE_ATTEMPTS} attempts. Returning content anyway.`
-        );
+        throw new Error(`Cloudflare challenge failed after ${MAX_CHALLENGE_ATTEMPTS} attempts.`);
       }
     } else if (!session.isWarm) {
       console.log('[Browser] Cloudflare challenge passed. Session marked as warm.');
