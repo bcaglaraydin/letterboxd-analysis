@@ -5,6 +5,14 @@ import stealthPlugin from 'puppeteer-extra-plugin-stealth';
 // Apply stealth plugin to playwright-extra
 playwrightExtra.use(stealthPlugin());
 
+// Timeout and delay constants
+const WARM_SESSION_DELAY_MS = 2000;
+const WARM_SESSION_TIMEOUT_MS = 5000;
+const COLD_SESSION_TIMEOUT_MS = 20000;
+const CHALLENGE_WAIT_BASE_MS = 5000;
+const CHALLENGE_SELECTOR_TIMEOUT_MS = 10000;
+const MAX_CHALLENGE_ATTEMPTS = 3;
+
 // Selectors that indicate the page has fully loaded (Cloudflare challenge passed)
 const LETTERBOXD_READY_SELECTORS = '.poster-grid, .site-body, .navitem';
 
@@ -143,7 +151,9 @@ export async function closeBrowserSession() {
 
 /**
  * Simulates human-like mouse movements to trick anti-bot scripts.
- * Kept generic for additional entropy if needed, though Stealth Plugin handles most signals.
+ * Performs random mouse movements, clicks, and scrolling for entropy.
+ * @param {import('playwright-core').Page} page - Playwright page instance.
+ * @returns {Promise<void>}
  */
 async function simulateHumanInteraction(page) {
   try {
@@ -182,13 +192,13 @@ export async function fetchHtmlWithBrowser(url) {
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
     if (session.isWarm) {
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(WARM_SESSION_DELAY_MS);
     }
 
     // Logic to handle potential challenge even if warm
     let passed = false;
     try {
-      const timeout = session.isWarm ? 5000 : 20000;
+      const timeout = session.isWarm ? WARM_SESSION_TIMEOUT_MS : COLD_SESSION_TIMEOUT_MS;
       await page.waitForSelector(LETTERBOXD_READY_SELECTORS, { timeout });
       passed = true;
     } catch {
@@ -199,13 +209,17 @@ export async function fetchHtmlWithBrowser(url) {
     }
 
     if (!passed) {
-      for (let attempt = 1; attempt <= 3; attempt++) {
-        console.log(`[Browser] Waiting for Cloudflare challenge (Attempt ${attempt}/3)...`);
-        await page.waitForTimeout(5000 * attempt);
+      for (let attempt = 1; attempt <= MAX_CHALLENGE_ATTEMPTS; attempt++) {
+        console.log(
+          `[Browser] Waiting for Cloudflare challenge (Attempt ${attempt}/${MAX_CHALLENGE_ATTEMPTS})...`
+        );
+        await page.waitForTimeout(CHALLENGE_WAIT_BASE_MS * attempt);
         await simulateHumanInteraction(page);
 
         try {
-          await page.waitForSelector(LETTERBOXD_READY_SELECTORS, { timeout: 10000 });
+          await page.waitForSelector(LETTERBOXD_READY_SELECTORS, {
+            timeout: CHALLENGE_SELECTOR_TIMEOUT_MS,
+          });
           console.log('[Browser] Cloudflare challenge passed.');
           passed = true;
           session.isWarm = true;
@@ -217,7 +231,7 @@ export async function fetchHtmlWithBrowser(url) {
 
       if (!passed) {
         console.warn(
-          '[Browser] Failed to pass challenge after 3 attempts. Returning content anyway.'
+          `[Browser] Failed to pass challenge after ${MAX_CHALLENGE_ATTEMPTS} attempts. Returning content anyway.`
         );
       }
     } else if (!session.isWarm) {

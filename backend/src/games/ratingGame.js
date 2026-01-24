@@ -12,9 +12,12 @@ const MAX_FAILURES = 2;
  * @param {Array} userFilms - List of user's films with basic info (slug, userRating).
  * @param {Map} metadataMap - Map of slug -> full metadata from DB.
  * @param {object} options - Configuration options.
+ * @param {number} [options.movieCount=5] - Number of movies to include in the game.
  * @returns {Promise<object>} - { movies: [...] }
  */
-export const generateRatingGame = async (userFilms, metadataMap, _options = {}) => {
+export const generateRatingGame = async (userFilms, metadataMap, options = {}) => {
+  const gameMovieCount = options.movieCount || GAME_MOVIE_COUNT;
+
   // 1. Filter for Rated Films
   const ratedFilms = userFilms.filter((f) => f.userRating !== null);
   if (ratedFilms.length < MIN_RATED_FILMS) {
@@ -29,7 +32,7 @@ export const generateRatingGame = async (userFilms, metadataMap, _options = {}) 
   let failureCount = 0;
 
   for (const film of shuffled) {
-    if (gameMoviesWithMetadata.length >= GAME_MOVIE_COUNT) break;
+    if (gameMoviesWithMetadata.length >= gameMovieCount) break;
 
     let meta = metadataMap.get(film.slug);
     // Re-scrape if metadata is missing or looks like a failed scrape (year is '????')
@@ -62,9 +65,9 @@ export const generateRatingGame = async (userFilms, metadataMap, _options = {}) 
   }
 
   // Check if we got enough movies
-  if (gameMoviesWithMetadata.length < GAME_MOVIE_COUNT) {
+  if (gameMoviesWithMetadata.length < gameMovieCount) {
     throw new Error(
-      `Could only load ${gameMoviesWithMetadata.length} movies. Need at least ${GAME_MOVIE_COUNT}.`
+      `Could only load ${gameMoviesWithMetadata.length} movies. Need at least ${gameMovieCount}.`
     );
   }
 
