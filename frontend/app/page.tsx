@@ -41,22 +41,32 @@ export default function LandingPage() {
       }
 
       // Handle Async Processing Status
-      if (data.status === 'processing' || data.status === 'ready') {
-        // Import useExperienceStore (need to add import at top)
+      if (data.status === 'processing') {
+        // Background scraping started
         const setProcessing = useExperienceStore.getState().setProcessing;
-        const setReady = useExperienceStore.getState().setReady;
-
-        if (data.status === 'processing') {
-          setProcessing(username);
-        } else {
-          setReady(); // If already ready (e.g. cached)
-        }
+        setProcessing(username);
+        router.push('/game');
+        return; // <--- Critical: Exit before trying to use missing game data
       }
 
-      startGame({
-        movies: data.ratingGame.movies,
-        userStats: data.userStats,
-      });
+      // If Ready, we should have data
+      if (data.status === 'ready') {
+        useExperienceStore.getState().setReady();
+      }
+
+      if (data.ratingGame && data.ratingGame.movies) {
+        startGame({
+          movies: data.ratingGame.movies,
+          userStats: data.userStats,
+        });
+      } else {
+        // Fallback if data is missing even if ready (should not happen with backend fix)
+        // But to be safe, treat as processing
+        const setProcessing = useExperienceStore.getState().setProcessing;
+        setProcessing(username);
+        router.push('/game');
+        return;
+      }
 
       if (data.genreGame) {
         startGenreGame({

@@ -28,7 +28,7 @@ interface ExperienceState {
   resetExperience: () => void;
   setProcessing: (username: string) => void;
   setReady: () => void;
-  checkBackgroundStatus: () => Promise<void>;
+  pollBackgroundStatus: () => Promise<any>; // Returns full payload or null
   fetchFullStats: () => Promise<{ userStats: UserStats; genreGame: GenreGameData }>;
 }
 
@@ -81,20 +81,18 @@ export const useExperienceStore = create<ExperienceState>((set, get) => ({
   setProcessing: (username) => set({ backgroundStatus: 'processing', username }),
   setReady: () => set({ backgroundStatus: 'ready' }),
 
-  checkBackgroundStatus: async () => {
+  pollBackgroundStatus: async () => {
     const { username, backgroundStatus } = get();
-    if (!username || backgroundStatus !== 'processing') return;
+    if (!username || backgroundStatus !== 'processing') return null;
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       const response = await fetch(`${apiUrl}/metrics/status?username=${username}`);
       const data = await response.json();
-
-      if (data.status === 'ready') {
-        set({ backgroundStatus: 'ready' });
-      }
+      return data;
     } catch (err) {
       console.error('Failed to check status:', err);
+      return null;
     }
   },
 
@@ -103,7 +101,6 @@ export const useExperienceStore = create<ExperienceState>((set, get) => ({
     if (!username) throw new Error('No username');
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-    // We re-check status which should return the full data now
     const response = await fetch(`${apiUrl}/metrics/status?username=${username}`);
     const data = await response.json();
     return data;
