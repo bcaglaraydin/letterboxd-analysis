@@ -53,11 +53,30 @@ async function handleUserListScrape(username) {
   console.log(`[Worker] Scraping list for user: ${username}`);
 
   // 1. Scrape User Films
-  const userFilms = await scrapeUserFilmsList(username);
-  console.log(`[Worker] Found ${userFilms.length} films for ${username}`);
+  let userFilms;
+  try {
+    userFilms = await scrapeUserFilmsList(username);
+    console.log(`[Worker] Found ${userFilms.length} films for ${username}`);
+  } catch (error) {
+    console.error(`[Worker] Failed to scrape user list for ${username}:`, error);
+
+    // Write Error State to DB to stop infinite loading on Frontend
+    if (FILMS_TABLE) {
+      await putItem(FILMS_TABLE, {
+        slug: `USER#${username}`,
+        status: 'error',
+        error: error.message || 'Failed to scrape user list',
+        ttl: Math.floor(Date.now() / 1000) + 3600,
+      });
+      console.log(`[Worker] Saved ERROR state for ${username}`);
+    }
+    return; // Stop processing, do not retry
+  }
 
   if (userFilms.length === 0) {
     console.warn(`[Worker] No films found for ${username} (or scrape failed).`);
+    // treat as empty list or error? For now, empty list is valid but boring.
+    // If it was a scrape failure, it would be caught above.
     return;
   }
 

@@ -41,6 +41,10 @@ export default function LandingPage() {
       }
 
       // Handle Async Processing Status
+      if (data.status === 'error') {
+          throw new Error(data.message || 'Analysis failed');
+      }
+
       if (data.status === 'processing') {
         // Background scraping started
         const setProcessing = useExperienceStore.getState().setProcessing;
