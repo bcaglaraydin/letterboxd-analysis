@@ -40,7 +40,7 @@ inputs = {
   sqs_batch_size       = 10
   sqs_batch_window     = 0
 
-  reserved_concurrent_executions = 50
+  reserved_concurrent_executions = 20
 
   policy_arns = [
     "arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole"
