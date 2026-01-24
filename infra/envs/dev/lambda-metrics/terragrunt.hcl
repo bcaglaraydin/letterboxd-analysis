@@ -21,14 +21,16 @@ dependency "deployment_bucket" {
 inputs = {
   function_name = "letterboxd-analysis-metrics-dev"
   handler       = "src/handlers/retrieveMetricsHandler.handler"
-  memory_size   = 1024
-  timeout       = 120
+  memory_size   = 2048
+  timeout       = 300
   source_dir    = "${get_terragrunt_dir()}/../../../../backend"
   deployment_bucket = dependency.deployment_bucket.outputs.bucket_name
 
   environment_variables = {
     NODE_ENV    = "development"
     FILMS_TABLE = dependency.films.outputs.table_name
+    SCRAPING_CONCURRENCY_LIST = "3"
+    SCRAPING_CONCURRENCY_FILM = "5"
   }
 
   policy_arns = [
