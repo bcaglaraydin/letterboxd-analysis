@@ -12,7 +12,8 @@ const FILMS_TABLE = process.env.FILMS_TABLE;
 
 export const handler = async (event) => {
   try {
-    const minFilms = parseInt(event.queryStringParameters.minFilms || '5', 10);
+    const username = event.queryStringParameters?.username;
+    const minFilms = parseInt(event.queryStringParameters?.minFilms || '5', 10);
 
     if (!username) {
       return {
@@ -129,38 +130,24 @@ export const handler = async (event) => {
     console.log(`User ${username} data ready (${validCount}/${totalFilms}). Generating stats...`);
 
     // Reconstruct "User Films with Metadata"
-    // We rely on 'userItem.films' (slugs) but we need 'userRating' which isn't stored in USER# item?
-    // ERROR: I stored only SLUGS in USER# item. I LOST THE USER RATINGS!
-
-    // CRITICAL FIX: I need to store { slug, userRating } in USER# item!
-    // I need to update retrieveMetricsHandler.js FIRST.
-
-    // Assuming I fix retrieveMetricsHandler.js:
-    // Let's write code assuming userItem.films is objects { slug, userRating }
-    // Or I need to fetch it from somewhere else.
-
-    // Actually, storing just slugs makes the `USER#` item smaller (DynamoDB item limit 400KB).
-    // If user has 2000 films:
-    // 2000 * (slug=30 + rating=5) = 70KB. Safe.
-
-    // I will Assume userItem.films contains object { slug, userRating }.
-    // If it contains strings, I'm stuck.
-
-    // Let's assume I fix retrieveMetricsHandler to store objects.
     const userFilms = filmSlugs.map((f) => {
-      // Handle legacy string format just in case (though we will fix it)
+      // Handle legacy string format just in case
       if (typeof f === 'string') return { slug: f, userRating: null };
       return f;
     });
 
     const allFilmsWithMeta = userFilms.map((f) => {
-      const meta = metadataMap.get(f.slug) || {};
+      // Handle legacy string format just in case
+      const userRating = typeof f === 'object' && f.userRating ? f.userRating : null;
+      const slug = typeof f === 'object' ? f.slug : f;
+      const meta = metadataMap.get(slug) || {};
+
       return {
-        ...f,
+        slug,
+        userRating,
         ...meta,
-        userRating: f.userRating,
         poster: meta.posterUrl || f.posterUrl,
-        title: meta.title || f.title || f.slug,
+        title: meta.title || f.title || slug,
       };
     });
 

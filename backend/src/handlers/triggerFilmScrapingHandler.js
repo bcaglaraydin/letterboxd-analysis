@@ -1,6 +1,6 @@
 import { scrapeUserFilmsList } from '../services/letterboxdScrapingService.js';
 import { sendMessageBatch } from '../services/sqsQueueService.js';
-import { batchGet } from '../services/dynamoDbService.js';
+import { batchGet, putItem } from '../services/dynamoDbService.js';
 
 const SQS_QUEUE_URL = process.env.SQS_QUEUE_URL;
 
@@ -51,6 +51,19 @@ export const handler = async (event) => {
 
     if (FILMS_TABLE) {
       try {
+        // SAVE USER LIST STATE (Critical for Status Handler)
+        const userItem = {
+          slug: `USER#${username}`,
+          films: films.map((f) => ({ slug: f.slug, userRating: f.userRating })),
+          totalFilms: films.length,
+          status: 'processing',
+          updatedAt: new Date().toISOString(),
+          // TTL: 30 days
+          ttl: Math.floor(Date.now() / 1000) + 86400 * 30,
+        };
+        await putItem(FILMS_TABLE, userItem);
+        console.log(`Saved user list state for ${username}`);
+
         const existingItems = await batchGet(FILMS_TABLE, uniqueSlugs);
         const existingSlugs = new Set(existingItems.map((item) => item.slug));
 
@@ -60,7 +73,7 @@ export const handler = async (event) => {
         );
       } catch (dbError) {
         console.error(
-          'Failed to check DynamoDB for existing films, defaulting to queue all:',
+          'Failed to check/update DynamoDB (User List or Filtering), defaulting to queue all:',
           dbError
         );
       }
@@ -71,10 +84,18 @@ export const handler = async (event) => {
     if (filmsToQueue.length === 0) {
       console.log('All films already exist in DB. Skipping SQS.');
     } else {
-      // 3. Send to SQS (Background Metadata Fetch)
-      const sqsMessages = filmsToQueue.map((film) => ({
-        slug: film.slug,
-      }));
+      // 3. Send to SQS (Background Metadata Fetch) - Optimized Batching
+      const BATCH_SIZE = 10;
+      const sqsMessages = [];
+      const filmsList = Array.isArray(filmsToQueue) ? filmsToQueue : [filmsToQueue]; // Ensure array
+
+      for (let i = 0; i < filmsList.length; i += BATCH_SIZE) {
+        const chunk = filmsList.slice(i, i + BATCH_SIZE).map((f) => f.slug);
+        sqsMessages.push({
+          action: 'scrape_batch',
+          slugs: chunk,
+        });
+      }
 
       try {
         await sendMessageBatch(SQS_QUEUE_URL, sqsMessages);
@@ -96,9 +117,26 @@ export const handler = async (event) => {
     };
   } catch (error) {
     console.error('[TriggerFilmScraping] Handler error:', error);
+
+    // Return specific error messages for known error types
+    let userMessage = 'An unexpected error occurred';
+    let statusCode = 500;
+
+    if (error.message?.includes('Page not found (404)')) {
+      userMessage = 'Letterboxd user not found. Please check the username and try again.';
+      statusCode = 404;
+    } else if (error.message?.includes('Cloudflare challenge failed')) {
+      userMessage =
+        'Unable to access Letterboxd due to rate limiting. Please try again in a few minutes.';
+      statusCode = 503;
+    } else if (error.message?.includes('Unexpected page state')) {
+      userMessage = 'Letterboxd returned an unexpected response. Please try again.';
+      statusCode = 502;
+    }
+
     return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'An unexpected error occurred' }),
+      statusCode,
+      body: JSON.stringify({ error: userMessage }),
     };
   }
 };

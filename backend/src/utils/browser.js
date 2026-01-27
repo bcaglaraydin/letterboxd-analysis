@@ -219,6 +219,35 @@ export async function fetchHtmlWithBrowser(url) {
     }
 
     if (!passed) {
+      // Check for 404 or error pages BEFORE assuming Cloudflare challenge
+      const pageContent = await page.content();
+      const pageTitle = await page.title();
+
+      // Detect 404/error pages (Letterboxd shows specific patterns for non-existent users/pages)
+      const is404 =
+        pageContent.includes('Page Not Found') ||
+        pageContent.includes('Error 404') ||
+        pageContent.includes('Sorry, we could not find') ||
+        pageTitle.includes('Not Found') ||
+        pageTitle.includes('404');
+
+      if (is404) {
+        throw new Error(`Page not found (404): ${url}`);
+      }
+
+      // Detect Cloudflare challenge page specifically
+      const isCloudflareChallenge =
+        pageContent.includes('Just a moment') ||
+        pageContent.includes('Checking your browser') ||
+        pageContent.includes('cf-browser-verification') ||
+        pageContent.includes('Cloudflare');
+
+      if (!isCloudflareChallenge) {
+        // Unknown error state - not 404 and not Cloudflare challenge
+        console.warn('[Browser] Unknown page state - not 404 and not Cloudflare challenge');
+        throw new Error(`Unexpected page state (no expected content found): ${url}`);
+      }
+
       for (let attempt = 1; attempt <= MAX_CHALLENGE_ATTEMPTS; attempt++) {
         console.log(
           `[Browser] Waiting for Cloudflare challenge (Attempt ${attempt}/${MAX_CHALLENGE_ATTEMPTS})...`

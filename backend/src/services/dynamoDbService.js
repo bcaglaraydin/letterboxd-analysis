@@ -90,46 +90,51 @@ export async function batchWrite(tableName, items) {
 export async function batchGet(tableName, keys) {
   if (!keys || keys.length === 0) return [];
 
-  const batchSize = 100; // BatchGet limit is 100
-  let allItems = [];
-
+  const batchSize = 100;
+  const chunks = [];
   for (let i = 0; i < keys.length; i += batchSize) {
-    let batchKeys = keys.slice(i, i + batchSize);
-    let attempt = 0;
-
-    while (batchKeys.length > 0 && attempt < 3) {
-      const command = new BatchGetCommand({
-        RequestItems: {
-          [tableName]: {
-            Keys: batchKeys,
-          },
-        },
-      });
-
-      try {
-        const response = await docClient.send(command);
-        if (response.Responses && response.Responses[tableName]) {
-          allItems = allItems.concat(response.Responses[tableName]);
-        }
-
-        if (response.UnprocessedKeys && response.UnprocessedKeys[tableName]) {
-          const unprocessed = response.UnprocessedKeys[tableName];
-          console.warn(`BatchGet: ${unprocessed.Keys.length} keys unprocessed. Retrying...`);
-          batchKeys = unprocessed.Keys;
-          attempt++;
-          await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
-        } else {
-          batchKeys = [];
-        }
-      } catch (error) {
-        console.error(`Error batch getting from ${tableName}:`, error);
-        throw error;
-      }
-    }
-
-    if (batchKeys.length > 0) {
-      console.error(`Failed to get batch from ${tableName} after 3 attempts.`);
-    }
+    chunks.push(keys.slice(i, i + batchSize));
   }
-  return allItems;
+
+  const results = await Promise.all(
+    chunks.map(async (batchKeys) => {
+      let attempt = 0;
+      let items = [];
+      let currentKeys = batchKeys;
+
+      while (currentKeys.length > 0 && attempt < 3) {
+        const command = new BatchGetCommand({
+          RequestItems: {
+            [tableName]: { Keys: currentKeys },
+          },
+        });
+
+        try {
+          const response = await docClient.send(command);
+          if (response.Responses && response.Responses[tableName]) {
+            items = items.concat(response.Responses[tableName]);
+          }
+
+          if (response.UnprocessedKeys && response.UnprocessedKeys[tableName]) {
+            const unprocessed = response.UnprocessedKeys[tableName];
+            console.warn(`BatchGet: ${unprocessed.Keys.length} keys unprocessed. Retrying...`);
+            currentKeys = unprocessed.Keys;
+            attempt++;
+            await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
+          } else {
+            currentKeys = [];
+          }
+        } catch (error) {
+          console.error(`Error batch getting from ${tableName}:`, error);
+          throw error;
+        }
+      }
+      if (currentKeys.length > 0) {
+        console.error(`Failed to get batch from ${tableName} after 3 attempts.`);
+      }
+      return items;
+    })
+  );
+
+  return results.flat();
 }

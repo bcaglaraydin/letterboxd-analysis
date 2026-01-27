@@ -277,9 +277,26 @@ export const handler = async (event) => {
     };
   } catch (error) {
     console.error('[RetrieveMetrics] Handler error:', error);
+
+    // Return specific error messages for known error types
+    let userMessage = 'An unexpected error occurred';
+    let statusCode = 500;
+
+    if (error.message?.includes('Page not found (404)')) {
+      userMessage = 'Letterboxd user not found. Please check the username and try again.';
+      statusCode = 404;
+    } else if (error.message?.includes('Cloudflare challenge failed')) {
+      userMessage =
+        'Unable to access Letterboxd due to rate limiting. Please try again in a few minutes.';
+      statusCode = 503;
+    } else if (error.message?.includes('Unexpected page state')) {
+      userMessage = 'Letterboxd returned an unexpected response. Please try again.';
+      statusCode = 502;
+    }
+
     return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'An unexpected error occurred' }),
+      statusCode,
+      body: JSON.stringify({ error: userMessage }),
     };
   } finally {
     // Always clean up browser session at the end of the request

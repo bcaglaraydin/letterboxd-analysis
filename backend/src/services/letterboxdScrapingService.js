@@ -5,8 +5,8 @@ import { fetchHtmlWithBrowser } from '../utils/browser.js';
 
 const BASE_URL = 'https://letterboxd.com';
 
-// Browser must be single-threaded due to Playwright page.goto limitations
-const browserLimit = pLimit(1);
+// Browser concurrency - configurable via env var, defaults to 3 (tested safe limit)
+const browserLimit = pLimit(parseInt(process.env.BROWSER_CONCURRENCY || '3', 10));
 
 /**
  * Fetches HTML, falling back to headless browser if blocked by 403.

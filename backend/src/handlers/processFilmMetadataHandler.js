@@ -131,7 +131,7 @@ async function handleUserListScrape(username) {
 
   if (missingFilms.length > 0 && SQS_QUEUE_URL) {
     console.log(`[Worker] Dispatching ${missingFilms.length} missing films for ${username}`);
-    const messages = missingFilms.map((f) => ({ slug: f.slug }));
+    console.log(`[Worker] Dispatching ${missingFilms.length} missing films for ${username}`);
     // await sendMessageBatch(SQS_QUEUE_URL, messages);
     // ^ OLD WAY: 1 message per film.
 

@@ -1,8 +1,5 @@
-import { batchWrite } from '../services/dynamoDbService.js';
-import { scrapeFilmDetails } from '../services/letterboxdScrapingService.js';
 import { shuffle } from '../utils/array.js';
 
-const FILMS_TABLE = process.env.FILMS_TABLE;
 const MIN_RATED_FILMS = 5;
 const GAME_MOVIE_COUNT = 5;
 
@@ -40,17 +37,15 @@ export const generateRatingGame = async (userFilms, metadataMap, options = {}) =
       batchCandidates.map(async (film) => {
         try {
           let meta = metadataMap.get(film.slug);
-          // Re-scrape if metadata is missing or looks like a failed scrape (year is '????')
+          // Skip if valid metadata is missing (do not scrape synchronously!)
           if (!meta || !meta.year || meta.year === '????') {
-            console.log(`Scraping missing metadata for game movie: ${film.slug}`);
-            const url = `https://letterboxd.com/film/${film.slug}/`;
-            meta = await scrapeFilmDetails(film.slug, url);
-            if (FILMS_TABLE) await batchWrite(FILMS_TABLE, [meta]);
+            console.warn(`Skipping game movie due to missing metadata: ${film.slug}`);
+            return null;
           }
           return { film, meta };
         } catch (err) {
-          console.error(`Failed to scrape ${film.slug}`, err);
-          return null; // Failed
+          console.error(`Error processing ${film.slug}`, err);
+          return null;
         }
       })
     );
