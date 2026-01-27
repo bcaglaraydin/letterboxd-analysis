@@ -22,6 +22,8 @@ export const handler = async (event) => {
       };
     }
     const username = body.username;
+    // Use minFilms from frontend, default to 5 if not provided
+    const minFilms = parseInt(body.minFilms || '5', 10);
 
     if (!username) {
       return {
@@ -84,25 +86,43 @@ export const handler = async (event) => {
     if (filmsToQueue.length === 0) {
       console.log('All films already exist in DB. Skipping SQS.');
     } else {
-      // 3. Send to SQS (Background Metadata Fetch) - Optimized Batching
+      // 3. Send to SQS (Background Metadata Fetch) - Optimized Priority Scraping
       const BATCH_SIZE = 10;
-      const sqsMessages = [];
+      // Use minFilms for priority count, ensuring at least minFilms are sent immediately
+      const PRIORITY_COUNT = Math.max(minFilms, 5);
       const filmsList = Array.isArray(filmsToQueue) ? filmsToQueue : [filmsToQueue]; // Ensure array
 
-      for (let i = 0; i < filmsList.length; i += BATCH_SIZE) {
-        const chunk = filmsList.slice(i, i + BATCH_SIZE).map((f) => f.slug);
-        sqsMessages.push({
-          action: 'scrape_batch',
-          slugs: chunk,
-        });
-      }
+      if (filmsList.length > 0) {
+        // A. Priority Batch (First 6)
+        const priorityBatch = filmsList.slice(0, PRIORITY_COUNT);
+        if (priorityBatch.length > 0) {
+          console.log(`[Trigger] Sending PRIORITY batch of ${priorityBatch.length} films.`);
+          await sendMessageBatch(SQS_QUEUE_URL, [
+            {
+              action: 'scrape_batch',
+              slugs: priorityBatch.map((f) => f.slug),
+            },
+          ]);
+        }
 
-      try {
-        await sendMessageBatch(SQS_QUEUE_URL, sqsMessages);
-        console.log(`Queued ${sqsMessages.length} tasks to SQS`);
-      } catch (err) {
-        console.error('Failed to queue SQS messages:', err);
-        // We continue even if SQS fails, so the user still gets their list
+        // B. Background Batches (The rest)
+        const backgroundFilms = filmsList.slice(PRIORITY_COUNT);
+        if (backgroundFilms.length > 0) {
+          console.log(
+            `[Trigger] Queueing remaining ${backgroundFilms.length} films in background.`
+          );
+          const sqsMessages = [];
+          for (let i = 0; i < backgroundFilms.length; i += BATCH_SIZE) {
+            const chunk = backgroundFilms.slice(i, i + BATCH_SIZE).map((f) => f.slug);
+            sqsMessages.push({
+              action: 'scrape_batch',
+              slugs: chunk,
+            });
+          }
+          // Send background messages (we could await this, or let Lambda run it)
+          // Awaiting ensures reliability.
+          await sendMessageBatch(SQS_QUEUE_URL, sqsMessages);
+        }
       }
     }
 

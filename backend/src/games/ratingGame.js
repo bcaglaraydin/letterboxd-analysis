@@ -13,11 +13,12 @@ const GAME_MOVIE_COUNT = 5;
  */
 export const generateRatingGame = async (userFilms, metadataMap, options = {}) => {
   const gameMovieCount = options.movieCount || GAME_MOVIE_COUNT;
+  const minRatedFilms = options.minRatedFilms || MIN_RATED_FILMS;
 
   // 1. Filter for Rated Films
   const ratedFilms = userFilms.filter((f) => f.userRating !== null);
-  if (ratedFilms.length < MIN_RATED_FILMS) {
-    throw new Error(`User needs at least ${MIN_RATED_FILMS} rated films.`);
+  if (ratedFilms.length < minRatedFilms) {
+    throw new Error(`User needs at least ${minRatedFilms} rated films.`);
   }
 
   // 2. Shuffle films using Fisher-Yates

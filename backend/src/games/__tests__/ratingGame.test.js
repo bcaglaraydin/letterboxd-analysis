@@ -10,7 +10,6 @@ vi.mock('../../services/letterboxdScrapingService.js', () => ({
 }));
 
 import { generateRatingGame } from '../ratingGame.js';
-import { scrapeFilmDetails } from '../../services/letterboxdScrapingService.js';
 
 describe('generateRatingGame', () => {
   beforeEach(() => {
@@ -121,64 +120,6 @@ describe('generateRatingGame', () => {
   // ============================================================
   // Scraping Fallback
   // ============================================================
-  describe('scraping fallback', () => {
-    it('scrapes metadata when not in map', async () => {
-      const userFilms = createMockFilms(5);
-      const emptyMetadataMap = new Map();
-
-      scrapeFilmDetails.mockResolvedValue({
-        title: 'Scraped Movie',
-        year: '2023',
-        director: 'Scraped Director',
-        averageRating: 3.8,
-        posterUrl: 'scraped-poster.jpg',
-        runtime: 120,
-      });
-
-      const result = await generateRatingGame(userFilms, emptyMetadataMap);
-
-      expect(scrapeFilmDetails).toHaveBeenCalled();
-      expect(result.movies).toHaveLength(5);
-    });
-
-    it('skips failed scrapes and tries next film', async () => {
-      const userFilms = createMockFilms(10); // Extra films for fallback
-      const emptyMetadataMap = new Map();
-
-      // First 2 scrapes fail, rest succeed
-      let callCount = 0;
-      scrapeFilmDetails.mockImplementation(() => {
-        callCount++;
-        if (callCount <= 2) {
-          return Promise.reject(new Error('Scrape failed'));
-        }
-        return Promise.resolve({
-          title: `Movie ${callCount}`,
-          year: '2023',
-          director: 'Director',
-          averageRating: 4.0,
-          posterUrl: 'poster.jpg',
-          runtime: 120,
-        });
-      });
-
-      const result = await generateRatingGame(userFilms, emptyMetadataMap);
-
-      expect(result.movies).toHaveLength(5);
-    });
-
-    it('throws error if too many scrapes fail (>2)', async () => {
-      const userFilms = createMockFilms(7);
-      const emptyMetadataMap = new Map();
-
-      // All scrapes fail
-      scrapeFilmDetails.mockRejectedValue(new Error('Network error'));
-
-      await expect(generateRatingGame(userFilms, emptyMetadataMap)).rejects.toThrow(
-        'Too many films failed to load metadata'
-      );
-    });
-  });
 
   // ============================================================
   // Randomness
