@@ -31,10 +31,11 @@ inputs = {
   deployment_bucket = dependency.deployment_bucket.outputs.bucket_name
 
   environment_variables = {
-    NODE_ENV          = "development"
-    FILMS_TABLE       = dependency.films.outputs.table_name
-    SQS_QUEUE_URL     = dependency.sqs.outputs.queue_url
-    BROWSER_MAX_PAGES = "3"
+    NODE_ENV            = "development"
+    FILMS_TABLE         = dependency.films.outputs.table_name
+    SQS_QUEUE_URL       = dependency.sqs.outputs.queue_url
+    BROWSER_MAX_PAGES   = "10"
+    BROWSER_CONCURRENCY = "10"
   }
 
   sqs_event_source_arn = dependency.sqs.outputs.queue_arn

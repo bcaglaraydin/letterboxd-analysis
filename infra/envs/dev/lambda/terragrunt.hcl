@@ -27,10 +27,12 @@ inputs = {
   handler       = "src/index.handler"
   environment_variables = {
     NODE_ENV      = "development"
-    SQS_QUEUE_URL = dependency.sqs.outputs.queue_url
-    FILMS_TABLE   = dependency.dynamodb.outputs.table_name
+    SQS_QUEUE_URL       = dependency.sqs.outputs.queue_url
+    FILMS_TABLE         = dependency.dynamodb.outputs.table_name
+    BROWSER_MAX_PAGES   = "5"
+    BROWSER_CONCURRENCY = "5"
   }
-  memory_size = 1024
+  memory_size = 2048
   timeout     = 600
   source_dir    = "${get_terragrunt_dir()}/../../../../backend"
   deployment_bucket = dependency.deployment_bucket.outputs.bucket_name
@@ -48,7 +50,8 @@ inputs = {
       {
         Action = [
           "dynamodb:BatchGetItem",
-          "dynamodb:GetItem"
+          "dynamodb:GetItem",
+          "dynamodb:PutItem"
         ]
         Effect   = "Allow"
         Resource = dependency.dynamodb.outputs.table_arn
