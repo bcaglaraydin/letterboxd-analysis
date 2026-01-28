@@ -45,7 +45,7 @@ export const ExperienceOrchestrator = () => {
         if (data.ratingGame) {
           startRatingGame({
             movies: data.ratingGame.movies,
-            userStats: data.userStats,
+            userStats: data.userStats || null,
           });
         }
         if (data.genreGame) {

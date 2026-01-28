@@ -83,7 +83,9 @@ export const useExperienceStore = create<ExperienceState>((set, get) => ({
 
   pollBackgroundStatus: async () => {
     const { username, backgroundStatus } = get();
-    if (!username || backgroundStatus !== 'processing') return null;
+    // Continue polling during 'processing' and 'partial_ready' until we get 'ready'
+    if (!username || (backgroundStatus !== 'processing' && backgroundStatus !== 'partial_ready'))
+      return null;
 
     try {
       const data = await pollMetricsStatus(username);
