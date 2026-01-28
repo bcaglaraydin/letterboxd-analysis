@@ -31,10 +31,18 @@ jobs:
     secrets: inherit
 
   deploy-dynamodb:
-    name: Deploy DynamoDB
+    name: Deploy DynamoDB Films
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/dynamodb/films
+      output_key: table_name
+    secrets: inherit
+
+  deploy-dynamodb-user-jobs:
+    name: Deploy DynamoDB UserJobs
+    uses: ./.github/workflows/terragrunt-apply.yaml
+    with:
+      working_directory: infra/envs/dev/dynamodb/user-jobs
       output_key: table_name
     secrets: inherit
 
@@ -73,7 +81,14 @@ jobs:
 
   deploy-lambda-metrics:
     name: Deploy Lambda Metrics
-    needs: [deploy-s3, deploy-dynamodb, deploy-sqs, deploy-lambda-deployment-bucket]
+    needs:
+      [
+        deploy-s3,
+        deploy-dynamodb,
+        deploy-dynamodb-user-jobs,
+        deploy-sqs,
+        deploy-lambda-deployment-bucket,
+      ]
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/lambda-metrics
@@ -82,7 +97,14 @@ jobs:
 
   deploy-lambda-status:
     name: Deploy Lambda Status
-    needs: [deploy-s3, deploy-dynamodb, deploy-sqs, deploy-lambda-deployment-bucket]
+    needs:
+      [
+        deploy-s3,
+        deploy-dynamodb,
+        deploy-dynamodb-user-jobs,
+        deploy-sqs,
+        deploy-lambda-deployment-bucket,
+      ]
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/lambda-status

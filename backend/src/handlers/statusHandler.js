@@ -1,5 +1,5 @@
 import { batchGet } from '../services/dynamoDbService.js';
-import { scrapeUserFilmsList } from '../services/letterboxdScrapingService.js';
+import { getUserJob } from '../services/userJobService.js';
 import { generateGenreGame } from '../games/genreGame.js';
 import { generateRatingGame } from '../games/ratingGame.js';
 import {
@@ -26,20 +26,31 @@ export const handler = async (event) => {
       throw new Error('FILMS_TABLE environment variable is not set');
     }
 
-    // 1. Scrape user's film list fresh (fast - just list pages)
-    // This gives us: {slug, title, posterUrl, userRating}
-    let userFilms;
+    // 1. STATEFUL ARCHITECTURE: Read User Job from DB (No scraping)
+    let userFilms = [];
     try {
-      userFilms = await scrapeUserFilmsList(username);
-      console.log(`[Status] Scraped ${userFilms.length} films for ${username}`);
+      const job = await getUserJob(username);
+
+      if (!job || !job.films) {
+        // Option A: Return "Not Found" logic (Frontend should restart)
+        // Option B: Fallback to scraping (Removed to enforce cleaner architecture)
+        console.warn(`[Status] No active job found for ${username}`);
+        return {
+          statusCode: 200, // Return 200 with specific status so frontend handles it gently
+          body: JSON.stringify({
+            status: 'not_found',
+            message: 'No active analysis found. Please start a new analysis.',
+          }),
+        };
+      }
+
+      userFilms = job.films; // [{ slug, userRating }]
+      console.log(`[Status] Loaded ${userFilms.length} films from cache (Job: ${job.jobId})`);
     } catch (error) {
-      console.error(`[Status] Failed to scrape user list:`, error);
+      console.error(`[Status] Failed to load job:`, error);
       return {
-        statusCode: 200,
-        body: JSON.stringify({
-          status: 'error',
-          message: error.message || 'Failed to fetch user profile',
-        }),
+        statusCode: 500,
+        body: JSON.stringify({ error: 'Internal Server Error' }),
       };
     }
 
