@@ -1,9 +1,7 @@
-import { scrapeFilmDetails, scrapeUserFilmsList } from '../services/letterboxdScrapingService.js';
-import { putItem, getItem, batchGet } from '../services/dynamoDbService.js';
-import { sendMessageBatch } from '../services/sqsQueueService.js';
+import { scrapeFilmDetails } from '../services/letterboxdScrapingService.js';
+import { putItem, getItem } from '../services/dynamoDbService.js';
 
 const FILMS_TABLE = process.env.FILMS_TABLE;
-const SQS_QUEUE_URL = process.env.SQS_QUEUE_URL;
 const TTL_HOURS = 24;
 
 export const handler = async (event) => {
@@ -15,17 +13,6 @@ export const handler = async (event) => {
     event.Records.map(async (record) => {
       try {
         const body = JSON.parse(record.body);
-
-        // --- ACTION: SCRAPE USER LIST ---
-        if (body.action === 'scrape_user_list') {
-          const { username } = body;
-          if (!username) {
-            console.warn('User scrape message missing username:', body);
-            return;
-          }
-          await handleUserListScrape(username);
-          return;
-        }
 
         // --- ACTION: SCRAPE BATCH ---
         if (body.action === 'scrape_batch') {
@@ -39,10 +26,8 @@ export const handler = async (event) => {
         }
 
         // --- ACTION: SCRAPE FILM (Default/Legacy) ---
-        // Existing logic for film metadata scraping (message is just { slug: ... } or { action: 'scrape_film', slug: ... })
         const slug = body.slug;
         if (!slug) {
-          // If it's not a film scrape and not a user scrape, generic warning
           console.warn('Message missing slug or unknown action:', body);
           return;
         }
@@ -56,106 +41,6 @@ export const handler = async (event) => {
 
   return { batchItemFailures };
 };
-
-/**
- * Scrapes a user's film list, stores it, and dispatches tasks for missing film metadata.
- */
-async function handleUserListScrape(username) {
-  console.log(`[Worker] Scraping list for user: ${username}`);
-
-  // 1. Scrape User Films
-  let userFilms;
-  try {
-    userFilms = await scrapeUserFilmsList(username);
-    console.log(`[Worker] Found ${userFilms.length} films for ${username}`);
-  } catch (error) {
-    console.error(`[Worker] Failed to scrape user list for ${username}:`, error);
-
-    // Write Error State to DB to stop infinite loading on Frontend
-    if (FILMS_TABLE) {
-      await putItem(FILMS_TABLE, {
-        slug: `USER#${username}`,
-        status: 'error',
-        error: error.message || 'Failed to scrape user list',
-        ttl: Math.floor(Date.now() / 1000) + 3600,
-      });
-      console.log(`[Worker] Saved ERROR state for ${username}`);
-    }
-    return; // Stop processing, do not retry
-  }
-
-  if (userFilms.length === 0) {
-    console.warn(`[Worker] No films found for ${username} (or scrape failed).`);
-    // treat as empty list or error? For now, empty list is valid but boring.
-    // If it was a scrape failure, it would be caught above.
-    return;
-  }
-
-  // 2. Store User List (USER#<username>)
-  const ttl = Math.floor(Date.now() / 1000) + 3600; // 1 hour TTL
-  const userItem = {
-    slug: `USER#${username}`,
-    films: userFilms.map((f) => ({ slug: f.slug, userRating: f.userRating })),
-    totalFilms: userFilms.length,
-    ttl,
-  };
-
-  if (FILMS_TABLE) {
-    await putItem(FILMS_TABLE, userItem);
-    console.log(`[Worker] Saved user list for ${username}`);
-  }
-
-  // 3. Dispatch Missing Films (Metadata Check)
-  // Check which films we already have metadata for
-  const uniqueSlugs = [...new Set(userFilms.map((f) => f.slug))].map((slug) => ({ slug }));
-
-  // Verify we really need metadata (BatchGet)
-  // Optimization: If list is huge (2000), batchGet might be heavy.
-  // Ideally we chop it. For now, assume batchGet handles limits or we paginate helpers.
-  // Actually, `batchGet` in dynamoDbService.js handles batching (100 items limit).
-  // So it's safe to call with all slugs.
-
-  let dbItems = [];
-  if (FILMS_TABLE) {
-    dbItems = await batchGet(FILMS_TABLE, uniqueSlugs);
-  }
-
-  const metadataMap = new Map();
-  dbItems.forEach((item) => metadataMap.set(item.slug, item));
-
-  // Identify missing metadata
-  // We check for 'year' to confirm valid metadata exists
-  const missingFilms = userFilms.filter(
-    (f) => !metadataMap.has(f.slug) || !metadataMap.get(f.slug)?.year
-  );
-
-  if (missingFilms.length > 0 && SQS_QUEUE_URL) {
-    console.log(`[Worker] Dispatching ${missingFilms.length} missing films for ${username}`);
-    console.log(`[Worker] Dispatching ${missingFilms.length} missing films for ${username}`);
-    // await sendMessageBatch(SQS_QUEUE_URL, messages);
-    // ^ OLD WAY: 1 message per film.
-
-    // NEW WAY: Batch Dispatch (Chunk size 10)
-    // We put 10 slugs into ONE message.
-    const BATCH_SIZE = 10;
-    const chunkedMessages = [];
-
-    for (let i = 0; i < missingFilms.length; i += BATCH_SIZE) {
-      const chunk = missingFilms.slice(i, i + BATCH_SIZE).map((f) => f.slug);
-      chunkedMessages.push({
-        action: 'scrape_batch',
-        slugs: chunk,
-      });
-    }
-
-    console.log(
-      `[Worker] Dispatching ${chunkedMessages.length} BATCH messages (covering ${missingFilms.length} films).`
-    );
-    await sendMessageBatch(SQS_QUEUE_URL, chunkedMessages);
-  } else {
-    console.log(`[Worker] All ${userFilms.length} films have metadata cached.`);
-  }
-}
 
 /**
  * Scrapes a batch of films sequentially in the same Lambda/Browser session.
@@ -177,25 +62,25 @@ async function handleBatchFilmScrape(slugs) {
 }
 
 /**
- * Scrapes details for a single film and stores it.
+ * Scrapes details for a single film and stores it in FILMS table.
  */
 async function handleFilmScrape(slug) {
   const url = `https://letterboxd.com/film/${slug}/`;
 
-  // 1. Check existence (Double check to avoid race conditions or redundant work)
+  // 1. Check if film already exists with valid metadata
   if (FILMS_TABLE) {
     const existing = await getItem(FILMS_TABLE, { slug });
-    if (existing && existing.year) {
+    if (existing && existing.year && existing.year !== '????') {
       console.log(`[Worker] Film already exists (Skipping): ${slug}`);
       return;
     }
   }
 
-  // 2. Scrape
+  // 2. Scrape film details
   console.log(`[Worker] Scraping details for: ${slug}`);
   const filmDetails = await scrapeFilmDetails(slug, url);
 
-  // 3. Store
+  // 3. Store in DynamoDB with TTL
   const ttl = Math.floor(Date.now() / 1000) + TTL_HOURS * 60 * 60;
   if (FILMS_TABLE) {
     await putItem(FILMS_TABLE, { ...filmDetails, ttl });
