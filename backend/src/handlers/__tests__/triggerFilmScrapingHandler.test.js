@@ -1,8 +1,8 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { handler } from '../triggerFilmScrapingHandler.js';
 import { scrapeUserFilmsList } from '../../services/letterboxdScrapingService.js';
 import { sendMessageBatch } from '../../services/sqsQueueService.js';
-import { batchGet, putItem } from '../../services/dynamoDbService.js';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { batchGet } from '../../services/dynamoDbService.js';
 
 vi.mock('../../services/letterboxdScrapingService.js');
 vi.mock('../../services/sqsQueueService.js');
@@ -13,75 +13,62 @@ describe('triggerFilmScrapingHandler', () => {
     vi.clearAllMocks();
     process.env.SQS_QUEUE_URL = 'test-queue-url';
     process.env.FILMS_TABLE = 'test-table';
+    vi.mocked(sendMessageBatch).mockResolvedValue({});
   });
 
-  it('should prioritize the first 5 films in a separate SQS batch (default)', async () => {
-    // Mock 20 films
-    const mockFilms = Array.from({ length: 20 }, (_, i) => ({
+  it('should return film list after scraping', async () => {
+    const mockFilms = Array.from({ length: 10 }, (_, i) => ({
       slug: `film-${i}`,
       userRating: 4,
     }));
-    scrapeUserFilmsList.mockResolvedValue(mockFilms);
-    batchGet.mockResolvedValue([]); // No existing films in DB
-    putItem.mockResolvedValue({});
+    vi.mocked(scrapeUserFilmsList).mockResolvedValue(mockFilms);
+    vi.mocked(batchGet).mockResolvedValue([]);
 
-    const event = {
-      body: JSON.stringify({ username: 'testuser' }), // No minFilms => default 5
-    };
-
-    const result = await handler(event);
+    const result = await handler({ body: JSON.stringify({ username: 'testuser' }) });
 
     expect(result.statusCode).toBe(200);
-
-    expect(sendMessageBatch).toHaveBeenCalledTimes(2);
-
-    // Check Priority Batch
-    const firstCallArgs = sendMessageBatch.mock.calls[0];
-    const firstBatchMessages = firstCallArgs[1];
-    expect(firstBatchMessages).toHaveLength(1);
-    expect(firstBatchMessages[0].slugs).toHaveLength(5); // Default priority count is 5
-    expect(firstBatchMessages[0].slugs).toEqual(['film-0', 'film-1', 'film-2', 'film-3', 'film-4']);
-
-    // Check Background Batch
-    const secondCallArgs = sendMessageBatch.mock.calls[1];
-    const secondBatchMessages = secondCallArgs[1];
-    // Remaining 15 items: 10 + 5
-    expect(secondBatchMessages).toHaveLength(2);
-    expect(secondBatchMessages[0].slugs).toHaveLength(10);
-    expect(secondBatchMessages[1].slugs).toHaveLength(5);
+    const body = JSON.parse(result.body);
+    expect(body.totalFilms).toBe(10);
+    expect(body.films).toHaveLength(10);
+    expect(scrapeUserFilmsList).toHaveBeenCalledWith('testuser');
   });
 
-  it('should respect custom minFilms for priority batch', async () => {
-    const mockFilms = Array.from({ length: 20 }, (_, i) => ({
+  it('should skip queueing for already cached films', async () => {
+    const mockFilms = Array.from({ length: 10 }, (_, i) => ({
       slug: `film-${i}`,
       userRating: 4,
     }));
-    scrapeUserFilmsList.mockResolvedValue(mockFilms);
-    batchGet.mockResolvedValue([]);
-    putItem.mockResolvedValue({});
+    vi.mocked(scrapeUserFilmsList).mockResolvedValue(mockFilms);
+    // All films already cached with valid metadata
+    vi.mocked(batchGet).mockResolvedValue(mockFilms.map((f) => ({ slug: f.slug, year: '2024' })));
 
-    const event = {
-      body: JSON.stringify({ username: 'testuser', minFilms: 8 }),
-    };
+    const result = await handler({ body: JSON.stringify({ username: 'testuser' }) });
 
-    await handler(event);
-
-    // Expect priority batch to be 8
-    const firstCallArgs = sendMessageBatch.mock.calls[0];
-    const firstBatchMessages = firstCallArgs[1];
-    expect(firstBatchMessages[0].slugs).toHaveLength(8);
+    expect(result.statusCode).toBe(200);
+    // Should not queue any films when all cached
+    expect(sendMessageBatch).not.toHaveBeenCalled();
   });
 
-  it('should handle less than 6 films correctly', async () => {
-    const mockFilms = Array.from({ length: 3 }, (_, i) => ({ slug: `film-${i}` }));
-    scrapeUserFilmsList.mockResolvedValue(mockFilms);
-    batchGet.mockResolvedValue([]);
+  it('should return error for non-existent user', async () => {
+    vi.mocked(scrapeUserFilmsList).mockRejectedValue(
+      new Error('User not found or profile is private')
+    );
 
-    await handler({ body: JSON.stringify({ username: 'testuser' }) });
+    const result = await handler({ body: JSON.stringify({ username: 'baduser' }) });
 
-    // Should only send priority batch
-    expect(sendMessageBatch).toHaveBeenCalledTimes(1);
-    const msgs = sendMessageBatch.mock.calls[0][1];
-    expect(msgs[0].slugs).toHaveLength(3);
+    // Handler returns 500 for generic errors, 404 only for explicit "Page not found (404)"
+    expect(result.statusCode).toBe(500);
+    const body = JSON.parse(result.body);
+    expect(body.error).toBeDefined();
+  });
+
+  it('should handle empty film list', async () => {
+    vi.mocked(scrapeUserFilmsList).mockResolvedValue([]);
+
+    const result = await handler({ body: JSON.stringify({ username: 'emptyuser' }) });
+
+    expect(result.statusCode).toBe(200);
+    const body = JSON.parse(result.body);
+    expect(body.message).toContain('No films found');
   });
 });

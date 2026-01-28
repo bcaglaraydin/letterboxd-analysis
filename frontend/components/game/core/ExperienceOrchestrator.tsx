@@ -19,35 +19,29 @@ export const ExperienceOrchestrator = () => {
     setReady,
   } = useExperienceStore();
 
+  const ratingMovies = useRatingGameStore((s) => s.movies);
   const startRatingGame = useRatingGameStore((s) => s.startGame);
   const startGenreGame = useGenreRankingStore((s) => s.startGame);
 
-  // Continue polling in background when processing or partial_ready
+  // Continue polling ONLY if we need additional data (genre game, full stats)
+  // Skip if rating game already has movies (landing page already hydrated)
   React.useEffect(() => {
     let interval: NodeJS.Timeout;
+
     const check = async () => {
       const data = await pollBackgroundStatus();
+      if (!data) return;
 
-      // PROGRESSIVE LOADING
-      if (data?.status === 'partial_ready') {
-        if (data.ratingGame) {
-          // Hydrate Rating Game on the fly
+      // FULL READY - hydrate any missing data
+      if (data.status === 'ready') {
+        // Only hydrate rating game if not already loaded
+        if (data.ratingGame && ratingMovies.length === 0) {
           startRatingGame({
             movies: data.ratingGame.movies,
             userStats: data.userStats || null,
           });
         }
-      }
-
-      // FULL READY
-      if (data?.status === 'ready') {
-        // Hydrate Stores Explicitly
-        if (data.ratingGame) {
-          startRatingGame({
-            movies: data.ratingGame.movies,
-            userStats: data.userStats || null,
-          });
-        }
+        // Always try to hydrate genre game if available
         if (data.genreGame) {
           startGenreGame({
             ...data.genreGame,
@@ -58,13 +52,25 @@ export const ExperienceOrchestrator = () => {
       }
     };
 
-    if (backgroundStatus === 'processing' || backgroundStatus === 'partial_ready') {
+    // Only poll if:
+    // 1. Status is partial_ready (waiting for full data)
+    // 2. AND rating game movies already exist (landing page did its job)
+    // This means we only poll for additional data, not for initial load
+    if (backgroundStatus === 'partial_ready' && ratingMovies.length > 0) {
       interval = setInterval(check, 5000);
       // Run once immediately
       check();
     }
+
     return () => clearInterval(interval);
-  }, [backgroundStatus, pollBackgroundStatus, setReady, startRatingGame, startGenreGame]);
+  }, [
+    backgroundStatus,
+    ratingMovies.length,
+    pollBackgroundStatus,
+    setReady,
+    startRatingGame,
+    startGenreGame,
+  ]);
 
   return (
     <div className="w-full h-full min-h-screen bg-background overflow-hidden relative">
