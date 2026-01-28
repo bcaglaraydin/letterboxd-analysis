@@ -1,13 +1,11 @@
 import { create } from 'zustand';
-import { UserStats } from '../rating/ratingStore';
-import { Genre } from '../genre/rankingStore';
+import { pollMetricsStatus, fetchFullStats as apiFetchFullStats } from '@/lib/api';
+import type { UserStats, Genre, GenreGameData, MetricsResponse } from '@/lib/api';
 
 export type GamePhase = 'rating-game' | 'hub' | 'genre-game';
 
-interface GenreGameData {
-  genres: Genre[];
-  actualRanking: string[];
-}
+// Re-export types for backwards compatibility
+export type { UserStats, Genre, GenreGameData };
 
 interface ExperienceState {
   currentPhase: GamePhase;
@@ -29,7 +27,7 @@ interface ExperienceState {
   setProcessing: (username: string) => void;
   setPartialReady: () => void;
   setReady: () => void;
-  pollBackgroundStatus: () => Promise<any>; // Returns full payload or null
+  pollBackgroundStatus: () => Promise<(MetricsResponse & { isPartial?: boolean }) | null>;
   fetchFullStats: () => Promise<{ userStats: UserStats; genreGame: GenreGameData }>;
 }
 
@@ -88,23 +86,14 @@ export const useExperienceStore = create<ExperienceState>((set, get) => ({
     if (!username || backgroundStatus !== 'processing') return null;
 
     try {
-      // Pass minFilms for progressive loading
-      // Ideally we import RATING_GAME_CONFIG, but for now we hardcode 5 or use a param
-      const minFilms = 5;
-
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      const response = await fetch(
-        `${apiUrl}/metrics/status?username=${username}&minFilms=${minFilms}`,
-      );
-      const data = await response.json();
+      const data = await pollMetricsStatus(username);
 
       // PROGRESSIVE LOADING HANDLING
       if (data.status === 'partial_ready' && data.ratingGame) {
-        // Transition to partial_ready so the game screen shows instead of loading
         set({ backgroundStatus: 'partial_ready' });
         return {
           ...data,
-          isPartial: true, // Flag for orchestrator
+          isPartial: true,
         };
       }
 
@@ -119,9 +108,7 @@ export const useExperienceStore = create<ExperienceState>((set, get) => ({
     const { username } = get();
     if (!username) throw new Error('No username');
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-    const response = await fetch(`${apiUrl}/metrics/status?username=${username}`);
-    const data = await response.json();
-    return data;
+    const data = await apiFetchFullStats(username);
+    return data as { userStats: UserStats; genreGame: GenreGameData };
   },
 }));

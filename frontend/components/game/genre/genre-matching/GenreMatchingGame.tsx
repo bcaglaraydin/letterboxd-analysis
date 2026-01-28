@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, { useMemo } from 'react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { Lock, ArrowRight, RotateCcw, Sparkles, X } from 'lucide-react';
 import Image from 'next/image';
@@ -10,9 +10,10 @@ import { GameRoundIndicator } from '@/components/game/shared/GameRoundIndicator'
 import { ScorePanel } from '@/components/game/shared/ScorePanel';
 import { Button } from '@/components/ui/button';
 
-import { MOCK_FILMS, MOCK_GENRES, FILMS_PER_GAME, ANIMATION_TIMING } from './constants';
-import { Genre, GenreTier, GamePhase, TIER_POINTS, TIER_INFO, ChipDisplayState } from './types';
+import { MOCK_GENRES, FILMS_PER_GAME } from './constants';
+import { GenreTier, TIER_POINTS, TIER_INFO } from './types';
 import { GenreChipAnimated } from './GenreChipAnimated';
+import { useGenreMatchingGame } from './useGenreMatchingGame';
 
 /**
  * GenreMatchingGame - Redesigned with Flying Animation Mechanics
@@ -20,245 +21,60 @@ import { GenreChipAnimated } from './GenreChipAnimated';
  * Mobile: Stacked with genres first, then movie
  */
 export function GenreMatchingGame() {
-  // Game state
-  const [currentFilmIndex, setCurrentFilmIndex] = useState(0);
-  const [collectedGenreIds, setCollectedGenreIds] = useState<Set<string>>(new Set());
-  const [phase, setPhase] = useState<GamePhase>('selecting');
-  const [evaluatedGenres, setEvaluatedGenres] = useState<
-    Map<string, 'correct' | 'incorrect' | 'missed'>
-  >(new Map());
-  const [totalScore, setTotalScore] = useState(0);
-  const [lastPointsEarned, setLastPointsEarned] = useState<number | null>(null);
+  const {
+    currentFilmIndex,
+    currentFilm,
+    phase,
+    totalScore,
+    lastPointsEarned,
+    collectedGenres,
+    evaluatedGenres,
+    flyFromPosition,
+    isGameComplete,
+    canLock,
+    correctGenreIds,
+    chipRefsMap,
+    getChipState,
+    getTierGenres,
+    handleGenreClick,
+    handleLock,
+    handleNext,
+    handleReset,
+    clearSelections,
+    collectedGenreIds,
+  } = useGenreMatchingGame();
 
-  const [heldIncorrectIds, setHeldIncorrectIds] = useState<Set<string>>(new Set());
-  const [flyFromPosition, setFlyFromPosition] = useState<{ x: number; y: number } | undefined>();
+  // Calculate specific points for this card to drive animation
+  const maxCardPoints = useMemo(() => {
+    return Array.from(correctGenreIds).reduce((sum, id) => {
+      const genre = MOCK_GENRES.find((g) => g.id === id);
+      return sum + (genre ? TIER_POINTS[genre.tier].correct : 0);
+    }, 0);
+  }, [correctGenreIds]);
 
-  // Ref for reveal timeout
-  const revealTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  // Map to store refs for each genre chip element (for flying animation positioning)
-  const chipRefsMap = useRef<Map<string, HTMLButtonElement>>(new Map());
-
-  const currentFilm = MOCK_FILMS[currentFilmIndex];
-  const correctGenreIds = useMemo(
-    () => new Set(currentFilm.correctGenreIds),
-    [currentFilm.correctGenreIds],
-  );
-
-  // Group genres by tier
-  const genresByTier = useMemo(() => {
-    return MOCK_GENRES.reduce(
-      (acc, genre) => {
-        acc[genre.tier].push(genre);
-        return acc;
-      },
-      { niche: [], 'mid-tier': [], popular: [] } as Record<GenreTier, Genre[]>,
-    );
-  }, []);
-
-  // Get chip display state
-  const getChipState = useCallback(
-    (genreId: string): ChipDisplayState => {
-      if (evaluatedGenres.has(genreId)) {
-        return evaluatedGenres.get(genreId)!;
+  const currentCardPoints = useMemo(() => {
+    let score = 0;
+    evaluatedGenres.forEach((result, id) => {
+      const genre = MOCK_GENRES.find((g) => g.id === id);
+      if (genre) {
+        if (result === 'correct') score += TIER_POINTS[genre.tier].correct;
+        else if (result === 'incorrect') score += TIER_POINTS[genre.tier].incorrect;
       }
-      if (collectedGenreIds.has(genreId)) {
-        return 'selected';
-      }
-      return 'default';
-    },
-    [evaluatedGenres, collectedGenreIds],
-  );
+    });
+    return Math.max(0, score);
+  }, [evaluatedGenres]);
 
-  // Check if chip should be in collected zone
-  const isInCollectedZone = useCallback(
-    (genreId: string): boolean => {
-      // Keep if explicitly held (delaying return of incorrect items)
-      if (heldIncorrectIds.has(genreId)) return true;
+  const getDynamicStyle = () => {
+    if (phase === 'selecting') return {};
 
-      const state = getChipState(genreId);
-      // In collected zone if: selected, correct, or missed (during showing-missed/complete)
-      if (state === 'selected' || state === 'correct' || state === 'missed') {
-        return true;
-      }
-      return false;
-    },
-    [getChipState, heldIncorrectIds],
-  );
+    const ratio = maxCardPoints > 0 ? currentCardPoints / maxCardPoints : 0;
+    const hue = Math.round(Math.min(120, Math.max(0, ratio * 120)));
 
-  // Toggle genre selection (only during selecting phase)
-  const handleGenreClick = useCallback(
-    (genreId: string) => {
-      if (phase !== 'selecting') return;
-
-      setCollectedGenreIds((prev) => {
-        const next = new Set(prev);
-        if (next.has(genreId)) {
-          next.delete(genreId);
-        } else {
-          next.add(genreId);
-        }
-        return next;
-      });
-    },
-    [phase],
-  );
-
-  // Reveal function using recursive setTimeout - not using useCallback to avoid self-reference
-  const revealNext = (queue: string[], index: number) => {
-    if (index >= queue.length) {
-      setPhase('complete');
-      return;
-    }
-
-    const genreId = queue[index];
-    const isCorrect = correctGenreIds.has(genreId);
-    const wasSelected = collectedGenreIds.has(genreId);
-    const genre = MOCK_GENRES.find((g) => g.id === genreId);
-
-    // Determine result
-    let result: 'correct' | 'incorrect' | 'missed';
-    if (wasSelected && isCorrect) {
-      result = 'correct';
-    } else if (wasSelected && !isCorrect) {
-      result = 'incorrect';
-    } else {
-      result = 'missed';
-      // Switch to showing-missed phase when we start revealing missed genres
-      const selectedCount = collectedGenreIds.size;
-      if (index === selectedCount) {
-        setPhase('showing-missed');
-      }
-    }
-
-    // Calculate points
-    let points = 0;
-    if (genre) {
-      if (result === 'correct') {
-        points = TIER_POINTS[genre.tier].correct;
-      } else if (result === 'incorrect') {
-        points = TIER_POINTS[genre.tier].incorrect;
-      }
-    }
-
-    // Handle flow based on result
-    if (result === 'incorrect') {
-      // 1. Hold it (prevents immediate flyback)
-      setHeldIncorrectIds((prev) => new Set(prev).add(genreId));
-      // 2. Mark evaluated (turns Red immediately)
-      setEvaluatedGenres((prev) => new Map(prev).set(genreId, result));
-
-      // 3. Report chip position for flying animation
-      const chipEl = chipRefsMap.current.get(genreId);
-      if (chipEl) {
-        const rect = chipEl.getBoundingClientRect();
-        setFlyFromPosition({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
-      }
-
-      // 4. Update points (allow negative total)
-      if (points !== 0) {
-        setTotalScore((prev) => prev + points);
-        setLastPointsEarned(points);
-      }
-
-      // 4. Wait for user to see Red, then release
-      revealTimeoutRef.current = setTimeout(() => {
-        setHeldIncorrectIds((prev) => {
-          const next = new Set(prev);
-          next.delete(genreId);
-          return next;
-        });
-
-        // 5. Wait for flyback animation, then next
-        setTimeout(() => {
-          revealNext(queue, index + 1);
-        }, ANIMATION_TIMING.FLY_ANIMATION_MS);
-      }, ANIMATION_TIMING.INCORRECT_HOLD_MS);
-    } else {
-      // Correct or Missed
-      setEvaluatedGenres((prev) => new Map(prev).set(genreId, result));
-
-      // Report chip position for flying animation (for correct selections)
-      const chipEl = chipRefsMap.current.get(genreId);
-      if (chipEl) {
-        const rect = chipEl.getBoundingClientRect();
-        setFlyFromPosition({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
-      }
-
-      // Update points (allow negative total)
-      if (points !== 0) {
-        setTotalScore((prev) => prev + points);
-        setLastPointsEarned(points);
-      }
-
-      // Continue to next after standard delay
-      revealTimeoutRef.current = setTimeout(() => {
-        revealNext(queue, index + 1);
-      }, ANIMATION_TIMING.REVEAL_STEP_MS);
-    }
+    return {
+      backgroundColor: `hsla(${hue}, 70%, 50%, 0.1)`,
+      borderColor: `hsla(${hue}, 70%, 40%, 0.3)`,
+    };
   };
-
-  // Lock selections and start reveal
-  const handleLock = useCallback(() => {
-    setPhase('locked');
-
-    // Build reveal queue: selected genres first, then missed correct ones
-    const selectedList = MOCK_GENRES.filter((g) => collectedGenreIds.has(g.id)).map((g) => g.id);
-    const missedList = MOCK_GENRES.filter(
-      (g) => correctGenreIds.has(g.id) && !collectedGenreIds.has(g.id),
-    ).map((g) => g.id);
-
-    const queue = [...selectedList, ...missedList];
-
-    // Start reveal after brief pause
-    setTimeout(() => {
-      setPhase('revealing');
-      revealNext(queue, 0);
-    }, ANIMATION_TIMING.REVEAL_DELAY_MS);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [collectedGenreIds, correctGenreIds]);
-
-  // Reset round state
-  const resetRoundState = useCallback(() => {
-    if (revealTimeoutRef.current) {
-      clearTimeout(revealTimeoutRef.current);
-    }
-    setCollectedGenreIds(new Set());
-    setPhase('selecting');
-    setEvaluatedGenres(new Map());
-    setLastPointsEarned(null);
-    setFlyFromPosition(undefined);
-  }, []);
-
-  // Move to next film
-  const handleNext = useCallback(() => {
-    if (currentFilmIndex < FILMS_PER_GAME - 1) {
-      setCurrentFilmIndex((prev) => prev + 1);
-      resetRoundState();
-    }
-  }, [currentFilmIndex, resetRoundState]);
-
-  // Reset entire game
-  const handleReset = useCallback(() => {
-    setCurrentFilmIndex(0);
-    setTotalScore(0);
-    resetRoundState();
-  }, [resetRoundState]);
-
-  const isGameComplete = currentFilmIndex === FILMS_PER_GAME - 1 && phase === 'complete';
-  const canLock = phase === 'selecting' && collectedGenreIds.size > 0;
-
-  // Get collected genres for display
-  const collectedGenres = useMemo(() => {
-    return MOCK_GENRES.filter((g) => isInCollectedZone(g.id));
-  }, [isInCollectedZone]);
-
-  // Get tier genres (not in collected zone)
-  const getTierGenres = useCallback(
-    (tier: GenreTier) => {
-      return genresByTier[tier].filter((g) => !isInCollectedZone(g.id));
-    },
-    [genresByTier, isInCollectedZone],
-  );
 
   // Render tier section
   const renderTierSection = (tier: GenreTier) => {
@@ -303,36 +119,18 @@ export function GenreMatchingGame() {
     );
   };
 
-  // Calculate specific points for this card to drive animation
-  const maxCardPoints = useMemo(() => {
-    return Array.from(correctGenreIds).reduce((sum, id) => {
-      const genre = MOCK_GENRES.find((g) => g.id === id);
-      return sum + (genre ? TIER_POINTS[genre.tier].correct : 0);
-    }, 0);
-  }, [correctGenreIds]);
-
-  const currentCardPoints = useMemo(() => {
-    let score = 0;
-    evaluatedGenres.forEach((result, id) => {
-      const genre = MOCK_GENRES.find((g) => g.id === id);
-      if (genre) {
-        if (result === 'correct') score += TIER_POINTS[genre.tier].correct;
-        else if (result === 'incorrect') score += TIER_POINTS[genre.tier].incorrect;
-      }
-    });
-    return Math.max(0, score);
-  }, [evaluatedGenres]);
-
-  const getDynamicStyle = () => {
-    if (phase === 'selecting') return {};
-
-    const ratio = maxCardPoints > 0 ? currentCardPoints / maxCardPoints : 0;
-    const hue = Math.round(Math.min(120, Math.max(0, ratio * 120)));
-
-    return {
-      backgroundColor: `hsla(${hue}, 70%, 50%, 0.1)`,
-      borderColor: `hsla(${hue}, 70%, 40%, 0.3)`,
-    };
+  // Chip ref callback for flying animation positioning
+  const createChipRefCallback = (genreId: string) => (el: HTMLButtonElement | null) => {
+    if (el) {
+      requestAnimationFrame(() => {
+        const rect = el.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          chipRefsMap.current.set(genreId, el);
+        }
+      });
+    } else {
+      chipRefsMap.current.delete(genreId);
+    }
   };
 
   return (
@@ -414,19 +212,7 @@ export function GenreMatchingGame() {
                         state={getChipState(genre.id)}
                         isDisabled={phase !== 'selecting'}
                         onClick={() => handleGenreClick(genre.id)}
-                        chipRef={(el) => {
-                          if (el) {
-                            // Defer check until after layout to get accurate dimensions
-                            requestAnimationFrame(() => {
-                              const rect = el.getBoundingClientRect();
-                              if (rect.width > 0 && rect.height > 0) {
-                                chipRefsMap.current.set(genre.id, el);
-                              }
-                            });
-                          } else {
-                            chipRefsMap.current.delete(genre.id);
-                          }
-                        }}
+                        chipRef={createChipRefCallback(genre.id)}
                       />
                     ))}
                   </AnimatePresence>
@@ -467,19 +253,7 @@ export function GenreMatchingGame() {
                       state={getChipState(genre.id)}
                       isDisabled={phase !== 'selecting'}
                       onClick={() => handleGenreClick(genre.id)}
-                      chipRef={(el) => {
-                        if (el) {
-                          // Defer check until after layout to get accurate dimensions
-                          requestAnimationFrame(() => {
-                            const rect = el.getBoundingClientRect();
-                            if (rect.width > 0 && rect.height > 0) {
-                              chipRefsMap.current.set(genre.id, el);
-                            }
-                          });
-                        } else {
-                          chipRefsMap.current.delete(genre.id);
-                        }
-                      }}
+                      chipRef={createChipRefCallback(genre.id)}
                     />
                   ))}
                 </AnimatePresence>
@@ -491,7 +265,7 @@ export function GenreMatchingGame() {
           <div className="flex justify-center gap-2 py-1 md:py-3 min-h-[40px] md:min-h-[60px]">
             {phase === 'selecting' && collectedGenreIds.size > 0 && (
               <Button
-                onClick={() => setCollectedGenreIds(new Set())}
+                onClick={clearSelections}
                 size="sm"
                 variant="outline"
                 className="gap-1 md:gap-2 text-xs md:text-sm text-muted-foreground border-muted-foreground/20 hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive transition-colors"

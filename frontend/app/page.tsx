@@ -10,6 +10,7 @@ import { useExperienceStore } from '@/store/core/experienceStore';
 import { Loader2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
+import { triggerMetrics } from '@/lib/api';
 
 export default function LandingPage() {
   const [username, setUsername] = useState('');
@@ -27,22 +28,11 @@ export default function LandingPage() {
     setError(null);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      const response = await fetch(`${apiUrl}/metrics`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username.trim() }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch data');
-      }
+      const data = await triggerMetrics(username);
 
       // Handle Async Processing Status
       if (data.status === 'error') {
-          throw new Error(data.message || 'Analysis failed');
+        throw new Error(data.message || 'Analysis failed');
       }
 
       if (data.status === 'processing') {
@@ -50,7 +40,7 @@ export default function LandingPage() {
         const setProcessing = useExperienceStore.getState().setProcessing;
         setProcessing(username);
         router.push('/game');
-        return; // <--- Critical: Exit before trying to use missing game data
+        return;
       }
 
       // If Ready, we should have data
@@ -61,11 +51,10 @@ export default function LandingPage() {
       if (data.ratingGame && data.ratingGame.movies) {
         startGame({
           movies: data.ratingGame.movies,
-          userStats: data.userStats,
+          userStats: data.userStats || null,
         });
       } else {
-        // Fallback if data is missing even if ready (should not happen with backend fix)
-        // But to be safe, treat as processing
+        // Fallback if data is missing even if ready
         const setProcessing = useExperienceStore.getState().setProcessing;
         setProcessing(username);
         router.push('/game');

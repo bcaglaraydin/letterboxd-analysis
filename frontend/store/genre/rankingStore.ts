@@ -1,6 +1,5 @@
-'use client';
-
 import { create } from 'zustand';
+import { genreToColor, calculateRankingScore } from '@/lib/gameUtils';
 
 export interface Genre {
   id: string;
@@ -30,36 +29,8 @@ interface GenreGameState {
   resetGame: () => void;
 }
 
-// Generate consistent color from genre name
-export const genreToColor = (name: string): string => {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const hue = Math.abs(hash) % 360;
-  return `hsl(${hue}, 40%, 42%)`; // Earthy saturation/lightness
-};
-
-// Calculate score based on ranking distance (0-100)
-// Each position error costs points. Closer = more points.
-const calculateScore = (userRanking: string[], actualRanking: string[]): number => {
-  const n = userRanking.length; // 8 genres
-  let totalError = 0;
-
-  for (let i = 0; i < n; i++) {
-    const genreId = userRanking[i];
-    const actualPosition = actualRanking.indexOf(genreId);
-    totalError += Math.abs(i - actualPosition);
-  }
-
-  // Max possible error for n=8 is 32 (complete reversal: 0+2+4+6+6+4+2+0 = 24 average case, worst = 32)
-  // Scale: 100 - (totalError * scaling factor)
-  // With 8 items, max error = 32, so each error point costs ~3.125 points
-  const maxError = 32;
-  const score = Math.max(0, Math.round(100 - (totalError / maxError) * 100));
-
-  return score;
-};
+// Re-export utility function for backwards compatibility
+export { genreToColor };
 
 export const useGenreRankingStore = create<GenreGameState>((set, get) => ({
   phase: 'intro',
@@ -94,7 +65,7 @@ export const useGenreRankingStore = create<GenreGameState>((set, get) => ({
 
   confirmRanking: () => {
     const { userRanking, actualRanking } = get();
-    const score = calculateScore(userRanking, actualRanking);
+    const score = calculateRankingScore(userRanking, actualRanking);
     set({
       phase: 'reveal',
       currentScore: score,
