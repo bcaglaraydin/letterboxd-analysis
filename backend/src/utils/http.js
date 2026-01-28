@@ -47,7 +47,7 @@ const agent = new https.Agent({
   minVersion: 'TLSv1.2',
 });
 
-export async function fetchWithRetry(url, options = {}, retries = 3) {
+export async function fetchWithRetry(url, options = {}, retries = 1) {
   const timeout = parseInt(process.env.HTTP_TIMEOUT || '10000', 10);
   const mergedOptions = {
     ...options,

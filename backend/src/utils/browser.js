@@ -6,7 +6,7 @@ import stealthPlugin from 'puppeteer-extra-plugin-stealth';
 playwrightExtra.use(stealthPlugin());
 
 // Timeout and delay constants
-const WARM_SESSION_DELAY_MS = 2000;
+
 const WARM_SESSION_TIMEOUT_MS = 5000;
 const COLD_SESSION_TIMEOUT_MS = 20000;
 const CHALLENGE_WAIT_BASE_MS = 5000;
@@ -25,6 +25,7 @@ class BrowserSession {
     this.browser = null;
     this.context = null;
     this.maxConcurrentPages = parseInt(process.env.BROWSER_MAX_PAGES || '3', 10);
+
     this.activeFetches = 0;
     this.isWarm = false;
   }
@@ -200,10 +201,6 @@ export async function fetchHtmlWithBrowser(url) {
 
     console.log(`[Browser] Navigating to ${url}... (Warm: ${!!session.isWarm})`);
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-
-    if (session.isWarm) {
-      await page.waitForTimeout(WARM_SESSION_DELAY_MS);
-    }
 
     // Logic to handle potential challenge even if warm
     let passed = false;

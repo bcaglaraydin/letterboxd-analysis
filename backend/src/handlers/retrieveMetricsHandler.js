@@ -1,8 +1,7 @@
 import { batchGet } from '../services/dynamoDbService.js';
 import { scrapeUserFilmsList } from '../services/letterboxdScrapingService.js';
-import { closeBrowserSession } from '../utils/browser.js';
-import { generateRatingGame } from '../games/ratingGame.js';
 import { sendMessageBatch } from '../services/sqsQueueService.js';
+import { putUserJob, getUserJob } from '../services/userJobService.js';
 
 const FILMS_TABLE = process.env.FILMS_TABLE;
 
@@ -53,102 +52,66 @@ export const handler = async (event) => {
         };
       }
 
-      // 2. Check Metadata Cache
+      // 2. STATEFUL ARCHITECTURE: Check if job exists, else create new
+      // Optimize: If job exists and is fresh (< 5 mins), reuse it (logic in userJobService could handle this, but explicit here is fine)
+      const cachedJob = await getUserJob(username);
+      let jobId;
+
+      if (cachedJob && Math.floor(Date.now() / 1000) - cachedJob.createdAt < 300) {
+        console.log(`[Metrics] Reuse existing fresh job for ${username}`);
+        jobId = cachedJob.jobId;
+        // Even if reusing, we might want to re-dispatch SQS if needed, but for now let's assume active job is processing
+      } else {
+        // Create new job state
+        jobId = await putUserJob(username, userFilms);
+      }
+
+      // 3. Dispatch Missing Films for Scraping (Background)
+      // Check Metadata Cache (Optimized: only check what we scraped)
       const uniqueSlugs = [...new Set(userFilms.map((f) => f.slug))].map((slug) => ({ slug }));
-      console.log(`Checking metadata for ${uniqueSlugs.length} films...`);
 
-      let dbItems = [];
-      if (FILMS_TABLE) {
-        try {
-          dbItems = await batchGet(FILMS_TABLE, uniqueSlugs);
-        } catch (err) {
-          console.error('DynamoDB BatchGet failed:', err);
+      // Async metadata check & SQS dispatch
+      // We do NOT await this fully if we want super-fast response,
+      // but AWS Lambda freezes background tasks. So we MUST await the dispatch.
+      // However, we don't need to await the "BatchGet" for the *response* to user.
+
+      const missingFilmsDispatchPromise = (async () => {
+        let dbItems = [];
+        if (FILMS_TABLE) {
+          try {
+            dbItems = await batchGet(FILMS_TABLE, uniqueSlugs);
+          } catch (err) {
+            console.error('DynamoDB BatchGet failed:', err);
+          }
         }
-      }
-
-      const metadataMap = new Map();
-      dbItems.forEach((item) => metadataMap.set(item.slug, item));
-
-      // 3. Dispatch Missing Films for Scraping
-      const validSlugs = new Set(
-        dbItems.filter((i) => i.year && i.year !== '????').map((i) => i.slug)
-      );
-      const missingFilms = userFilms.filter((f) => !validSlugs.has(f.slug));
-
-      if (process.env.SQS_QUEUE_URL && missingFilms.length > 0) {
-        console.log(`Dispatching ${missingFilms.length} missing films for scraping...`);
-        const BATCH_SIZE = 10;
-        const messages = [];
-
-        for (let i = 0; i < missingFilms.length; i += BATCH_SIZE) {
-          const chunk = missingFilms.slice(i, i + BATCH_SIZE).map((f) => f.slug);
-          messages.push({
-            action: 'scrape_batch',
-            slugs: chunk,
-          });
-        }
-
-        try {
-          await sendMessageBatch(process.env.SQS_QUEUE_URL, messages);
-        } catch (sqsErr) {
-          console.error('Failed to dispatch to SQS:', sqsErr);
-        }
-      }
-
-      // 4. Check Game Readiness
-      // Count rated films with valid metadata
-      let ratedWithMetadata = 0;
-      userFilms.forEach((f) => {
-        if (f.userRating != null && validSlugs.has(f.slug)) {
-          ratedWithMetadata++;
-        }
-      });
-
-      if (ratedWithMetadata < 5 && userFilms.length >= 5) {
-        return {
-          statusCode: 200,
-          body: JSON.stringify({
-            status: 'processing',
-            totalFilms: userFilms.length,
-            cachedFilms: validSlugs.size,
-          }),
-        };
-      }
-
-      // 5. Generate Rating Game
-      let ratingGameData;
-      try {
-        const filmsForGame = userFilms.filter(
-          (f) => f.userRating != null && validSlugs.has(f.slug)
+        const validSlugs = new Set(
+          dbItems.filter((i) => i.year && i.year !== '????').map((i) => i.slug)
         );
-        ratingGameData = await generateRatingGame(filmsForGame, metadataMap);
-      } catch (err) {
-        if (err.message.includes('User needs at least')) {
-          return {
-            statusCode: 400,
-            body: JSON.stringify({ error: err.message }),
-          };
-        }
-        console.warn('Game generation failed, returning processing:', err);
-        return {
-          statusCode: 200,
-          body: JSON.stringify({
-            status: 'processing',
-            totalFilms: userFilms.length,
-            cachedFilms: validSlugs.size,
-          }),
-        };
-      }
+        const missingFilms = userFilms.filter((f) => !validSlugs.has(f.slug));
 
+        if (process.env.SQS_QUEUE_URL && missingFilms.length > 0) {
+          console.log(`Dispatching ${missingFilms.length} missing films for scraping...`);
+          const BATCH_SIZE = 10;
+          const messages = [];
+          for (let i = 0; i < missingFilms.length; i += BATCH_SIZE) {
+            const chunk = missingFilms.slice(i, i + BATCH_SIZE).map((f) => f.slug);
+            messages.push({ action: 'scrape_batch', slugs: chunk });
+          }
+          await sendMessageBatch(process.env.SQS_QUEUE_URL, messages);
+        }
+      })();
+
+      await missingFilmsDispatchPromise; // Ensure dispatch happens before lambda freezes
+
+      // 4. Return Accepted (202)
       return {
-        statusCode: 200,
+        statusCode: 202,
         body: JSON.stringify({
-          status: 'processing', // Still processing for stats/genreGame
+          status: 'accepted',
+          message: 'Scraping started',
+          jobId,
+          username,
           totalFilms: userFilms.length,
-          cachedFilms: validSlugs.size,
-          ratingGame: ratingGameData,
-          userStats: null,
-          genreGame: null,
         }),
       };
     }
@@ -261,7 +224,5 @@ export const handler = async (event) => {
       statusCode,
       body: JSON.stringify({ error: userMessage }),
     };
-  } finally {
-    await closeBrowserSession();
   }
 };

@@ -29,7 +29,9 @@ describe.runIf(shouldRun)('Worker Pipeline', () => {
   });
 
   it('sends message to SQS queue', async () => {
-    await expect(sendMessageBatch(SQS_QUEUE_URL, [{ slug: TEST_SLUG }])).resolves.not.toThrow();
+    await expect(
+      sendMessageBatch(SQS_QUEUE_URL, [{ action: 'scrape_batch', slugs: [TEST_SLUG] }])
+    ).resolves.not.toThrow();
   });
 
   it('worker processes message within 30 seconds', async () => {

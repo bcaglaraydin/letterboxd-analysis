@@ -5,9 +5,6 @@ import { fetchHtmlWithBrowser } from '../utils/browser.js';
 
 const BASE_URL = 'https://letterboxd.com';
 
-// Browser concurrency - configurable via env var, defaults to 3 (tested safe limit)
-const browserLimit = pLimit(parseInt(process.env.BROWSER_CONCURRENCY || '3', 10));
-
 /**
  * Fetches HTML, falling back to headless browser if blocked by 403.
  * @param {string} url - The URL to fetch.
@@ -20,7 +17,7 @@ async function fetchHtmlWithFallback(url) {
     if (err.response?.status === 403) {
       console.warn(`[Scraper] 403 Forbidden on ${url}. Failing over to headless browser...`);
       // Use browser limit to control concurrency of browser requests
-      return await browserLimit(() => fetchHtmlWithBrowser(url));
+      return await fetchHtmlWithBrowser(url);
     }
     throw err;
   }
@@ -89,7 +86,11 @@ export async function scrapeUserFilmsList(username) {
     pageUrls.push(`${baseUrl}page/${i}/`);
   }
 
-  const listLimit = pLimit(parseInt(process.env.SCRAPING_CONCURRENCY_LIST || '5', 10));
+  const concurrency = parseInt(process.env.SCRAPING_CONCURRENCY_LIST || '5', 10);
+  console.log(
+    `[Scraper] SCRAPING_CONCURRENCY_LIST: ${process.env.SCRAPING_CONCURRENCY_LIST}, Parsed: ${concurrency}`
+  );
+  const listLimit = pLimit(concurrency);
   const filmBasicInfos = await Promise.all(
     pageUrls.map((url) =>
       listLimit(async () => {

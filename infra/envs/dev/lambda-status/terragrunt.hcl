@@ -14,6 +14,10 @@ dependency "films" {
   config_path = "../dynamodb/films"
 }
 
+dependency "user_jobs" {
+  config_path = "../dynamodb/user-jobs"
+}
+
 dependency "deployment_bucket" {
   config_path = "../lambda-deployment-bucket"
 }
@@ -29,6 +33,7 @@ inputs = {
   environment_variables = {
     NODE_ENV    = "development"
     FILMS_TABLE = dependency.films.outputs.table_name
+    USER_JOBS_TABLE = dependency.user_jobs.outputs.table_name
   }
 
   policy_arns = [
@@ -45,6 +50,13 @@ inputs = {
         ]
         Effect   = "Allow"
         Resource = dependency.films.outputs.table_arn
+      },
+      {
+        Action = [
+          "dynamodb:GetItem"
+        ]
+        Effect   = "Allow"
+        Resource = dependency.user_jobs.outputs.table_arn
       }
     ]
   })
