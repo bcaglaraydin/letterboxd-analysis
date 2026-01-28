@@ -22,23 +22,21 @@ export const ExperienceOrchestrator = () => {
   const startRatingGame = useRatingGameStore((s) => s.startGame);
   const startGenreGame = useGenreRankingStore((s) => s.startGame);
 
+  // Continue polling in background when processing or partial_ready
   React.useEffect(() => {
     let interval: NodeJS.Timeout;
     const check = async () => {
       const data = await pollBackgroundStatus();
-      
+
       // PROGRESSIVE LOADING
       if (data?.status === 'partial_ready') {
-         if (data.ratingGame) {
-             // Hydrate Rating Game on the fly
-             // NOTE: userStats might be empty here, verify if RatingGame needs it.
-             // RatingGame mostly needs 'movies'. UserStats are for PostGameScreen.
-             // PostGameScreen won't show until game ends. Hopefully full stats ready by then.
-             startRatingGame({
-               movies: data.ratingGame.movies,
-               userStats: data.userStats || null
-             });
-         }
+        if (data.ratingGame) {
+          // Hydrate Rating Game on the fly
+          startRatingGame({
+            movies: data.ratingGame.movies,
+            userStats: data.userStats || null,
+          });
+        }
       }
 
       // FULL READY
@@ -60,30 +58,13 @@ export const ExperienceOrchestrator = () => {
       }
     };
 
-    if (backgroundStatus === 'processing') {
+    if (backgroundStatus === 'processing' || backgroundStatus === 'partial_ready') {
       interval = setInterval(check, 5000);
       // Run once immediately
       check();
     }
     return () => clearInterval(interval);
   }, [backgroundStatus, pollBackgroundStatus, setReady, startRatingGame, startGenreGame]);
-
-  // Loading Screen
-  if (backgroundStatus === 'processing') {
-    return (
-      <div className="w-full h-full min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center space-y-6">
-        <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-        <div className="space-y-2">
-          <h2 className="text-3xl font-serif font-bold text-foreground">
-            Analyzing Your Cinema History
-          </h2>
-          <p className="text-muted-foreground">
-            We are watching your movies... (This might take ~20s)
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="w-full h-full min-h-screen bg-background overflow-hidden relative">

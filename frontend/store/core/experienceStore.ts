@@ -17,7 +17,7 @@ interface ExperienceState {
   };
   unlockedGames: string[];
   completedGames: string[];
-  backgroundStatus: 'idle' | 'processing' | 'ready';
+  backgroundStatus: 'idle' | 'processing' | 'partial_ready' | 'ready';
   username: string | null;
 
   // Actions
@@ -27,6 +27,7 @@ interface ExperienceState {
   completeGenreGame: (score: number) => void;
   resetExperience: () => void;
   setProcessing: (username: string) => void;
+  setPartialReady: () => void;
   setReady: () => void;
   pollBackgroundStatus: () => Promise<any>; // Returns full payload or null
   fetchFullStats: () => Promise<{ userStats: UserStats; genreGame: GenreGameData }>;
@@ -79,6 +80,7 @@ export const useExperienceStore = create<ExperienceState>((set, get) => ({
     }),
 
   setProcessing: (username) => set({ backgroundStatus: 'processing', username }),
+  setPartialReady: () => set({ backgroundStatus: 'partial_ready' }),
   setReady: () => set({ backgroundStatus: 'ready' }),
 
   pollBackgroundStatus: async () => {
@@ -88,21 +90,24 @@ export const useExperienceStore = create<ExperienceState>((set, get) => ({
     try {
       // Pass minFilms for progressive loading
       // Ideally we import RATING_GAME_CONFIG, but for now we hardcode 5 or use a param
-      const minFilms = 5; 
-      
+      const minFilms = 5;
+
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      const response = await fetch(`${apiUrl}/metrics/status?username=${username}&minFilms=${minFilms}`);
+      const response = await fetch(
+        `${apiUrl}/metrics/status?username=${username}&minFilms=${minFilms}`,
+      );
       const data = await response.json();
-      
+
       // PROGRESSIVE LOADING HANDLING
       if (data.status === 'partial_ready' && data.ratingGame) {
-          // If we haven't started playing yet, this is our signal to start!
-          return {
-              ...data,
-              isPartial: true // Flag for orchestrator
-          };
+        // Transition to partial_ready so the game screen shows instead of loading
+        set({ backgroundStatus: 'partial_ready' });
+        return {
+          ...data,
+          isPartial: true, // Flag for orchestrator
+        };
       }
-      
+
       return data;
     } catch (err) {
       console.error('Failed to check status:', err);

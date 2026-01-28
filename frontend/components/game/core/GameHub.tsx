@@ -35,26 +35,7 @@ export const GameHub = () => {
     show: { y: 0, opacity: 1 },
   };
 
-  // Handle "Still Analyzing" State (e.g. finished rating game fast)
-  const { backgroundStatus } = useExperienceStore();
-
-  if (backgroundStatus === 'processing') {
-      return (
-        <GameBackground className="bg-background">
-          <div className="w-full h-full min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-6">
-            <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-            <div className="space-y-2">
-              <h2 className="text-3xl font-serif font-bold text-foreground">
-                Analyzing Remaining Profile
-              </h2>
-              <p className="text-muted-foreground">
-                We are calculating your deeper stats...
-              </p>
-            </div>
-          </div>
-        </GameBackground>
-      );
-  }
+  // Handle "Still Analyzing" State - No loading screen here, only in PostGameScreen
 
   return (
     <GameBackground className="bg-background">
@@ -176,7 +157,9 @@ export const GameHub = () => {
                     <Button
                       className="w-full h-12 rounded-xl text-base font-bold shadow-lg shadow-accent/20 hover:shadow-accent/30 transition-all group"
                       variant="default"
-                      style={{ pointerEvents: 'none' }} /* Force pointer events none via style just in case */
+                      style={{
+                        pointerEvents: 'none',
+                      }} /* Force pointer events none via style just in case */
                     >
                       Continue
                       <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-0.5 transition-transform" />
