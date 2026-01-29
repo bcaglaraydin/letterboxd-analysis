@@ -44,7 +44,7 @@ inputs = {
     USER_JOBS_TABLE           = dependency.user_jobs.outputs.table_name
     SQS_QUEUE_URL             = dependency.sqs_film.outputs.queue_url
     BROWSER_MAX_PAGES         = "5"
-    SCRAPING_CONCURRENCY_LIST = "5"
+    SCRAPING_CONCURRENCY_LIST = "2"
   }
 
   sqs_event_source_arn = dependency.sqs_list.outputs.queue_arn

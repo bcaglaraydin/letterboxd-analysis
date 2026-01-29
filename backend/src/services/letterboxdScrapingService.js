@@ -94,45 +94,57 @@ export async function scrapeUserFilmsList(username) {
   const filmBasicInfos = await Promise.all(
     pageUrls.map((url) =>
       listLimit(async () => {
-        try {
-          const html = await fetchHtmlWithFallback(url);
-          const $ = load(html);
-          const pageFilms = [];
+        let attempts = 0;
+        const MAX_RETRIES = 3;
 
-          $('.griditem').each((_, el) => {
-            const $el = $(el);
-            const $component = $el.find('.react-component');
+        while (attempts < MAX_RETRIES) {
+          try {
+            const html = await fetchHtmlWithFallback(url);
+            const $ = load(html);
+            const pageFilms = [];
 
-            const filmSlug = $component.attr('data-item-slug');
-            const posterUrl = $component.attr('data-poster-url'); // e.g., /film/dune-2021/image-150/
-            const title = $component.find('img').attr('alt') || filmSlug; // Extract title from img alt
+            $('.griditem').each((_, el) => {
+              const $el = $(el);
+              const $component = $el.find('.react-component');
 
-            // Extract User Rating from Unicode stars
-            // Look for <span class="rating">★★★★</span> inside .poster-viewingdata
-            let userRating = null;
-            const ratingText = $el.find('.poster-viewingdata .rating').text().trim();
+              const filmSlug = $component.attr('data-item-slug');
+              const posterUrl = $component.attr('data-poster-url');
+              const title = $component.find('img').attr('alt') || filmSlug;
 
-            if (ratingText) {
-              // Count stars: ★ = 1, ½ = 0.5
-              const fullStars = (ratingText.match(/★/g) || []).length;
-              const halfStars = (ratingText.match(/½/g) || []).length;
-              userRating = fullStars + halfStars * 0.5;
+              let userRating = null;
+              const ratingText = $el.find('.poster-viewingdata .rating').text().trim();
+
+              if (ratingText) {
+                const fullStars = (ratingText.match(/★/g) || []).length;
+                const halfStars = (ratingText.match(/½/g) || []).length;
+                userRating = fullStars + halfStars * 0.5;
+              }
+
+              if (filmSlug) {
+                pageFilms.push({
+                  slug: filmSlug,
+                  title,
+                  posterUrl: posterUrl ? `https://a.ltrbxd.com${posterUrl}` : null,
+                  userRating,
+                });
+              }
+            });
+            return pageFilms;
+          } catch (err) {
+            attempts++;
+            console.warn(
+              `Failed to fetch list page ${url} (Attempt ${attempts}/${MAX_RETRIES}):`,
+              err.message
+            );
+            if (attempts >= MAX_RETRIES) {
+              console.error(`Giving up on ${url} after ${MAX_RETRIES} attempts.`);
+              return [];
             }
-
-            if (filmSlug) {
-              pageFilms.push({
-                slug: filmSlug,
-                title,
-                posterUrl: posterUrl ? `https://a.ltrbxd.com${posterUrl}` : null,
-                userRating,
-              });
-            }
-          });
-          return pageFilms;
-        } catch (err) {
-          console.error(`Failed to fetch list page ${url}:`, err);
-          return [];
+            // Wait a bit before retrying
+            await new Promise((r) => setTimeout(r, 2000 * attempts));
+          }
         }
+        return [];
       })
     )
   );
