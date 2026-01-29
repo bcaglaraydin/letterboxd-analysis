@@ -2,6 +2,12 @@ name: Deploy Backend
 
 on:
   workflow_dispatch:
+    inputs:
+      force_all:
+        description: 'Force deploy all components'
+        required: false
+        type: boolean
+        default: false
   push:
     branches:
       - master
@@ -23,8 +29,63 @@ env:
   TERRAGRUNT_VERSION: 0.54.12
 
 jobs:
+  # Detect which paths changed to conditionally run jobs
+  detect-changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      lambda-start: ${{ steps.filter.outputs.lambda-start }}
+      lambda-status: ${{ steps.filter.outputs.lambda-status }}
+      lambda-worker: ${{ steps.filter.outputs.lambda-worker }}
+      api-gateway: ${{ steps.filter.outputs.api-gateway }}
+      dynamodb: ${{ steps.filter.outputs.dynamodb }}
+      sqs: ${{ steps.filter.outputs.sqs }}
+      s3: ${{ steps.filter.outputs.s3 }}
+      monitoring: ${{ steps.filter.outputs.monitoring }}
+      cloudfront: ${{ steps.filter.outputs.cloudfront }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+            lambda-start:
+              - 'infra/envs/dev/lambda/start/**'
+              - 'infra/modules/lambda/**'
+            lambda-status:
+              - 'infra/envs/dev/lambda/status/**'
+              - 'infra/modules/lambda/**'
+            lambda-worker:
+              - 'infra/envs/dev/lambda/worker/**'
+              - 'infra/modules/lambda/**'
+            api-gateway:
+              - 'infra/envs/dev/api-gateway/**'
+              - 'infra/modules/api-gateway/**'
+            dynamodb:
+              - 'infra/envs/dev/dynamodb/**'
+              - 'infra/modules/dynamodb/**'
+            sqs:
+              - 'infra/envs/dev/sqs/**'
+              - 'infra/modules/sqs/**'
+            s3:
+              - 'infra/envs/dev/s3/**'
+              - 'infra/modules/s3/**'
+            monitoring:
+              - 'infra/envs/dev/monitoring/**'
+              - 'infra/modules/monitoring/**'
+            cloudfront:
+              - 'infra/envs/dev/cloudfront/**'
+              - 'infra/modules/cloudfront/**'
+
+  # === INFRASTRUCTURE (only when infra changes) ===
+
   deploy-s3:
     name: Deploy S3
+    needs: detect-changes
+    if: needs.detect-changes.outputs.s3 == 'true' || github.event.inputs.force_all == 'true'
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/s3
@@ -32,6 +93,8 @@ jobs:
 
   deploy-dynamodb-films:
     name: Deploy DynamoDB Films
+    needs: detect-changes
+    if: needs.detect-changes.outputs.dynamodb == 'true' || github.event.inputs.force_all == 'true'
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/dynamodb/films
@@ -40,6 +103,8 @@ jobs:
 
   deploy-dynamodb-user-jobs:
     name: Deploy DynamoDB UserJobs
+    needs: detect-changes
+    if: needs.detect-changes.outputs.dynamodb == 'true' || github.event.inputs.force_all == 'true'
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/dynamodb/user-jobs
@@ -48,6 +113,8 @@ jobs:
 
   deploy-sqs:
     name: Deploy SQS
+    needs: detect-changes
+    if: needs.detect-changes.outputs.sqs == 'true' || github.event.inputs.force_all == 'true'
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/sqs
@@ -56,14 +123,32 @@ jobs:
 
   deploy-lambda-deployment-bucket:
     name: Deploy Lambda Deployment Bucket
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend == 'true' || github.event.inputs.force_all == 'true'
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/lambda-deployment-bucket
     secrets: inherit
 
+  # === LAMBDA FUNCTIONS (when backend code or their infra changes) ===
+
   deploy-lambda-worker:
     name: Deploy Lambda Worker
-    needs: [deploy-s3, deploy-dynamodb-films, deploy-sqs, deploy-lambda-deployment-bucket]
+    needs:
+      [
+        detect-changes,
+        deploy-s3,
+        deploy-dynamodb-films,
+        deploy-sqs,
+        deploy-lambda-deployment-bucket,
+      ]
+    if: |
+      always() &&
+      !failure() &&
+      !cancelled() &&
+      (needs.detect-changes.outputs.backend == 'true' || 
+       needs.detect-changes.outputs.lambda-worker == 'true' || 
+       github.event.inputs.force_all == 'true')
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/lambda/worker
@@ -74,12 +159,20 @@ jobs:
     name: Deploy Lambda Start
     needs:
       [
+        detect-changes,
         deploy-s3,
         deploy-dynamodb-films,
         deploy-dynamodb-user-jobs,
         deploy-sqs,
         deploy-lambda-deployment-bucket,
       ]
+    if: |
+      always() &&
+      !failure() &&
+      !cancelled() &&
+      (needs.detect-changes.outputs.backend == 'true' || 
+       needs.detect-changes.outputs.lambda-start == 'true' || 
+       github.event.inputs.force_all == 'true')
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/lambda/start
@@ -90,30 +183,56 @@ jobs:
     name: Deploy Lambda Status
     needs:
       [
+        detect-changes,
         deploy-s3,
         deploy-dynamodb-films,
         deploy-dynamodb-user-jobs,
         deploy-sqs,
         deploy-lambda-deployment-bucket,
       ]
+    if: |
+      always() &&
+      !failure() &&
+      !cancelled() &&
+      (needs.detect-changes.outputs.backend == 'true' || 
+       needs.detect-changes.outputs.lambda-status == 'true' || 
+       github.event.inputs.force_all == 'true')
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/lambda/status
       install_backend_deps: true
     secrets: inherit
 
+  # === API GATEWAY (when gateway or lambda changes) ===
+
   deploy-gateway:
     name: Deploy Gateway
-    needs: [deploy-lambda-worker, deploy-lambda-start, deploy-lambda-status]
+    needs: [detect-changes, deploy-lambda-worker, deploy-lambda-start, deploy-lambda-status]
+    if: |
+      always() &&
+      !failure() &&
+      !cancelled() &&
+      (needs.detect-changes.outputs.api-gateway == 'true' ||
+       needs.detect-changes.outputs.backend == 'true' ||
+       needs.detect-changes.outputs.lambda-start == 'true' ||
+       needs.detect-changes.outputs.lambda-status == 'true' ||
+       github.event.inputs.force_all == 'true')
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/api-gateway
       output_key: api_endpoint
     secrets: inherit
 
+  # === AUXILIARY SERVICES ===
+
   deploy-monitoring:
     name: Deploy Monitoring
-    needs: deploy-gateway
+    needs: [detect-changes, deploy-gateway]
+    if: |
+      always() &&
+      !failure() &&
+      !cancelled() &&
+      (needs.detect-changes.outputs.monitoring == 'true' || github.event.inputs.force_all == 'true')
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/monitoring
@@ -121,16 +240,30 @@ jobs:
 
   deploy-cloudfront:
     name: Deploy CloudFront
-    needs: deploy-gateway
+    needs: [detect-changes, deploy-gateway]
+    if: |
+      always() &&
+      !failure() &&
+      !cancelled() &&
+      (needs.detect-changes.outputs.cloudfront == 'true' || github.event.inputs.force_all == 'true')
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/cloudfront
       output_key: cloudfront_id
     secrets: inherit
 
+  # === VERIFICATION (runs when any Lambda or gateway changed) ===
+
   verify-backend:
     name: Verify Backend
-    needs: [deploy-sqs, deploy-dynamodb-films, deploy-gateway]
+    needs: [detect-changes, deploy-sqs, deploy-dynamodb-films, deploy-gateway]
+    if: |
+      always() &&
+      !failure() &&
+      !cancelled() &&
+      (needs.detect-changes.outputs.backend == 'true' ||
+       needs.detect-changes.outputs.api-gateway == 'true' ||
+       github.event.inputs.force_all == 'true')
     uses: ./.github/workflows/verify-dev.yaml
     with:
       api_url: ${{ needs.deploy-gateway.outputs.terragrunt_output }}

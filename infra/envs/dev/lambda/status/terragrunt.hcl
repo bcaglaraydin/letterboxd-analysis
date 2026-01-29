@@ -10,29 +10,6 @@ terraform {
   source = "../../../../modules/lambda"
 }
 
-# One-time imports for existing AWS resources after folder restructure
-# Remove this block after successful first deployment
-generate "imports" {
-  path      = "imports.tf"
-  if_exists = "overwrite_terragrunt"
-  contents  = <<EOF
-import {
-  to = aws_iam_role.iam_for_lambda
-  id = "letterboxd-analysis-status-dev-role"
-}
-
-import {
-  to = aws_cloudwatch_log_group.this
-  id = "/aws/lambda/letterboxd-analysis-status-dev"
-}
-
-import {
-  to = aws_lambda_function.this
-  id = "letterboxd-analysis-status-dev"
-}
-EOF
-}
-
 dependency "films" {
   config_path = "../../dynamodb/films"
 }
