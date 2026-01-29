@@ -26,12 +26,14 @@ export const handler = async (event) => {
         }
 
         // --- ACTION: SCRAPE FILM (Default/Legacy) ---
+        // Just in case old messages are still around, or direct invocations
         const slug = body.slug;
-        if (!slug) {
-          console.warn('Message missing slug or unknown action:', body);
+        if (slug) {
+          await handleFilmScrape(slug);
           return;
         }
-        await handleFilmScrape(slug);
+
+        console.warn('Message missing slug or unknown action:', body);
       } catch (error) {
         console.error(`Error processing message ${record.messageId}:`, error);
         batchItemFailures.push({ itemIdentifier: record.messageId });

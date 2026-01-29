@@ -38,9 +38,11 @@ jobs:
       lambda-start: ${{ steps.filter.outputs.lambda-start }}
       lambda-status: ${{ steps.filter.outputs.lambda-status }}
       lambda-worker: ${{ steps.filter.outputs.lambda-worker }}
+      lambda-list: ${{ steps.filter.outputs.lambda-list }}
       api-gateway: ${{ steps.filter.outputs.api-gateway }}
       dynamodb: ${{ steps.filter.outputs.dynamodb }}
       sqs: ${{ steps.filter.outputs.sqs }}
+      sqs-list: ${{ steps.filter.outputs.sqs-list }}
       s3: ${{ steps.filter.outputs.s3 }}
       monitoring: ${{ steps.filter.outputs.monitoring }}
       cloudfront: ${{ steps.filter.outputs.cloudfront }}
@@ -58,6 +60,9 @@ jobs:
             lambda-status:
               - 'infra/envs/dev/lambda/status/**'
               - 'infra/modules/lambda/**'
+            lambda-list:
+              - 'infra/envs/dev/lambda/list-scraper/**'
+              - 'infra/modules/lambda/**'
             lambda-worker:
               - 'infra/envs/dev/lambda/worker/**'
               - 'infra/modules/lambda/**'
@@ -69,6 +74,9 @@ jobs:
               - 'infra/modules/dynamodb/**'
             sqs:
               - 'infra/envs/dev/sqs/**'
+              - 'infra/modules/sqs/**'
+            sqs-list:
+              - 'infra/envs/dev/sqs-list/**'
               - 'infra/modules/sqs/**'
             s3:
               - 'infra/envs/dev/s3/**'
@@ -112,12 +120,22 @@ jobs:
     secrets: inherit
 
   deploy-sqs:
-    name: Deploy SQS
+    name: Deploy SQS Film
     needs: detect-changes
     if: needs.detect-changes.outputs.sqs == 'true' || github.event.inputs.force_all == 'true'
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/sqs
+      output_key: queue_name
+    secrets: inherit
+
+  deploy-sqs-list:
+    name: Deploy SQS List
+    needs: detect-changes
+    if: needs.detect-changes.outputs.sqs-list == 'true' || github.event.inputs.force_all == 'true'
+    uses: ./.github/workflows/terragrunt-apply.yaml
+    with:
+      working_directory: infra/envs/dev/sqs-list
       output_key: queue_name
     secrets: inherit
 
@@ -131,6 +149,30 @@ jobs:
     secrets: inherit
 
   # === LAMBDA FUNCTIONS (when backend code or their infra changes) ===
+
+  deploy-lambda-list:
+    name: Deploy Lambda List Scraper
+    needs:
+      [
+        detect-changes,
+        deploy-s3,
+        deploy-dynamodb-user-jobs,
+        deploy-sqs,
+        deploy-sqs-list,
+        deploy-lambda-deployment-bucket,
+      ]
+    if: |
+      always() &&
+      !failure() &&
+      !cancelled() &&
+      (needs.detect-changes.outputs.backend == 'true' || 
+       needs.detect-changes.outputs.lambda-list == 'true' || 
+       github.event.inputs.force_all == 'true')
+    uses: ./.github/workflows/terragrunt-apply.yaml
+    with:
+      working_directory: infra/envs/dev/lambda/list-scraper
+      install_backend_deps: true
+    secrets: inherit
 
   deploy-lambda-worker:
     name: Deploy Lambda Worker
@@ -164,6 +206,7 @@ jobs:
         deploy-dynamodb-films,
         deploy-dynamodb-user-jobs,
         deploy-sqs,
+        deploy-sqs-list,
         deploy-lambda-deployment-bucket,
       ]
     if: |
@@ -207,7 +250,14 @@ jobs:
 
   deploy-gateway:
     name: Deploy Gateway
-    needs: [detect-changes, deploy-lambda-worker, deploy-lambda-start, deploy-lambda-status]
+    needs:
+      [
+        detect-changes,
+        deploy-lambda-worker,
+        deploy-lambda-list,
+        deploy-lambda-start,
+        deploy-lambda-status,
+      ]
     if: |
       always() &&
       !failure() &&
@@ -216,6 +266,7 @@ jobs:
        needs.detect-changes.outputs.backend == 'true' ||
        needs.detect-changes.outputs.lambda-start == 'true' ||
        needs.detect-changes.outputs.lambda-status == 'true' ||
+       needs.detect-changes.outputs.lambda-list == 'true' ||
        github.event.inputs.force_all == 'true')
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
