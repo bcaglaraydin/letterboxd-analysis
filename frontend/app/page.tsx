@@ -39,6 +39,8 @@ export default function LandingPage() {
     setIsLoading(true);
     setError(null);
 
+    const startTime = Date.now();
+
     try {
       const data = await triggerMetrics(username);
 
@@ -47,8 +49,17 @@ export default function LandingPage() {
         throw new Error(data.message || 'Analysis failed');
       }
 
+      // Ensure minimum loading time for smooth UX (prevent flash)
+      const elapsed = Date.now() - startTime;
+      if (elapsed < 800) {
+        await new Promise((r) => setTimeout(r, 800 - elapsed));
+      }
+
       // If already ready or partial_ready with game data, navigate immediately
       if ((data.status === 'ready' || data.status === 'partial_ready') && data.ratingGame?.movies) {
+        // Explicitly reset first to ensure clean state
+        useRatingGameStore.getState().resetGame();
+
         handleGameDataReady(data);
         return;
       }
