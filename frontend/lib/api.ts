@@ -64,7 +64,7 @@ export interface MetricsResponse {
  * Trigger metrics analysis for a username
  */
 export async function triggerMetrics(username: string): Promise<MetricsResponse> {
-  const response = await fetch(`${getApiUrl()}/metrics`, {
+  const response = await fetch(`${getApiUrl()}/analysis`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username: username.trim() }),
@@ -87,7 +87,7 @@ export async function pollMetricsStatus(
   minFilms: number = 5,
 ): Promise<MetricsResponse> {
   const response = await fetch(
-    `${getApiUrl()}/metrics/status?username=${username}&minFilms=${minFilms}`,
+    `${getApiUrl()}/analysis/status?username=${username}&minFilms=${minFilms}`,
   );
   const data = await response.json();
   return data;
@@ -97,7 +97,7 @@ export async function pollMetricsStatus(
  * Fetch full stats (for PostGameScreen)
  */
 export async function fetchFullStats(username: string): Promise<MetricsResponse> {
-  const response = await fetch(`${getApiUrl()}/metrics/status?username=${username}`);
+  const response = await fetch(`${getApiUrl()}/analysis/status?username=${username}`);
   const data = await response.json();
   return data;
 }

@@ -3,31 +3,31 @@ include "root" {
 }
 
 include "common" {
-  path = "${get_terragrunt_dir()}/../common-lambda.hcl"
+  path = "${get_terragrunt_dir()}/../../common-lambda.hcl"
 }
 
 terraform {
-  source = "../../../modules/lambda"
+  source = "../../../../modules/lambda"
 }
 
 dependency "sqs" {
-  config_path = "../sqs"
+  config_path = "../../sqs"
 }
 
 dependency "films" {
-  config_path = "../dynamodb/films"
+  config_path = "../../dynamodb/films"
 }
 
 dependency "deployment_bucket" {
-  config_path = "../lambda-deployment-bucket"
+  config_path = "../../lambda-deployment-bucket"
 }
 
 inputs = {
   function_name = "letterboxd-analysis-worker-dev"
-  handler       = "src/handlers/processFilmMetadataHandler.handler"
+  handler       = "src/handlers/filmScraperWorker.handler"
   memory_size   = 2048
   timeout       = 300
-  source_dir    = "${get_terragrunt_dir()}/../../../../backend"
+  source_dir    = "${get_terragrunt_dir()}/../../../../../backend"
   deployment_bucket = dependency.deployment_bucket.outputs.bucket_name
 
   environment_variables = {

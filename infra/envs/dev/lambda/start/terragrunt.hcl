@@ -3,35 +3,35 @@ include "root" {
 }
 
 include "common" {
-  path = "${get_terragrunt_dir()}/../common-lambda.hcl"
+  path = "${get_terragrunt_dir()}/../../common-lambda.hcl"
 }
 
 terraform {
-  source = "../../../modules/lambda"
+  source = "../../../../modules/lambda"
 }
 
 dependency "films" {
-  config_path = "../dynamodb/films"
+  config_path = "../../dynamodb/films"
 }
 
 dependency "deployment_bucket" {
-  config_path = "../lambda-deployment-bucket"
+  config_path = "../../lambda-deployment-bucket"
 }
 
 dependency "sqs" {
-  config_path = "../sqs"
+  config_path = "../../sqs"
 }
 
 dependency "user_jobs" {
-  config_path = "../dynamodb/user-jobs"
+  config_path = "../../dynamodb/user-jobs"
 }
 
 inputs = {
-  function_name = "letterboxd-analysis-metrics-dev"
-  handler       = "src/handlers/retrieveMetricsHandler.handler"
+  function_name = "letterboxd-analysis-start-dev"
+  handler       = "src/handlers/startAnalysisHandler.handler"
   memory_size   = 2048
   timeout       = 300
-  source_dir    = "${get_terragrunt_dir()}/../../../../backend"
+  source_dir    = "${get_terragrunt_dir()}/../../../../../backend"
   deployment_bucket = dependency.deployment_bucket.outputs.bucket_name
 
   environment_variables = {

@@ -30,7 +30,7 @@ jobs:
       working_directory: infra/envs/dev/s3
     secrets: inherit
 
-  deploy-dynamodb:
+  deploy-dynamodb-films:
     name: Deploy DynamoDB Films
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
@@ -61,37 +61,28 @@ jobs:
       working_directory: infra/envs/dev/lambda-deployment-bucket
     secrets: inherit
 
-  deploy-lambda-coord:
-    name: Deploy Lambda Coord
-    needs: [deploy-s3, deploy-dynamodb, deploy-sqs, deploy-lambda-deployment-bucket]
-    uses: ./.github/workflows/terragrunt-apply.yaml
-    with:
-      working_directory: infra/envs/dev/lambda
-      install_backend_deps: true
-    secrets: inherit
-
   deploy-lambda-worker:
     name: Deploy Lambda Worker
-    needs: [deploy-s3, deploy-dynamodb, deploy-sqs, deploy-lambda-deployment-bucket]
+    needs: [deploy-s3, deploy-dynamodb-films, deploy-sqs, deploy-lambda-deployment-bucket]
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
-      working_directory: infra/envs/dev/lambda-worker
+      working_directory: infra/envs/dev/lambda/worker
       install_backend_deps: true
     secrets: inherit
 
-  deploy-lambda-metrics:
-    name: Deploy Lambda Metrics
+  deploy-lambda-start:
+    name: Deploy Lambda Start
     needs:
       [
         deploy-s3,
-        deploy-dynamodb,
+        deploy-dynamodb-films,
         deploy-dynamodb-user-jobs,
         deploy-sqs,
         deploy-lambda-deployment-bucket,
       ]
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
-      working_directory: infra/envs/dev/lambda-metrics
+      working_directory: infra/envs/dev/lambda/start
       install_backend_deps: true
     secrets: inherit
 
@@ -100,20 +91,20 @@ jobs:
     needs:
       [
         deploy-s3,
-        deploy-dynamodb,
+        deploy-dynamodb-films,
         deploy-dynamodb-user-jobs,
         deploy-sqs,
         deploy-lambda-deployment-bucket,
       ]
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
-      working_directory: infra/envs/dev/lambda-status
+      working_directory: infra/envs/dev/lambda/status
       install_backend_deps: true
     secrets: inherit
 
   deploy-gateway:
     name: Deploy Gateway
-    needs: [deploy-lambda-coord, deploy-lambda-worker, deploy-lambda-metrics, deploy-lambda-status]
+    needs: [deploy-lambda-worker, deploy-lambda-start, deploy-lambda-status]
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/api-gateway
@@ -139,10 +130,10 @@ jobs:
 
   verify-backend:
     name: Verify Backend
-    needs: [deploy-sqs, deploy-dynamodb, deploy-gateway]
+    needs: [deploy-sqs, deploy-dynamodb-films, deploy-gateway]
     uses: ./.github/workflows/verify-dev.yaml
     with:
       api_url: ${{ needs.deploy-gateway.outputs.terragrunt_output }}
       sqs_queue_name: ${{ needs.deploy-sqs.outputs.terragrunt_output }}
-      films_table: ${{ needs.deploy-dynamodb.outputs.terragrunt_output }}
+      films_table: ${{ needs.deploy-dynamodb-films.outputs.terragrunt_output }}
     secrets: inherit
