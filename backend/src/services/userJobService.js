@@ -1,18 +1,19 @@
-import { putItem, getItem } from './dynamoDbService.js';
+import { putItem, getItem, updateItem } from './dynamoDbService.js';
 import { v4 as uuidv4 } from 'uuid';
 
 const TABLE_NAME = process.env.USER_JOBS_TABLE;
 const JOB_TTL_HOURS = 1;
 
 /**
- * Creates or updates a user job with the scraped film list.
+ * Creates or updates a user job.
  * @param {string} username - The user's Letterboxd username
  * @param {Array<Object>} films - List of film objects { slug, title, posterUrl, userRating }
+ * @param {Object} options - Optional overrides (status, etc.)
  * @returns {Promise<string>} - The Job ID
  */
-export async function putUserJob(username, films) {
+export async function putUserJob(username, films = [], options = {}) {
   if (!TABLE_NAME) {
-    console.warn('[UserJobService] USER_JOBS_TABLE not set. Skipping cache.');
+    console.warn('[UserJobService] USER_JOBS_TABLE not set.');
     return null;
   }
 
@@ -20,39 +21,96 @@ export async function putUserJob(username, films) {
   const now = Math.floor(Date.now() / 1000);
   const ttl = now + JOB_TTL_HOURS * 3600;
 
-  // Optimize storage: Only store essential data (slug, userRating)
-  // to avoid hitting 400KB limit for large lists.
-  // We can re-fetch posters/titles from Films table if needed,
-  // but keeping them here is faster if space permits.
-  // For safety, let's keep it minimal for now if list is huge.
-
+  // Optimize storage: Only store essential data
   const optimizedFilms = films.map((f) => ({
-    s: f.slug, // s = slug
-    r: f.userRating, // r = rating (can be null)
-    // t: f.title,   // Optional: Add back if UI needs title immediately
-    // p: f.posterUrl
+    s: f.slug,
+    r: f.userRating,
   }));
 
   const item = {
     username,
     jobId,
-    status: 'ready', // Since we scraped the list successfully
+    status: options.status || 'ready',
     totalFilms: films.length,
     films: optimizedFilms,
     createdAt: now,
     ttl,
+    ...options,
   };
 
-  await putItem(TABLE_NAME, item);
-  console.log(`[UserJobService] Cached ${films.length} films for ${username} (Job: ${jobId})`);
-  return jobId;
+  // Enforce films structure if options tried to allow it raw
+  item.films = optimizedFilms;
+  item.totalFilms = films.length;
+
+  try {
+    await putItem(TABLE_NAME, item);
+    console.log(`[UserJobService] Created job ${jobId} for ${username} (Status: ${item.status})`);
+    return jobId;
+  } catch (error) {
+    console.error(`[UserJobService] Failed to put job for ${username}:`, error);
+    throw error;
+  }
 }
 
 /**
- * Retrieves the latest job for a user.
- * @param {string} username
- * @returns {Promise<Object|null>} - { films: [{slug, userRating}], totalFilms, jobId }
+ * Updates specific fields of a user job.
+ * @param {string} username - Partition Key
+ * @param {Object} updates - Key-value pairs to update
  */
+export async function updateUserJob(username, updates) {
+  if (!TABLE_NAME) return;
+  if (!updates || Object.keys(updates).length === 0) return;
+
+  const updateExpressionParts = [];
+  const expressionAttributeValues = {};
+  const expressionAttributeNames = {};
+
+  Object.entries(updates).forEach(([key, value]) => {
+    const attrName = `#${key}`;
+    const attrValue = `:${key}`;
+
+    expressionAttributeNames[attrName] = key;
+
+    if (key === 'films' && Array.isArray(value)) {
+      // Optimize films if they are being updated
+      const optimized = value.map((f) => ({
+        s: f.slug,
+        r: f.userRating,
+      }));
+      expressionAttributeValues[attrValue] = optimized;
+    } else {
+      expressionAttributeValues[attrValue] = value;
+    }
+
+    updateExpressionParts.push(`${attrName} = ${attrValue}`);
+  });
+
+  // Add updatedAt if not present
+  if (!updates.updatedAt) {
+    updateExpressionParts.push('#updatedAt = :updatedAt');
+    expressionAttributeNames['#updatedAt'] = 'updatedAt';
+    expressionAttributeValues[':updatedAt'] = Math.floor(Date.now() / 1000);
+  }
+
+  const updateExpression = `set ${updateExpressionParts.join(', ')}`;
+
+  try {
+    await updateItem(
+      TABLE_NAME,
+      { username },
+      updateExpression,
+      expressionAttributeValues,
+      expressionAttributeNames
+    );
+    console.log(
+      `[UserJobService] Updated job for ${username} with ${Object.keys(updates).join(', ')}`
+    );
+  } catch (error) {
+    console.error(`[UserJobService] Failed to update job for ${username}:`, error);
+    throw error;
+  }
+}
+
 export async function getUserJob(username) {
   if (!TABLE_NAME) return null;
 

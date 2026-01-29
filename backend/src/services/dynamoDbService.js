@@ -6,6 +6,7 @@ import {
   BatchGetCommand,
   GetCommand,
   DeleteCommand,
+  UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient();
@@ -16,6 +17,28 @@ export async function putItem(tableName, item) {
     TableName: tableName,
     Item: item,
   });
+  return docClient.send(command);
+}
+
+export async function updateItem(
+  tableName,
+  key,
+  updateExpression,
+  expressionAttributeValues,
+  expressionAttributeNames
+) {
+  const commandInput = {
+    TableName: tableName,
+    Key: key,
+    UpdateExpression: updateExpression,
+    ExpressionAttributeValues: expressionAttributeValues,
+  };
+
+  if (expressionAttributeNames) {
+    commandInput.ExpressionAttributeNames = expressionAttributeNames;
+  }
+
+  const command = new UpdateCommand(commandInput);
   return docClient.send(command);
 }
 
