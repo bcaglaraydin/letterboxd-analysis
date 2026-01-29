@@ -1,4 +1,4 @@
-import { handler } from '../statusHandler.js';
+import { handler } from '../getAnalysisStatusHandler.js';
 import { batchGet } from '../../services/dynamoDbService.js';
 import { getUserJob } from '../../services/userJobService.js';
 import { generateRatingGame } from '../../games/ratingGame.js';
@@ -17,7 +17,7 @@ vi.mock('../../services/statsService.js', () => ({
   findGuiltyPleasure: vi.fn(() => ({})),
 }));
 
-describe('statusHandler', () => {
+describe('getAnalysisStatusHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.FILMS_TABLE = 'test-table';
