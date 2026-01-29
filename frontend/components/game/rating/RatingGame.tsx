@@ -27,7 +27,17 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
     roundScore,
     currentRound,
     totalRounds,
-  } = useRatingGameStore();
+    resetGame,
+  } = useRatingGameStore(); // Added resetGame
+
+  // Safeguard: If we somehow mount with isGameOver=true but no history, it's a bug/stale state.
+  // This prevents the "PostGameScreen -> Analyzing..." flicker on fresh load.
+  React.useEffect(() => {
+    if (isGameOver && history.length === 0) {
+      console.warn('RatingGame mounted in invalid Game Over state (no history). Resetting.');
+      resetGame();
+    }
+  }, [isGameOver, history.length, resetGame]);
 
   const [currentRating, setCurrentRating] = useState(5.0);
   const [showFeedback, setShowFeedback] = useState(false);
