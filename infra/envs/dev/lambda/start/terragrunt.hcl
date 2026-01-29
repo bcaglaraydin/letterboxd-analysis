@@ -45,7 +45,7 @@ inputs = {
     SQS_QUEUE_URL     = dependency.sqs.outputs.queue_url
     SQS_LIST_QUEUE_URL = dependency.sqs_list.outputs.queue_url
     BROWSER_MAX_PAGES = "5"
-    SCRAPING_CONCURRENCY_LIST = "5"
+    SCRAPING_CONCURRENCY_LIST = "2"
     SCRAPING_CONCURRENCY_FILM = "5"
   }
 

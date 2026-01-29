@@ -24,11 +24,16 @@ export const handler = async (event) => {
     const cachedJob = await getUserJob(username);
     let jobId;
 
-    if (cachedJob && Math.floor(Date.now() / 1000) - cachedJob.createdAt < 300) {
-      console.log(`[StartAnalysis] Reuse existing fresh job for ${username}`);
+    // Reuse if recent (< 1 hour) AND not failed
+    if (
+      cachedJob &&
+      cachedJob.status !== 'failed' &&
+      Math.floor(Date.now() / 1000) - cachedJob.createdAt < 3600
+    ) {
+      console.log(
+        `[StartAnalysis] Reuse existing valid job for ${username} (Status: ${cachedJob.status}, Films: ${cachedJob.films?.length})`
+      );
       jobId = cachedJob.jobId;
-      // Even if cached, we might want to trigger a scrape if it was stuck?
-      // For now, if fresh, just return it.
     } else {
       // Create new job state (PENDING)
       jobId = await putUserJob(username, [], { status: 'pending' }); // Empty films list initially
