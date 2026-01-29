@@ -1,6 +1,27 @@
-import { SQSClient, SendMessageBatchCommand } from '@aws-sdk/client-sqs';
+import { SQSClient, SendMessageCommand, SendMessageBatchCommand } from '@aws-sdk/client-sqs';
 
 const sqsClient = new SQSClient({ region: process.env.AWS_REGION || 'us-east-1' });
+
+/**
+ * Sends a single message to an SQS queue.
+ * @param {string} queueUrl - The URL of the SQS queue.
+ * @param {Object} message - The message body object (will be JSON stringified).
+ */
+export async function sendMessage(queueUrl, message) {
+  const command = new SendMessageCommand({
+    QueueUrl: queueUrl,
+    MessageBody: JSON.stringify(message),
+  });
+
+  try {
+    const result = await sqsClient.send(command);
+    console.log(`Sent message to SQS: ${result.MessageId}`);
+    return result;
+  } catch (error) {
+    console.error('Error sending SQS message:', error);
+    throw error;
+  }
+}
 
 /**
  * Sends a batch of messages to an SQS queue.
