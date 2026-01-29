@@ -54,7 +54,7 @@ export default function LandingPage() {
       }
 
       // Start polling on landing page until we have game data
-      if (data.status === 'processing') {
+      if (data.status === 'processing' || data.status === 'accepted') {
         useExperienceStore.getState().setProcessing(username.trim());
         startPolling(username.trim());
       }
