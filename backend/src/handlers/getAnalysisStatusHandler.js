@@ -46,6 +46,29 @@ export const handler = async (event) => {
 
       userFilms = job.films; // [{ slug, userRating }]
       console.log(`[Status] Loaded ${userFilms.length} films from cache (Job: ${job.jobId})`);
+
+      // If job is pending (just started) or processing but list is not yet saved
+      if (job.status === 'pending' || (job.status === 'processing' && userFilms.length === 0)) {
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            status: 'processing',
+            progress: 0,
+            message: 'Scraping user list...',
+          }),
+        };
+      }
+
+      if (job.status === 'failed') {
+        return {
+          statusCode: 200, // Frontend handles error via status field or should we return error?
+          // api.ts MetricsStatus includes 'error'
+          body: JSON.stringify({
+            status: 'error',
+            message: job.error || 'Analysis failed',
+          }),
+        };
+      }
     } catch (error) {
       console.error(`[Status] Failed to load job:`, error);
       return {
@@ -55,6 +78,7 @@ export const handler = async (event) => {
     }
 
     if (userFilms.length === 0) {
+      // If status is ready but 0 films, it means user truly has no films.
       return {
         statusCode: 200,
         body: JSON.stringify({ status: 'ready', progress: 1, userStats: {}, genreGame: {} }),

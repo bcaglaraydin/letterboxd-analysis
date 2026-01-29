@@ -49,7 +49,7 @@ export interface RatingGameData {
   movies: RatingGameMovie[];
 }
 
-export type MetricsStatus = 'processing' | 'partial_ready' | 'ready' | 'error';
+export type MetricsStatus = 'accepted' | 'processing' | 'partial_ready' | 'ready' | 'error';
 
 export interface MetricsResponse {
   status: MetricsStatus;
