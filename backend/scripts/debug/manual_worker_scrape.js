@@ -1,32 +1,29 @@
 /**
  * @file manual_worker_scrape.js
- * @description Manually triggers the Worker Lambda logic for "User List Scraping".
- * This is useful for debugging "Stuck in Processing" issues locally.
+ * @description Manually triggers the Worker Lambda logic for film metadata scraping.
+ * This is useful for debugging locally.
  *
- * Usage: node backend/scripts/debug/manual_worker_scrape.js <username>
- * Example: node backend/scripts/debug/manual_worker_scrape.js bcaglaraydin
+ * Usage: node backend/scripts/debug/manual_worker_scrape.js <slug1> <slug2> ...
+ * Example: node backend/scripts/debug/manual_worker_scrape.js the-godfather inception
  */
 
 import 'dotenv/config';
-import { handler } from '../../src/handlers/processFilmMetadataHandler.js';
+import { handler } from '../../src/handlers/filmScraperWorker.js';
 
-const username = process.argv[2];
+const slugs = process.argv.slice(2);
 
-if (!username) {
-  console.error('Error: Username is required.');
-  console.error('Usage: node backend/scripts/debug/manual_worker_scrape.js <username>');
+if (slugs.length === 0) {
+  console.error('Error: At least one film slug is required.');
+  console.error('Usage: node backend/scripts/debug/manual_worker_scrape.js <slug1> <slug2> ...');
   process.exit(1);
 }
 
 if (!process.env.FILMS_TABLE) {
   console.warn('WARNING: FILMS_TABLE not set in .env. DB writes may fail.');
 }
-if (!process.env.SQS_QUEUE_URL) {
-  console.warn('WARNING: SQS_QUEUE_URL not set in .env. Task dispatch will fail.');
-}
 
 async function run() {
-  console.log(`--- Starting Manual Worker Execution for: ${username} ---`);
+  console.log(`--- Starting Manual Worker Execution for slugs: ${slugs.join(', ')} ---`);
 
   // Construct a Mock SQS Event
   const mockEvent = {
@@ -35,8 +32,8 @@ async function run() {
         messageId: 'manual-debug-123',
         receiptHandle: 'mock-handle',
         body: JSON.stringify({
-          action: 'scrape_user_list', // This triggers the list scraping logic
-          username: username,
+          action: 'scrape_batch',
+          slugs: slugs,
         }),
         eventSource: 'aws:sqs',
         region: process.env.AWS_REGION || 'eu-west-1',
@@ -53,7 +50,7 @@ async function run() {
       console.error('❌ Worker reported failures:', result.batchItemFailures);
     } else {
       console.log('✅ Worker execution successful.');
-      console.log('Check DynamoDB for USER# item and SQS for dispatched film tasks.');
+      console.log('Check DynamoDB Films table for scraped metadata.');
     }
   } catch (error) {
     console.error('❌ Script Fatal Error:', error);

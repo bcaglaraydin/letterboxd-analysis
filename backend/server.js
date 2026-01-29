@@ -1,9 +1,8 @@
 import 'dotenv/config'; // Load env vars
 import express from 'express';
 import cors from 'cors';
-import { handler as scrapeHandler } from './src/handlers/triggerFilmScrapingHandler.js';
-import { handler as metricsHandler } from './src/handlers/retrieveMetricsHandler.js';
-import { handler as statusHandler } from './src/handlers/statusHandler.js';
+import { handler as startHandler } from './src/handlers/startAnalysisHandler.js';
+import { handler as statusHandler } from './src/handlers/getAnalysisStatusHandler.js';
 
 const app = express();
 const PORT = 4000;
@@ -28,10 +27,12 @@ const wrapLambda = (handler) => async (req, res) => {
   }
 };
 
-app.post('/', wrapLambda(scrapeHandler));
-app.post('/metrics', wrapLambda(metricsHandler));
-app.get('/metrics/status', wrapLambda(statusHandler));
+app.post('/analysis', wrapLambda(startHandler));
+app.get('/analysis/status', wrapLambda(statusHandler));
 
 app.listen(PORT, () => {
   console.log(`Local backend server running at http://localhost:${PORT}`);
+  console.log('Available endpoints:');
+  console.log('  POST /analysis - Start analysis for a username');
+  console.log('  GET  /analysis/status?username=<name> - Get analysis status');
 });

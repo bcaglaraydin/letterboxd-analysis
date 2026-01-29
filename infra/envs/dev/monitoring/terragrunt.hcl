@@ -6,12 +6,16 @@ terraform {
   source = "../../../modules/monitoring"
 }
 
-dependency "lambda_backend" {
-  config_path = "../lambda"
+dependency "lambda_start" {
+  config_path = "../lambda/start"
+}
+
+dependency "lambda_status" {
+  config_path = "../lambda/status"
 }
 
 dependency "lambda_worker" {
-  config_path = "../lambda-worker"
+  config_path = "../lambda/worker"
 }
 
 dependency "api_gateway" {
@@ -24,9 +28,13 @@ dependency "sqs" {
 
 inputs = {
   lambdas = {
-    backend = {
-      function_name = dependency.lambda_backend.outputs.function_name
-      timeout       = dependency.lambda_backend.outputs.timeout
+    start = {
+      function_name = dependency.lambda_start.outputs.function_name
+      timeout       = dependency.lambda_start.outputs.timeout
+    }
+    status = {
+      function_name = dependency.lambda_status.outputs.function_name
+      timeout       = dependency.lambda_status.outputs.timeout
     }
     worker = {
       function_name = dependency.lambda_worker.outputs.function_name
