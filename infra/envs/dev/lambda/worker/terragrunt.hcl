@@ -10,34 +10,6 @@ terraform {
   source = "../../../../modules/lambda"
 }
 
-# One-time imports for existing AWS resources after folder restructure
-# Remove this block after successful first deployment
-generate "imports" {
-  path      = "imports.tf"
-  if_exists = "overwrite_terragrunt"
-  contents  = <<EOF
-import {
-  to = aws_iam_role.iam_for_lambda
-  id = "letterboxd-analysis-worker-dev-role"
-}
-
-import {
-  to = aws_cloudwatch_log_group.this
-  id = "/aws/lambda/letterboxd-analysis-worker-dev"
-}
-
-import {
-  to = aws_lambda_function.this
-  id = "letterboxd-analysis-worker-dev"
-}
-
-import {
-  to = aws_lambda_event_source_mapping.sqs[0]
-  id = "ca059c1b-fef4-4bea-a33f-b4b641dbc3c5"
-}
-EOF
-}
-
 dependency "sqs" {
   config_path = "../../sqs"
 }
