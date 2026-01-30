@@ -32,7 +32,7 @@ export const ActualRankingColumn: React.FC<ActualRankingColumnProps> = ({
   return (
     <motion.div
       layout
-      className="w-full flex flex-col"
+      className="w-full flex flex-col h-full"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{
@@ -43,7 +43,7 @@ export const ActualRankingColumn: React.FC<ActualRankingColumnProps> = ({
     >
       {/* Column Header */}
       <motion.div
-        className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-wider mb-1 md:mb-2 text-center"
+        className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-wider mb-1 md:mb-2 text-center shrink-0"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.6, duration: 0.8 }}
@@ -52,7 +52,7 @@ export const ActualRankingColumn: React.FC<ActualRankingColumnProps> = ({
       </motion.div>
 
       {/* Actual ranking slots */}
-      <div className="flex flex-col gap-1 md:gap-3">
+      <div className="flex flex-col gap-1 md:gap-3 h-full">
         {actualRanking.map((genreId, index) => {
           const genre = getGenre(genreId);
           if (!genre) return null;
@@ -66,7 +66,7 @@ export const ActualRankingColumn: React.FC<ActualRankingColumnProps> = ({
           return (
             <div
               key={`actual-slot-${index}`}
-              className="relative h-10 md:h-[72px]"
+              className="relative flex-1 min-h-0 md:flex-none md:h-[72px]"
               // No motion prop here for the container to avoid conflicts
             >
               {/* Slot Placeholder */}
