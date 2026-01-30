@@ -120,7 +120,7 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
                     pointsEarned={flyingPoints}
                     flyFromPosition={flyPosition}
                     maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
-                    pointsPerAction={GENRE_RANKING_CONFIG.POINTS_PER_ITEM}
+                    pointsPerAction={GENRE_RANKING_CONFIG.MAX_SCORE / itemCount}
                     showMaxScore={true}
                     animationDelay={0}
                     label="Score"
@@ -151,10 +151,10 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
             </div>
           }
           middle={
-            <div className="w-full max-w-[57.5rem] mx-auto flex flex-col justify-center">
+            <div className="w-full max-w-[57.5rem] mx-auto flex flex-col justify-center h-full">
               <LayoutGroup>
                 <motion.div
-                  className={`w-full grid gap-1 md:gap-6 ${showTwoColumns ? 'grid-cols-2' : 'grid-cols-1 max-w-md mx-auto'}`}
+                  className={`w-full h-full grid gap-1 md:gap-6 ${showTwoColumns ? 'grid-cols-2' : 'grid-cols-1 max-w-md mx-auto'}`}
                   layout
                   transition={{
                     type: 'tween',
@@ -174,7 +174,7 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
                     {/* Column Header */}
                     {isRevealing && (
                       <motion.div
-                        className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-wider mb-1 md:mb-2 text-center"
+                        className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-wider mb-1 md:mb-2 text-center shrink-0"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 2.0 }}
@@ -195,7 +195,7 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
                       />
                     ) : (
                       /* Reveal Phase: Static items - compact block, no vertical fill */
-                      <div className="flex flex-col gap-1 md:gap-3 w-full">
+                      <div className="flex flex-col gap-1 md:gap-3 w-full h-full">
                         {userRanking.map((genreId, index) => {
                           const genre = getGenre(genreId);
                           if (!genre) return null;
@@ -203,7 +203,7 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
                             <div
                               key={`static-user-${genreId}`}
                               id={`user-item-${genreId}`}
-                              className="h-10 md:h-[72px]"
+                              className="flex-1 min-h-0 md:flex-none md:h-[72px]"
                             >
                               <RankingItem
                                 genre={genre}

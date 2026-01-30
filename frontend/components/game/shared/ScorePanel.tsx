@@ -97,10 +97,15 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
       const targetX = destRect.left + destRect.width / 2;
       const targetY = destRect.top + destRect.height / 2;
 
+      // Clamp start position to viewport with padding to prevent overflow
+      const PADDING = 75; // Increased buffer for large text width
+      const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1000;
+      const startX = Math.max(PADDING, Math.min(viewportWidth - PADDING, flyFromPosition.x));
+
       setFlyingPoints({
         value: pointsEarned,
         key: Date.now(), // Unique key ensures animation triggers even for same value
-        startX: flyFromPosition.x,
+        startX,
         startY: flyFromPosition.y,
         targetX,
         targetY,

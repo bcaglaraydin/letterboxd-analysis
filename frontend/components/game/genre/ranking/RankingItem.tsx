@@ -145,8 +145,13 @@ export const RankingItem = ({
         <motion.span
           layout="position"
           className={cn(
-            'font-serif font-semibold text-foreground flex-1 min-w-0 leading-tight',
-            genre.name.length > 10 ? 'text-xs md:text-lg' : 'text-sm md:text-lg',
+            'font-serif font-semibold text-foreground flex-1 min-w-0 leading-none',
+            // Detailed dynamic sizing to ensure fit without truncation
+            genre.name.length > 15
+              ? 'text-[10px] md:text-sm'
+              : genre.name.length > 10
+                ? 'text-xs md:text-base'
+                : 'text-sm md:text-lg',
           )}
         >
           {genre.name}
@@ -159,7 +164,7 @@ export const RankingItem = ({
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-xs md:text-sm font-semibold text-muted-foreground mr-2"
+            className="text-xs md:text-sm font-semibold text-muted-foreground mr-0 md:mr-1 shrink-0 whitespace-nowrap"
           >
             ★ {genre.averageRating.toFixed(1)}
           </motion.div>

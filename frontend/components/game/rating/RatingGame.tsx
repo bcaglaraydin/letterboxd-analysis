@@ -39,7 +39,7 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
     }
   }, [isGameOver, historyLength, resetGame]);
 
-  const [currentRating, setCurrentRating] = useState(5.0);
+  const [currentRating, setCurrentRating] = useState(0);
   const [showFeedback, setShowFeedback] = useState(false);
   const [flyFromPosition, setFlyFromPosition] = useState<{
     x: number;
@@ -53,7 +53,7 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
 
   const handleNext = () => {
     setShowFeedback(false);
-    setCurrentRating(5.0);
+    setCurrentRating(0);
     setFlyFromPosition(undefined);
     nextRound();
   };
@@ -127,8 +127,9 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
             <div className="inline-block">
               <Button
                 onClick={handleSubmit}
+                disabled={currentRating === 0}
                 size="lg"
-                className="w-auto px-12 min-w-[200px] py-3 md:py-4 h-auto rounded-xl text-sm font-medium tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform duration-200"
+                className="w-auto px-12 min-w-[200px] py-3 md:py-4 h-auto rounded-xl text-sm font-medium tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Reveal Rating
               </Button>
