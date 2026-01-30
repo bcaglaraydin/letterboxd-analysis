@@ -87,7 +87,7 @@ export function GenreMatchingGame() {
 
     return (
       <motion.div key={tier} className="space-y-1 md:space-y-1 lg:space-y-2" layout>
-        <div className="flex items-center gap-1 text-[10px] md:text-[10px] lg:text-xs text-muted-foreground">
+        <div className="flex items-center gap-1 text-[10px] md:text-[10px] lg:text-xs xl:text-sm text-muted-foreground">
           <span
             className={cn(
               'font-bold tracking-wider',
@@ -98,11 +98,11 @@ export function GenreMatchingGame() {
           >
             {info.stars} {info.label}
           </span>
-          <span className="text-[8px] md:text-[9px] lg:text-[10px] opacity-60">
+          <span className="text-[8px] md:text-[9px] lg:text-[10px] xl:text-xs opacity-60">
             (+{TIER_POINTS[tier].correct}/{TIER_POINTS[tier].incorrect})
           </span>
         </div>
-        <div className="flex flex-wrap gap-1 md:gap-1 lg:gap-1.5 min-h-[28px] md:min-h-[28px] lg:min-h-[40px]">
+        <div className="flex flex-wrap gap-1 md:gap-1 lg:gap-1.5 xl:gap-2.5 min-h-[28px] md:min-h-[28px] lg:min-h-[40px] xl:min-h-[48px]">
           <AnimatePresence mode="popLayout">
             {genres.map((genre) => (
               <GenreChipAnimated
@@ -240,11 +240,11 @@ export function GenreMatchingGame() {
               )}
               style={getDynamicStyle()}
             >
-              <div className="text-[10px] lg:text-xs text-muted-foreground mb-1 flex items-center gap-1">
+              <div className="text-[10px] lg:text-xs xl:text-sm text-muted-foreground mb-1 flex items-center gap-1">
                 <Sparkles className="w-3 h-3 lg:w-4 lg:h-4" />
                 <span>Your Selections</span>
               </div>
-              <div className="flex flex-wrap gap-1 lg:gap-1.5 min-h-[28px] lg:min-h-[40px]">
+              <div className="flex flex-wrap gap-1 lg:gap-1.5 xl:gap-2.5 min-h-[28px] lg:min-h-[40px] xl:min-h-[48px]">
                 <AnimatePresence mode="popLayout">
                   {collectedGenres.map((genre) => (
                     <GenreChipAnimated
