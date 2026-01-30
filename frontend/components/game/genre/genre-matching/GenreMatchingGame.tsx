@@ -154,123 +154,157 @@ export function GenreMatchingGame() {
           </div>
         }
         middle={
-          <div className="flex flex-col gap-1 md:gap-3 w-full max-w-5xl mx-auto flex-1 min-h-0 justify-center">
-            {/* MOBILE: Vertical stack (poster→selections→genres) | DESKTOP: Side-by-side */}
-            <div className="flex flex-col md:flex-row items-stretch gap-1 md:gap-4 lg:gap-6 min-h-0 md:flex-1">
-              {/* POSTER: Fixed size on mobile, flex on desktop */}
-              <div className="order-1 md:order-2 shrink-0 md:flex-1 flex items-center justify-center">
-                <div className="w-[55%] md:w-[65%] lg:w-[70%] max-w-[400px]">
-                  <AnimatePresence mode="wait">
+          <div className="flex flex-col gap-2 md:gap-3 w-full max-w-6xl mx-auto flex-1 min-h-0 justify-center px-2 md:px-6">
+            <div className="flex flex-col md:flex-row items-stretch gap-2 md:gap-8 lg:gap-12 min-h-0 flex-1">
+              
+              {/* INTERACTION COLUMN: Genres + Selections + Buttons */}
+              {/* Mobile: Bottom | Desktop: Left */}
+              <div className="order-2 md:order-1 flex flex-col gap-4 flex-1 min-h-0 justify-center">
+                
+                {/* Genres List */}
+                <div className="w-full bg-card/30 rounded-xl border border-border/20 overflow-y-auto no-scrollbar flex flex-col relative shadow-inner max-h-[60vh]">
+                  <div className="p-2 md:p-4 md:space-y-4 space-y-2">
+                    {renderTierSection('niche')}
+                    {renderTierSection('mid-tier')}
+                    {renderTierSection('popular')}
+                  </div>
+                </div>
+
+                {/* Selections Area */}
+                <motion.div
+                  className={cn(
+                    'w-full rounded-xl border border-dashed p-2 md:p-4 transition-colors duration-300 shrink-0',
+                    phase === 'selecting' &&
+                      (collectedGenres.length > 0
+                        ? 'border-primary/50 bg-primary/5'
+                        : 'border-muted-foreground/30 bg-muted/10'),
+                  )}
+                  style={getDynamicStyle()}
+                >
+                  <div className="text-[10px] md:text-xs text-muted-foreground mb-1 md:mb-2 flex items-center gap-1.5 uppercase tracking-wider font-semibold">
+                    <Sparkles className="w-3 h-3 md:w-3.5 md:h-3.5" />
+                    <span>Your Selections</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 md:gap-2 min-h-[24px] md:min-h-[32px]">
+                    <AnimatePresence mode="popLayout">
+                      {collectedGenres.map((genre) => (
+                        <GenreChipAnimated
+                          key={genre.id}
+                          genre={genre}
+                          state={getChipState(genre.id)}
+                          isDisabled={phase !== 'selecting'}
+                          onClick={() => handleGenreClick(genre.id)}
+                          chipRef={createChipRefCallback(genre.id)}
+                        />
+                      ))}
+                    </AnimatePresence>
+                    {collectedGenres.length === 0 && (
+                      <span className="text-xs text-muted-foreground/40 italic py-0.5">
+                        Select genres...
+                      </span>
+                    )}
+                  </div>
+                </motion.div>
+
+                {/* DESKTOP BUTTONS: Unified with Interaction Column */}
+                <div className="hidden md:flex gap-3 justify-center items-center pt-2">
+                   {phase === 'selecting' && collectedGenreIds.size > 0 && (
+                    <Button
+                      onClick={clearSelections}
+                      size="sm"
+                      variant="ghost"
+                      className="gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <X className="w-4 h-4" />
+                      Clear
+                    </Button>
+                  )}
+                  
+                  {phase === 'selecting' && (
+                    <Button
+                      onClick={handleLock}
+                      size="lg"
+                      className="gap-2 text-base px-8 font-semibold shadow-md transition-all hover:scale-105"
+                      disabled={!canLock}
+                    >
+                      <Lock className="w-4 h-4" />
+                      Lock It In
+                    </Button>
+                  )}
+
+                  {(phase === 'locked' || phase === 'revealing' || phase === 'showing-missed') && (
+                    <Button size="lg" disabled className="gap-2 text-base px-8 opacity-60">
+                      {phase === 'showing-missed' ? 'Revealing...' : 'Revealing...'}
+                    </Button>
+                  )}
+
+                  {phase === 'complete' && !isGameComplete && (
+                    <Button onClick={handleNext} size="lg" className="gap-2 text-base px-8 shadow-md hover:scale-105">
+                      Next Film
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  )}
+
+                  {isGameComplete && (
+                    <Button
+                      onClick={handleReset}
+                      size="lg"
+                      variant="outline"
+                      className="gap-2 text-base"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      Play Again
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* POSTER COLUMN */}
+              {/* Mobile: Top | Desktop: Right */}
+              <div className="order-1 md:order-2 shrink-0 md:flex-1 flex flex-col items-center justify-center md:py-8">
+                <div className="relative h-[30vh] md:h-auto md:w-[80%] max-w-[400px] aspect-[2/3] shadow-2xl shadow-black/50 rounded-lg md:rounded-2xl overflow-hidden">
+                   <AnimatePresence mode="wait">
                     <motion.div
                       key={currentFilm.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="w-full h-full"
                     >
-                      <div className="relative w-full aspect-[2/3] rounded-xl lg:rounded-2xl overflow-hidden shadow-xl lg:shadow-2xl shadow-black/30">
-                        <Image
-                          src={currentFilm.posterUrl}
-                          alt={`Poster for ${currentFilm.title}`}
-                          fill
-                          className="object-contain"
-                        />
-                      </div>
-                      <div className="text-center mt-1 md:mt-2 lg:mt-3">
-                        <h2 className="text-[11px] md:text-lg lg:text-xl font-bold text-foreground leading-tight font-serif truncate">
-                          {currentFilm.title}
-                        </h2>
-                        <div className="text-[9px] md:text-sm lg:text-base text-muted-foreground">
-                          {currentFilm.year} • {currentFilm.director}
-                        </div>
-                      </div>
+                      <Image
+                        src={currentFilm.posterUrl}
+                        alt={`Poster for ${currentFilm.title}`}
+                        fill
+                        className="object-cover"
+                        priority
+                      />
                     </motion.div>
                   </AnimatePresence>
                 </div>
+                
+                <div className="text-center mt-2 md:mt-6 space-y-1">
+                  <h2 className="text-base md:text-2xl lg:text-3xl font-serif font-bold text-foreground leading-tight">
+                    {currentFilm.title}
+                  </h2>
+                  <div className="text-xs md:text-base text-muted-foreground font-medium">
+                    {currentFilm.year} • {currentFilm.director}
+                  </div>
+                </div>
               </div>
 
-              {/* SELECTIONS: Mobile second - fixed size */}
-              <motion.div
-                className={cn(
-                  'order-2 md:hidden w-full rounded-lg border border-dashed p-1 transition-colors duration-300 shrink-0',
-                  phase === 'selecting' &&
-                    (collectedGenres.length > 0
-                      ? 'border-primary/50 bg-primary/5'
-                      : 'border-muted-foreground/30 bg-muted/10'),
-                )}
-                style={getDynamicStyle()}
-              >
-                <div className="text-[9px] text-muted-foreground mb-0.5 flex items-center gap-1">
-                  <Sparkles className="w-2 h-2" />
-                  <span>Your Selections</span>
-                </div>
-                <div className="flex flex-wrap gap-0.5 min-h-[18px]">
-                  <AnimatePresence mode="popLayout">
-                    {collectedGenres.map((genre) => (
-                      <GenreChipAnimated
-                        key={genre.id}
-                        genre={genre}
-                        state={getChipState(genre.id)}
-                        isDisabled={phase !== 'selecting'}
-                        onClick={() => handleGenreClick(genre.id)}
-                        chipRef={createChipRefCallback(genre.id)}
-                      />
-                    ))}
-                  </AnimatePresence>
-                </div>
-              </motion.div>
-
-              {/* GENRES: Takes remaining space on mobile, scrolls if needed */}
-              <div className="order-3 md:order-1 w-full md:w-[38%] lg:w-[32%] md:shrink-0 bg-card/30 rounded-lg p-1 md:p-3 lg:p-4 border border-border/20 overflow-y-auto no-scrollbar flex flex-col justify-center flex-1 md:flex-initial min-h-0">
-                <motion.div className="space-y-1 md:space-y-2 lg:space-y-3" layout>
-                  {renderTierSection('niche')}
-                  {renderTierSection('mid-tier')}
-                  {renderTierSection('popular')}
-                </motion.div>
-              </div>
             </div>
-
-            {/* DESKTOP ONLY: Selections bar at bottom */}
-            <motion.div
-              className={cn(
-                'hidden md:block w-full rounded-lg border border-dashed p-2 lg:p-3 transition-colors duration-300 shrink-0',
-                phase === 'selecting' &&
-                  (collectedGenres.length > 0
-                    ? 'border-primary/50 bg-primary/5'
-                    : 'border-muted-foreground/30 bg-muted/10'),
-              )}
-              style={getDynamicStyle()}
-            >
-              <div className="text-[10px] lg:text-xs xl:text-sm text-muted-foreground mb-1 flex items-center gap-1">
-                <Sparkles className="w-3 h-3 lg:w-4 lg:h-4" />
-                <span>Your Selections</span>
-              </div>
-              <div className="flex flex-wrap gap-1 lg:gap-1.5 xl:gap-2.5 min-h-[28px] lg:min-h-[40px] xl:min-h-[48px]">
-                <AnimatePresence mode="popLayout">
-                  {collectedGenres.map((genre) => (
-                    <GenreChipAnimated
-                      key={genre.id}
-                      genre={genre}
-                      state={getChipState(genre.id)}
-                      isDisabled={phase !== 'selecting'}
-                      onClick={() => handleGenreClick(genre.id)}
-                      chipRef={createChipRefCallback(genre.id)}
-                    />
-                  ))}
-                </AnimatePresence>
-              </div>
-            </motion.div>
           </div>
         }
         bottom={
-          <div className="flex justify-center gap-2 py-1 md:py-3 min-h-[40px] md:min-h-[60px]">
+          <div className="md:hidden flex justify-center gap-2 py-2 min-h-[60px]">
             {phase === 'selecting' && collectedGenreIds.size > 0 && (
               <Button
                 onClick={clearSelections}
                 size="sm"
                 variant="outline"
-                className="gap-1 md:gap-2 text-xs md:text-sm text-muted-foreground border-muted-foreground/20 hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive transition-colors"
+                className="gap-1 text-xs text-muted-foreground border-muted-foreground/20"
               >
-                <X className="w-3 h-3 md:w-4 md:h-4" />
+                <X className="w-3 h-3" />
                 Clear
               </Button>
             )}
@@ -279,24 +313,24 @@ export function GenreMatchingGame() {
               <Button
                 onClick={handleLock}
                 size="sm"
-                className="gap-1 md:gap-2 text-xs md:text-sm"
+                className="gap-1 text-xs font-semibold"
                 disabled={!canLock}
               >
-                <Lock className="w-3 h-3 md:w-4 md:h-4" />
+                <Lock className="w-3 h-3" />
                 Lock It In
               </Button>
             )}
 
             {(phase === 'locked' || phase === 'revealing' || phase === 'showing-missed') && (
-              <Button size="sm" disabled className="gap-1 md:gap-2 text-xs md:text-sm opacity-60">
-                {phase === 'showing-missed' ? 'Revealing...' : 'Revealing...'}
+              <Button size="sm" disabled className="gap-1 text-xs opacity-60">
+                Revealing...
               </Button>
             )}
 
             {phase === 'complete' && !isGameComplete && (
-              <Button onClick={handleNext} size="sm" className="gap-1 md:gap-2 text-xs md:text-sm">
+              <Button onClick={handleNext} size="sm" className="gap-1 text-xs">
                 Next Film
-                <ArrowRight className="w-3 h-3 md:w-4 md:h-4" />
+                <ArrowRight className="w-3 h-3" />
               </Button>
             )}
 
@@ -305,9 +339,9 @@ export function GenreMatchingGame() {
                 onClick={handleReset}
                 size="sm"
                 variant="outline"
-                className="gap-1 md:gap-2 text-xs md:text-sm"
+                className="gap-1 text-xs"
               >
-                <RotateCcw className="w-3 h-3 md:w-4 md:h-4" />
+                <RotateCcw className="w-3 h-3" />
                 Play Again
               </Button>
             )}
