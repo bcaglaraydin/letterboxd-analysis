@@ -128,33 +128,39 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
                     position="static"
                   />
                 </div>
-              ) : (
-                /* Header during ranking phase */
-                <motion.div className="text-center mb-2 md:mb-6 pt-2 md:pt-4" layout="position">
+              ) : null}
+            </div>
+          }
+          middle={
+            <div className="w-full max-w-[57.5rem] mx-auto flex flex-col justify-center h-full md:h-auto">
+              {/* Header: Moved to Middle for better proximity */}
+              {!isRevealing && (
+                <motion.div className="text-center mb-6 md:mb-10" layout="position">
                   <motion.h2
-                    className="text-lg md:text-2xl font-serif font-bold text-foreground"
-                    initial={{ opacity: 0, y: -20 }}
+                    className="text-2xl md:text-4xl font-serif font-bold text-foreground drop-shadow-sm"
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                   >
                     Rank Your Top Genres
                   </motion.h2>
-                  <motion.p
-                    className="text-xs md:text-sm text-muted-foreground mt-1"
+                  <motion.div
+                    className="flex items-center justify-center gap-2 text-muted-foreground mt-2"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.2 }}
                   >
-                    Drag to reorder from most to least watched
-                  </motion.p>
+                    <div className="h-px w-8 bg-border/50" />
+                    <p className="text-xs md:text-sm font-medium uppercase tracking-wider">
+                      Drag to reorder
+                    </p>
+                    <div className="h-px w-8 bg-border/50" />
+                  </motion.div>
                 </motion.div>
               )}
-            </div>
-          }
-          middle={
-            <div className="w-full max-w-[57.5rem] mx-auto flex flex-col justify-center h-full">
+
               <LayoutGroup>
                 <motion.div
-                  className={`w-full h-full grid gap-1 md:gap-6 ${showTwoColumns ? 'grid-cols-2' : 'grid-cols-1 max-w-md mx-auto'}`}
+                  className={`w-full h-full md:h-auto grid gap-1 md:gap-6 ${showTwoColumns ? 'grid-cols-2' : 'grid-cols-1 max-w-md mx-auto'}`}
                   layout
                   transition={{
                     type: 'tween',
@@ -164,7 +170,7 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
                 >
                   <motion.div
                     layout
-                    className="w-full h-full flex flex-col relative"
+                    className="w-full h-full md:h-auto flex flex-col relative"
                     transition={{
                       type: 'tween',
                       duration: 2,
@@ -234,11 +240,9 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
                   )}
                 </motion.div>
               </LayoutGroup>
-            </div>
-          }
-          bottom={
-            <div className="flex justify-center w-full pt-2 md:pt-6 pb-2 md:pb-8 min-h-[80px] md:min-h-[100px]">
-              <div className="h-12 md:h-14 flex items-center">
+
+              {/* Desktop: Buttons grouped with content */}
+              <div className="hidden md:flex justify-center mt-8 shrink-0">
                 {!isRevealing && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
@@ -250,9 +254,50 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
                     <Button
                       onClick={confirmRanking}
                       size="lg"
-                      className="px-6 md:px-8 py-3 md:py-4 h-auto text-base md:text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
+                      className="px-8 py-4 h-auto text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
                     >
-                      <Lock className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+                      <Lock className="w-5 h-5 mr-2" />
+                      Lock It In
+                    </Button>
+                  </motion.div>
+                )}
+
+                {isComplete && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Button
+                      onClick={() => onGameComplete(totalScore)}
+                      size="lg"
+                      className="px-6 py-3 h-auto rounded-xl font-semibold"
+                    >
+                      Return to Hub <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </motion.div>
+                )}
+              </div>
+            </div>
+          }
+          bottom={
+            <div className="md:hidden flex justify-center w-full pt-2 pb-2 min-h-[60px]">
+              <div className="h-12 flex items-center">
+                {!isRevealing && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    <Button
+                      onClick={confirmRanking}
+                      size="lg"
+                      className="px-6 py-3 h-auto text-base font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
+                    >
+                      <Lock className="w-4 h-4 mr-2" />
                       Lock It In
                     </Button>
                   </motion.div>
