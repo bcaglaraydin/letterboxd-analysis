@@ -17,27 +17,27 @@ interface RatingGameProps {
 }
 
 export function RatingGame({ onGameComplete }: RatingGameProps) {
-  const {
-    movies,
-    currentMovieIndex,
-    isGameOver,
-    submitGuess,
-    nextRound,
-    score,
-    roundScore,
-    currentRound,
-    totalRounds,
-    resetGame,
-  } = useRatingGameStore(); // Added resetGame
+  // Select specific values to avoid unnecessary re-renders and satisfy linter dep checks
+  const movies = useRatingGameStore((s) => s.movies);
+  const currentMovieIndex = useRatingGameStore((s) => s.currentMovieIndex);
+  const isGameOver = useRatingGameStore((s) => s.isGameOver);
+  const submitGuess = useRatingGameStore((s) => s.submitGuess);
+  const nextRound = useRatingGameStore((s) => s.nextRound);
+  const score = useRatingGameStore((s) => s.score);
+  const roundScore = useRatingGameStore((s) => s.roundScore);
+  const currentRound = useRatingGameStore((s) => s.currentRound);
+  const totalRounds = useRatingGameStore((s) => s.totalRounds);
+  const resetGame = useRatingGameStore((s) => s.resetGame);
+  const historyLength = useRatingGameStore((s) => s.history.length);
 
   // Safeguard: If we somehow mount with isGameOver=true but no history, it's a bug/stale state.
   // This prevents the "PostGameScreen -> Analyzing..." flicker on fresh load.
   React.useEffect(() => {
-    if (isGameOver && history.length === 0) {
+    if (isGameOver && historyLength === 0) {
       console.warn('RatingGame mounted in invalid Game Over state (no history). Resetting.');
       resetGame();
     }
-  }, [isGameOver, history.length, resetGame]);
+  }, [isGameOver, historyLength, resetGame]);
 
   const [currentRating, setCurrentRating] = useState(5.0);
   const [showFeedback, setShowFeedback] = useState(false);

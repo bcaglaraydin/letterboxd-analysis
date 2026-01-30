@@ -23,15 +23,16 @@ const eslintConfig = [
     },
     rules: {
       '@typescript-eslint/no-unused-vars': [
-        'warn',
+        'error',
         {
           argsIgnorePattern: '^_',
           varsIgnorePattern: '^_',
         },
       ],
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'error',
       'import/no-unresolved': 'error',
       'prettier/prettier': 'error',
+      'react-hooks/exhaustive-deps': 'error',
     },
     settings: {
       'import/resolver': {
