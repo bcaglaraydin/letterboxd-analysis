@@ -95,9 +95,9 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
           </div>
         }
         middle={
-          <div className="w-full max-w-sm mx-auto flex flex-col flex-1 min-h-0 md:flex-none pb-2 md:pb-0 space-y-1 md:space-y-8 justify-center px-8 md:px-0">
+          <div className="w-full max-w-4xl mx-auto flex flex-col flex-1 min-h-0 md:flex-none pb-2 md:pb-0 space-y-1 md:space-y-8 justify-center px-8 md:px-0">
             {currentMovie && (
-              <div className="relative flex flex-col justify-center flex-1 min-h-0 md:flex-none mb-1 md:mb-6 md:h-auto">
+              <div className="relative flex flex-col justify-center flex-1 min-h-0 md:flex-none mb-1 md:mb-6 md:h-auto w-full max-w-sm mx-auto">
                 <MovieCard
                   key={currentMovie.movieId}
                   title={currentMovie.title}
@@ -108,15 +108,45 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
                 />
               </div>
             )}
+            
+            {/* Desktop: Interaction Section Grouped with Card */}
+            <div className="hidden md:block w-full mt-4">
+              <div className="shrink-0 space-y-6 lg:space-y-8 text-center w-full max-w-xl mx-auto">
+                <h3 className="text-lg lg:text-2xl font-bold text-primary uppercase tracking-widest drop-shadow-sm px-4 whitespace-nowrap">
+                  What did you rate this movie?
+                </h3>
+
+                <div className="flex justify-center py-2">
+                  <StarRating
+                    value={currentRating}
+                    onChange={setCurrentRating}
+                    readOnly={showFeedback}
+                    starSize="w-12 h-12 lg:w-16 lg:h-16"
+                  />
+                </div>
+
+                <div className="w-full flex justify-center pt-4">
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={currentRating === 0}
+                    size="lg"
+                    className="w-auto px-16 min-w-[240px] py-6 h-auto rounded-2xl text-lg font-bold tracking-widest uppercase shadow-xl hover:shadow-2xl hover:-translate-y-1 transform duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Reveal Rating
+                  </Button>
+                </div>
+              </div>
+            </div>
           </div>
         }
         bottom={
-          <div className="shrink-0 space-y-2 text-center z-10 md:space-y-6 w-full max-w-sm mx-auto pb-4">
-            <h3 className="text-sm md:text-xl font-bold text-primary uppercase tracking-widest drop-shadow-sm">
+          /* Mobile: Interaction Section Pinned to Bottom */
+          <div className="md:hidden shrink-0 space-y-3 text-center z-10 w-full max-w-sm mx-auto pb-6">
+            <h3 className="text-base font-bold text-primary uppercase tracking-widest drop-shadow-sm px-4">
               What did you rate this movie?
             </h3>
 
-            <div className="flex justify-center">
+            <div className="flex justify-center py-1">
               <StarRating
                 value={currentRating}
                 onChange={setCurrentRating}
@@ -124,12 +154,12 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
               />
             </div>
 
-            <div className="inline-block">
+            <div className="w-full flex justify-center px-4">
               <Button
                 onClick={handleSubmit}
                 disabled={currentRating === 0}
                 size="lg"
-                className="w-auto px-12 min-w-[200px] py-3 md:py-4 h-auto rounded-xl text-sm font-medium tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full max-w-xs py-3 h-auto rounded-xl text-sm font-medium tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Reveal Rating
               </Button>
