@@ -69,8 +69,8 @@ export const GenreChipAnimated = ({
       }}
       exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.15 } }}
       className={cn(
-        'relative px-2 py-1 md:px-2.5 md:py-1 lg:px-3 lg:py-1.5 rounded-full border transition-colors duration-200 shrink-0',
-        'text-xs md:text-xs lg:text-sm font-medium',
+        'relative px-2 py-1 md:px-2.5 md:py-1 lg:px-3 lg:py-1.5 xl:px-4 xl:py-2 rounded-full border transition-colors duration-200 shrink-0',
+        'text-xs md:text-xs lg:text-sm xl:text-base font-medium',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
         !isDisabled && 'cursor-pointer',
         isDisabled && 'cursor-default',
