@@ -78,7 +78,6 @@ export const FeedbackOverlay: React.FC<FeedbackOverlayProps> = ({
               </span>
               <div className="flex items-center gap-2">
                 <StarRating value={userRating} readOnly starSize="w-5 h-5" />
-                <span className="text-foreground font-bold text-lg">{userRating.toFixed(1)}</span>
               </div>
             </div>
 
@@ -88,7 +87,6 @@ export const FeedbackOverlay: React.FC<FeedbackOverlayProps> = ({
               </span>
               <div className="flex items-center gap-2">
                 <StarRating value={actualRating} readOnly starSize="w-5 h-5" />
-                <span className="text-foreground font-bold text-lg">{actualRating.toFixed(1)}</span>
               </div>
             </div>
           </div>

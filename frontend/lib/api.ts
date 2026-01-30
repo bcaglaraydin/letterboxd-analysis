@@ -64,6 +64,13 @@ export interface MetricsResponse {
  * Trigger metrics analysis for a username
  */
 export async function triggerMetrics(username: string): Promise<MetricsResponse> {
+  const shouldUseMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
+
+  if (shouldUseMock) {
+    const { triggerMetrics: mockTrigger } = await import('./mockApi');
+    return mockTrigger(username);
+  }
+
   const response = await fetch(`${getApiUrl()}/analysis`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -86,6 +93,13 @@ export async function pollMetricsStatus(
   username: string,
   minFilms: number = 5,
 ): Promise<MetricsResponse> {
+  const shouldUseMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
+
+  if (shouldUseMock) {
+    const { pollMetricsStatus: mockPoll } = await import('./mockApi');
+    return mockPoll(username, minFilms);
+  }
+
   const response = await fetch(
     `${getApiUrl()}/analysis/status?username=${username}&minFilms=${minFilms}`,
   );
@@ -97,6 +111,13 @@ export async function pollMetricsStatus(
  * Fetch full stats (for PostGameScreen)
  */
 export async function fetchFullStats(username: string): Promise<MetricsResponse> {
+  const shouldUseMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
+
+  if (shouldUseMock) {
+    const { fetchFullStats: mockFetch } = await import('./mockApi');
+    return mockFetch(username);
+  }
+
   const response = await fetch(`${getApiUrl()}/analysis/status?username=${username}`);
   const data = await response.json();
   return data;
