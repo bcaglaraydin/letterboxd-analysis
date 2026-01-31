@@ -31,16 +31,16 @@ export const GenreChipAnimated = ({
         const tierStyle = (() => {
           switch (genre.tier) {
             case 'niche':
-              return 'bg-accent text-accent-foreground border-green-500 ring-green-500';
+              return 'bg-accent text-accent-foreground border-transparent';
             case 'mid-tier':
-              return 'bg-primary text-primary-foreground border-green-500 ring-green-500';
+              return 'bg-primary text-primary-foreground border-transparent';
             case 'popular':
               // User specifically wants background to match text-muted-foreground color
-              return 'bg-[hsl(var(--muted-foreground))] text-background border-green-500 ring-green-500';
+              return 'bg-[hsl(var(--muted-foreground))] text-background border-transparent';
           }
         })();
 
-        return cn(tierStyle, 'font-bold shadow-md ring-2');
+        return cn(tierStyle, 'font-bold shadow-md');
       case 'incorrect':
         // Clear red text, no opacity, no line-through for readability
         // Maybe add faint background of tier?

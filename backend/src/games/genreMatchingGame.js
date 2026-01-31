@@ -8,9 +8,9 @@
  */
 
 export const CONFIG = {
-  POPULAR_THRESHOLD_PERCENT: 0.33, // Top 33%
-  MID_THRESHOLD_PERCENT: 0.66, // Next 33%
-  // Niche is remaining
+  POPULAR_THRESHOLD_PERCENT: 0.2, // Top 20% (Low count)
+  MID_THRESHOLD_PERCENT: 0.6, // Next 40% (Large Mid)
+  // Niche is remaining (Last 40%) - Large Niche
 
   SCORING: {
     WEIGHTS: { niche: 5, 'mid-tier': 3, popular: 1 },

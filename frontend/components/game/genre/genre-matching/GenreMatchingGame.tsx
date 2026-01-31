@@ -48,6 +48,8 @@ export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
     handleLock,
     handleNext,
     getGenrePoints,
+    maxPositivePoints,
+    maxNegativePoints,
   } = useGenreMatchingGame();
 
   // Helper to get points/penalty for a tier (used for header display only now)
@@ -100,7 +102,7 @@ export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
   const renderTierSection = (tier: GenreTier) => {
     const genres = getTierGenres(tier);
     const info = TIER_INFO[tier];
-    const { points, penalty } = getTierPoints(tier);
+    // Points/penalty previously used for hint, now removed from UI.
 
     if (genres.length === 0 && phase !== 'selecting') {
       return null;
@@ -118,9 +120,6 @@ export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
             )}
           >
             {info.stars} {info.label}
-          </span>
-          <span className="text-[8px] md:text-[9px] lg:text-[10px] xl:text-xs opacity-60">
-            (+{points}/{penalty})
           </span>
         </div>
         <div className="flex flex-wrap gap-1 md:gap-1 lg:gap-1.5 xl:gap-2.5 min-h-[28px] md:min-h-[28px] lg:min-h-[40px] xl:min-h-[48px]">
@@ -161,14 +160,17 @@ export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
         top={
           <div className="flex items-center justify-between w-full px-2 py-1">
             <GameRoundIndicator currentRound={currentFilmIndex + 1} totalRounds={FILMS_PER_GAME} />
+            {/* Score Panel */}
             <ScorePanel
               score={totalScore}
               pointsEarned={lastPointsEarned}
               flyFromPosition={flyFromPosition}
-              size="lg"
-              label="Score"
-              maxScore={120}
-              pointsPerAction={15}
+              maxScore={currentFilm?.theoreticalMax || 100}
+              className="mb-0"
+              size="md"
+              position="static"
+              maxPositivePoint={maxPositivePoints}
+              maxNegativePoint={maxNegativePoints}
               flyDuration={1.0}
             />
           </div>

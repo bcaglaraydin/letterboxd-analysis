@@ -91,6 +91,8 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
               label="Score"
               size="lg"
               position="static"
+              maxPositivePoint={20}
+              maxNegativePoint={0}
             />
           </div>
         }
