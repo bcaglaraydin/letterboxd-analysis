@@ -56,28 +56,33 @@ export function useGameInitialization(options: UseGameInitializationOptions = {}
 
       // 1. Rating Game
       if (data.ratingGame?.movies && data.ratingGame.movies.length > 0) {
-        // Only reset/start if we don't have movies yet or if we are explicitly starting fresh
-        // But purely hydration should be idempotent-ish.
-        // For Landing Page (fresh start), we usually call reset before this.
-        // For background polling, we might just update?
-        // Actually `startGame` in ratingStore just sets movies.
-        startRatingGame({
-          movies: data.ratingGame.movies,
-          userStats: data.userStats || null,
-        });
+        // Only initialize if not already populated to prevent game reset
+        const currentMovies = useRatingGameStore.getState().movies;
+        if (currentMovies.length === 0) {
+          startRatingGame({
+            movies: data.ratingGame.movies,
+            userStats: data.userStats || null,
+          });
+        }
       }
 
       // 2. Genre Ranking Game
       if (data.genreGame) {
-        startGenreGame({
-          ...data.genreGame,
-          previousScore: 0,
-        });
+        const currentGenres = useGenreRankingStore.getState().genres;
+        if (currentGenres.length === 0) {
+          startGenreGame({
+            ...data.genreGame,
+            previousScore: 0,
+          });
+        }
       }
 
       // 3. Genre Matching Game
       if (data.genreMatchingGame) {
-        initMatchingGame(data.genreMatchingGame);
+        const isMatchingActive = useGenreMatchingStore.getState().isActive;
+        if (!isMatchingActive) {
+          initMatchingGame(data.genreMatchingGame);
+        }
       }
     },
     [
