@@ -58,7 +58,7 @@ export interface GenreMatchingRound {
   posterUrl: string;
   year: number;
   correctGenres: string[];
-  genreScoring: Record<string, { correct: number; penalty: number }>;
+  genreScoring: Record<string, { correct: number; penalty: number; missed?: number }>;
   theoreticalMax: number;
   director?: string;
 }

@@ -17,7 +17,7 @@ export interface UseGenreMatchingGameReturn {
     posterUrl: string;
     correctGenreIds: string[];
     theoreticalMax?: number;
-    genreScoring?: Record<string, { correct: number; penalty: number }>;
+    genreScoring?: Record<string, { correct: number; penalty: number; missed?: number }>;
   };
   phase: GamePhase;
   totalScore: number;
@@ -41,7 +41,7 @@ export interface UseGenreMatchingGameReturn {
   isInCollectedZone: (genreId: string) => boolean;
   getTierGenres: (tier: GenreTier) => Genre[];
   getGenre: (id: string) => Genre | undefined;
-  getGenrePoints: (genreId: string) => { correct: number; penalty: number };
+  getGenrePoints: (genreId: string) => { correct: number; penalty: number; missed?: number };
 
   // Actions
   handleGenreClick: (genreId: string) => void;
@@ -221,10 +221,10 @@ export function useGenreMatchingGame(): UseGenreMatchingGameReturn {
         // default to at least -1
         const calculatedPenalty = -Math.max(1, Math.floor(weight * penaltyFactor));
 
-        return { correct: weight, penalty: calculatedPenalty };
+        return { correct: weight, penalty: calculatedPenalty, missed: -1 };
       }
 
-      return { correct: 0, penalty: 0 };
+      return { correct: 0, penalty: 0, missed: 0 };
     },
     [scoringMap, allGenres, config.scoring],
   );
@@ -272,6 +272,8 @@ export function useGenreMatchingGame(): UseGenreMatchingGameReturn {
         points = gPoints.correct || 0;
       } else if (result === 'incorrect') {
         points = gPoints.penalty || 0;
+      } else if (result === 'missed') {
+        points = gPoints.missed || -1; // Default to -1 if undefined
       }
     }
 
@@ -303,6 +305,7 @@ export function useGenreMatchingGame(): UseGenreMatchingGameReturn {
         }, ANIMATION_TIMING.FLY_ANIMATION_MS);
       }, ANIMATION_TIMING.INCORRECT_HOLD_MS);
     } else {
+      // Handle 'correct' AND 'missed' (both flow similarly, just update score/state)
       setEvaluatedGenres((prev) => new Map(prev).set(genreId, result));
 
       const chipEl = chipRefsMap.current.get(genreId);
@@ -450,6 +453,7 @@ export function useGenreMatchingGame(): UseGenreMatchingGameReturn {
         const pts = getGenrePoints(genreId);
         if (result === 'correct') score += pts.correct;
         else if (result === 'incorrect') score += pts.penalty;
+        else if (result === 'missed') score += pts.missed || -1;
       });
       return score;
     }, [evaluatedGenres, getGenrePoints]),
