@@ -1,13 +1,24 @@
 'use client';
 
 import { useState, useCallback, useMemo, useRef } from 'react';
-import { MOCK_FILMS, MOCK_GENRES, FILMS_PER_GAME, ANIMATION_TIMING } from './constants';
-import { Genre, GenreTier, GamePhase, TIER_POINTS, ChipDisplayState } from './types';
+import { MOCK_FILMS, MOCK_GENRES, ANIMATION_TIMING } from './constants';
+import { Genre, GenreTier, GamePhase, ChipDisplayState } from './types';
+import { useGenreMatchingStore } from '@/store/genre/matchingStore';
+import { ScoringConfig } from '@/lib/api';
 
 export interface UseGenreMatchingGameReturn {
   // State
   currentFilmIndex: number;
-  currentFilm: (typeof MOCK_FILMS)[0];
+  currentFilm: {
+    id: string;
+    title: string;
+    year: number;
+    director?: string;
+    posterUrl: string;
+    correctGenreIds: string[];
+    theoreticalMax?: number;
+    genreScoring?: Record<string, { correct: number; penalty: number }>;
+  };
   phase: GamePhase;
   totalScore: number;
   lastPointsEarned: number | null;
@@ -29,6 +40,8 @@ export interface UseGenreMatchingGameReturn {
   getChipState: (genreId: string) => ChipDisplayState;
   isInCollectedZone: (genreId: string) => boolean;
   getTierGenres: (tier: GenreTier) => Genre[];
+  getGenre: (id: string) => Genre | undefined;
+  getGenrePoints: (genreId: string) => { correct: number; penalty: number };
 
   // Actions
   handleGenreClick: (genreId: string) => void;
@@ -36,16 +49,27 @@ export interface UseGenreMatchingGameReturn {
   handleNext: () => void;
   handleReset: () => void;
   clearSelections: () => void;
+
+  // Config
+  scoringConfig: ScoringConfig;
 }
 
 export function useGenreMatchingGame(): UseGenreMatchingGameReturn {
-  // Game state
-  const [currentFilmIndex, setCurrentFilmIndex] = useState(0);
+  const { rounds, rarityMap, currentIndex, isActive, nextRound, resetGame, config } =
+    useGenreMatchingStore();
+
+  // Local Game state (per round stuff that doesn't need to be global maybe?)
+  // Actually currentIndex is global.
+  // collectedGenreIds is local to the round interface.
+
   const [collectedGenreIds, setCollectedGenreIds] = useState<Set<string>>(new Set());
   const [phase, setPhase] = useState<GamePhase>('selecting');
   const [evaluatedGenres, setEvaluatedGenres] = useState<
     Map<string, 'correct' | 'incorrect' | 'missed'>
   >(new Map());
+
+  // We keep a running local score for the UI, synced with store when confirmed?
+  // Or just use local state for the game session.
   const [totalScore, setTotalScore] = useState(0);
   const [lastPointsEarned, setLastPointsEarned] = useState<number | null>(null);
 
@@ -57,22 +81,71 @@ export function useGenreMatchingGame(): UseGenreMatchingGameReturn {
   // Map to store refs for each genre chip element
   const chipRefsMap = useRef<Map<string, HTMLButtonElement>>(new Map());
 
-  const currentFilm = MOCK_FILMS[currentFilmIndex];
+  // Use effective data (fallback to mocks if inactive/empty for testing dev flow only if needed,
+  // but better to rely on real data if active)
+  const hasRealData = isActive && rounds.length > 0;
+
+  console.log('useGenreMatchingGame: State', {
+    isActive,
+    roundsLength: rounds.length,
+    hasRealData,
+  });
+
+  const currentFilmIndex = hasRealData ? currentIndex : 0;
+  const films = hasRealData ? rounds : MOCK_FILMS;
+  const currentFilmRaw = films[currentFilmIndex] || films[0];
+
+  // Adapter for film object structure differences if any
+  const currentFilm = useMemo(
+    () => ({
+      id: currentFilmRaw.id,
+      title: currentFilmRaw.title,
+      year: parseInt(String(currentFilmRaw.year)),
+      posterUrl: currentFilmRaw.posterUrl,
+      correctGenreIds: currentFilmRaw.correctGenres || [],
+      director: currentFilmRaw.director || '',
+      genreScoring: currentFilmRaw.genreScoring || {},
+      theoreticalMax: currentFilmRaw.theoreticalMax || 0,
+    }),
+    [currentFilmRaw],
+  );
+
   const correctGenreIds = useMemo(
     () => new Set(currentFilm.correctGenreIds),
     [currentFilm.correctGenreIds],
   );
 
+  // Generate Genre Objects from Rarity Map
+  const allGenres = useMemo(() => {
+    if (!hasRealData) return MOCK_GENRES;
+
+    return Object.entries(rarityMap).map(([name, tierRaw]) => {
+      // Map backend 'mid' to frontend 'mid-tier'
+      let tier: GenreTier = 'niche';
+      if (tierRaw === 'popular') tier = 'popular';
+      else if (tierRaw === 'mid' || tierRaw === 'mid-tier') tier = 'mid-tier';
+      // else niche
+
+      return {
+        id: name, // Name is ID for now as we key by string
+        name: name,
+        tier,
+      };
+    });
+  }, [rarityMap, hasRealData]);
+
   // Group genres by tier
   const genresByTier = useMemo(() => {
-    return MOCK_GENRES.reduce(
+    return allGenres.reduce(
       (acc, genre) => {
-        acc[genre.tier].push(genre);
+        if (acc[genre.tier]) {
+          acc[genre.tier].push(genre);
+        }
         return acc;
       },
       { niche: [], 'mid-tier': [], popular: [] } as Record<GenreTier, Genre[]>,
     );
-  }, []);
+  }, [allGenres]);
 
   // Get chip display state
   const getChipState = useCallback(
@@ -104,7 +177,7 @@ export function useGenreMatchingGame(): UseGenreMatchingGameReturn {
       if (phase !== 'selecting') return;
 
       setCollectedGenreIds((prev) => {
-        const next = new Set(prev);
+        const next = new Set<string>(prev);
         if (next.has(genreId)) {
           next.delete(genreId);
         } else {
@@ -114,6 +187,41 @@ export function useGenreMatchingGame(): UseGenreMatchingGameReturn {
       });
     },
     [phase],
+  );
+
+  // Points derived from the current film's specific scoring distribution
+  const scoringMap = useMemo(() => {
+    if (!currentFilm || !currentFilm.genreScoring) {
+      return {};
+    }
+    return currentFilm.genreScoring;
+  }, [currentFilm]);
+
+  const getGenrePoints = useCallback(
+    (genreId: string) => {
+      // 1. Try specific scoring from backend (for correct genres)
+      if (scoringMap && scoringMap[genreId]) {
+        return scoringMap[genreId];
+      }
+
+      // 2. Fallback: Calculate generic penalty for this genre's tier
+      // (Used for incorrect guesses that aren't in the correctGenres list)
+      const genre = allGenres.find((g) => g.id === genreId);
+      if (genre) {
+        const tier = genre.tier;
+        const weight = config.scoring.WEIGHTS[tier] || 1;
+        const penaltyFactor = config.scoring.PENALTY_FACTOR || 0.75;
+
+        // Calculate theoretical penalty based on weight
+        // default to at least -1
+        const calculatedPenalty = -Math.max(1, Math.floor(weight * penaltyFactor));
+
+        return { correct: weight, penalty: calculatedPenalty };
+      }
+
+      return { correct: 0, penalty: 0 };
+    },
+    [scoringMap, allGenres, config.scoring],
   );
 
   // Reveal function using recursive setTimeout
@@ -126,7 +234,8 @@ export function useGenreMatchingGame(): UseGenreMatchingGameReturn {
     const genreId = queue[index];
     const isCorrect = correctGenreIds.has(genreId);
     const wasSelected = collectedGenreIds.has(genreId);
-    const genre = MOCK_GENRES.find((g) => g.id === genreId);
+    // Find genre object
+    const genre = allGenres.find((g) => g.id === genreId);
 
     // Determine result
     let result: 'correct' | 'incorrect' | 'missed';
@@ -136,19 +245,28 @@ export function useGenreMatchingGame(): UseGenreMatchingGameReturn {
       result = 'incorrect';
     } else {
       result = 'missed';
-      const selectedCount = collectedGenreIds.size;
-      if (index === selectedCount) {
-        setPhase('showing-missed');
-      }
+      // If we are showing missed, update phase?
+      // Logic from before: "if (index === selectedCount) setPhase('showing-missed')"
+      // We need to know when we switch from checking selections to showing missed.
+      // queue = [...selectedList, ...missedList]
+      // index will reach selectedList.length eventually.
+    }
+
+    // Check phase transition
+    // Note: This relies on queue order: selections first, then missed.
+    // Ideally we check if 'wasSelected' is false, it means we are in missed section?
+    if (!wasSelected && phase !== 'showing-missed') {
+      setPhase('showing-missed');
     }
 
     // Calculate points
     let points = 0;
     if (genre) {
+      const gPoints = getGenrePoints(genre.id);
       if (result === 'correct') {
-        points = TIER_POINTS[genre.tier].correct;
+        points = gPoints.correct || 0;
       } else if (result === 'incorrect') {
-        points = TIER_POINTS[genre.tier].incorrect;
+        points = gPoints.penalty || 0;
       }
     }
 
@@ -203,10 +321,12 @@ export function useGenreMatchingGame(): UseGenreMatchingGameReturn {
   const handleLock = useCallback(() => {
     setPhase('locked');
 
-    const selectedList = MOCK_GENRES.filter((g) => collectedGenreIds.has(g.id)).map((g) => g.id);
-    const missedList = MOCK_GENRES.filter(
-      (g) => correctGenreIds.has(g.id) && !collectedGenreIds.has(g.id),
-    ).map((g) => g.id);
+    const selectedList = Array.from(collectedGenreIds); // Order might be insertion order
+    // Better to filter allGenres to keep consistent order or just use set iteration
+
+    const missedList = allGenres
+      .filter((g) => correctGenreIds.has(g.id) && !collectedGenreIds.has(g.id))
+      .map((g) => g.id);
 
     const queue = [...selectedList, ...missedList];
 
@@ -215,7 +335,7 @@ export function useGenreMatchingGame(): UseGenreMatchingGameReturn {
       revealNext(queue, 0);
     }, ANIMATION_TIMING.REVEAL_DELAY_MS);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [collectedGenreIds, correctGenreIds]);
+  }, [collectedGenreIds, correctGenreIds, allGenres]);
 
   // Reset round state
   const resetRoundState = useCallback(() => {
@@ -231,31 +351,31 @@ export function useGenreMatchingGame(): UseGenreMatchingGameReturn {
 
   // Move to next film
   const handleNext = useCallback(() => {
-    if (currentFilmIndex < FILMS_PER_GAME - 1) {
-      setCurrentFilmIndex((prev) => prev + 1);
+    if (currentFilmIndex < films.length - 1) {
+      nextRound(); // Update store index
       resetRoundState();
     }
-  }, [currentFilmIndex, resetRoundState]);
+  }, [currentFilmIndex, resetRoundState, nextRound, films.length]);
 
   // Reset entire game
   const handleReset = useCallback(() => {
-    setCurrentFilmIndex(0);
+    resetGame(); // Reset store
     setTotalScore(0);
     resetRoundState();
-  }, [resetRoundState]);
+  }, [resetRoundState, resetGame]);
 
   // Clear selections
   const clearSelections = useCallback(() => {
     setCollectedGenreIds(new Set());
   }, []);
 
-  const isGameComplete = currentFilmIndex === FILMS_PER_GAME - 1 && phase === 'complete';
+  const isGameComplete = currentFilmIndex === films.length - 1 && phase === 'complete';
   const canLock = phase === 'selecting' && collectedGenreIds.size > 0;
 
   // Get collected genres for display
   const collectedGenres = useMemo(() => {
-    return MOCK_GENRES.filter((g) => isInCollectedZone(g.id));
-  }, [isInCollectedZone]);
+    return allGenres.filter((g) => isInCollectedZone(g.id));
+  }, [isInCollectedZone, allGenres]);
 
   // Get tier genres (not in collected zone)
   const getTierGenres = useCallback(
@@ -291,11 +411,14 @@ export function useGenreMatchingGame(): UseGenreMatchingGameReturn {
     isInCollectedZone,
     getTierGenres,
 
+    getGenre: (id: string) => allGenres.find((g) => g.id === id),
+    getGenrePoints,
     // Actions
     handleGenreClick,
     handleLock,
     handleNext,
     handleReset,
     clearSelections,
+    scoringConfig: config.scoring,
   };
 }

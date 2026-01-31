@@ -10,11 +10,10 @@ vi.mock('../../games/ratingGame.js');
 vi.mock('../../games/genreGame.js', () => ({
   generateGenreGame: vi.fn(),
 }));
-vi.mock('../../services/statsService.js', () => ({
-  calculateRatingDistribution: vi.fn(),
-  calculateBasicStats: vi.fn(),
-  calculateCommunityComparison: vi.fn(),
-  findGuiltyPleasure: vi.fn(() => ({})),
+vi.mock('../../services/gameService.js', () => ({
+  GameService: {
+    generateAll: vi.fn(),
+  },
 }));
 
 describe('getAnalysisStatusHandler', () => {
@@ -56,6 +55,43 @@ describe('getAnalysisStatusHandler', () => {
     expect(body.status).toBe('partial_ready');
     expect(body.progress).toBeLessThan(1);
     expect(generateRatingGame).toHaveBeenCalled();
+  });
+
+  it('should return "ready" when all films have metadata', async () => {
+    // Mock scraped user films
+    const mockUserFilms = [
+      { slug: 'film1', userRating: 5 },
+      { slug: 'film2', userRating: 4 },
+    ];
+    getUserJob.mockResolvedValue({ films: mockUserFilms, jobId: 'job-123' });
+
+    // Mock Metadata: All ready
+    const mockDbItems = [
+      { slug: 'film1', year: '2020' },
+      { slug: 'film2', year: '2021' },
+    ];
+    batchGet.mockResolvedValue(mockDbItems);
+
+    const mockGameData = {
+      userStats: { totalMovies: 2 },
+      ratingGame: {},
+      genreGame: {},
+      genreMatchingGame: {},
+    };
+
+    // Import GameService to mock its method return
+    const { GameService } = await import('../../services/gameService.js');
+    GameService.generateAll.mockResolvedValue(mockGameData);
+
+    const result = await handler({ queryStringParameters: { username: 'test' } });
+
+    expect(result.statusCode).toBe(200);
+    const body = JSON.parse(result.body);
+
+    expect(body.status).toBe('ready');
+    expect(body.progress).toBe(1);
+    expect(GameService.generateAll).toHaveBeenCalled();
+    expect(body.userStats).toBeDefined();
   });
 
   it('should return "processing" if not enough films have metadata', async () => {

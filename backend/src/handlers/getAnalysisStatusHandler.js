@@ -1,13 +1,7 @@
 import { batchGet } from '../services/dynamoDbService.js';
-import { getUserJob } from '../services/userJobService.js';
-import { generateGenreGame } from '../games/genreGame.js';
-import { generateRatingGame } from '../games/ratingGame.js';
-import {
-  calculateRatingDistribution,
-  calculateBasicStats,
-  calculateCommunityComparison,
-  findGuiltyPleasure,
-} from '../services/statsService.js';
+import { getUserJob, updateUserJob } from '../services/userJobService.js';
+import { GameService } from '../services/gameService.js';
+import { generateRatingGame } from '../games/ratingGame.js'; // Kept for partial_ready logic
 
 export const handler = async (event) => {
   try {
@@ -26,10 +20,10 @@ export const handler = async (event) => {
       throw new Error('FILMS_TABLE environment variable is not set');
     }
 
-    // 1. STATEFUL ARCHITECTURE: Read User Job from DB (No scraping)
     let userFilms = [];
+    let job = null;
     try {
-      const job = await getUserJob(username);
+      job = await getUserJob(username);
 
       if (!job || !job.films) {
         // Option A: Return "Not Found" logic (Frontend should restart)
@@ -46,6 +40,27 @@ export const handler = async (event) => {
 
       userFilms = job.films; // [{ slug, userRating }]
       console.log(`[Status] Loaded ${userFilms.length} films from cache (Job: ${job.jobId})`);
+
+      // SELF-HEALING: Check for Stuck Jobs (Processing > 3 mins)
+      if (job.status === 'processing') {
+        const MAX_PROCESSING_TIME = 180; // 3 minutes in seconds
+        const now = Math.floor(Date.now() / 1000);
+        const lastUpdated = job.updatedAt || job.createdAt;
+
+        if (now - lastUpdated > MAX_PROCESSING_TIME) {
+          console.warn(
+            `[Status] Job ${job.jobId} is STUCK (last update: ${now - lastUpdated}s ago). Auto-deleting.`
+          );
+          await import('../services/userJobService.js').then((m) => m.deleteUserJob(username));
+          return {
+            statusCode: 200,
+            body: JSON.stringify({
+              status: 'not_found',
+              message: 'Previous analysis timed out. Please restart.',
+            }),
+          };
+        }
+      }
 
       // If job is pending (just started) or processing but list is not yet saved
       if (job.status === 'pending' || (job.status === 'processing' && userFilms.length === 0)) {
@@ -92,6 +107,26 @@ export const handler = async (event) => {
     const dbItems = await batchGet(FILMS_TABLE, uniqueSlugs);
     const metadataMap = new Map();
     dbItems.forEach((item) => metadataMap.set(item.slug, item));
+
+    // SELF-HEALING: Check for Data Inconsistency
+    // If we have many films in the job list, but very few in the DB, something is wrong (cleaned DB etc)
+    const foundCount = dbItems.length;
+    const expectedCount = uniqueSlugs.length;
+
+    // Threshold: If we expect > 10 films but found < 5% of them, and job says it has films...
+    if (expectedCount > 10 && foundCount < expectedCount * 0.05) {
+      console.warn(
+        `[Status] DATA INCONSISTENCY! Expected ${expectedCount} films, found ${foundCount}. Auto-deleting job.`
+      );
+      await import('../services/userJobService.js').then((m) => m.deleteUserJob(username));
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          status: 'not_found',
+          message: 'Data inconsistency detected. Please restart analysis.',
+        }),
+      };
+    }
 
     // 3. Count rated films with valid metadata
     let ratedFilmsWithMetadata = 0;
@@ -157,68 +192,30 @@ export const handler = async (event) => {
       `[Status] READY: ${username} has ${ratedFilmsWithMetadata}/${totalRatedFilms} films.`
     );
 
-    const allFilmsWithMeta = userFilms.map((f) => {
-      const meta = metadataMap.get(f.slug) || {};
-      return {
-        slug: f.slug,
-        userRating: f.userRating,
-        ...meta,
-        poster: meta.posterUrl || f.posterUrl,
-        title: meta.title || f.title || f.slug,
-      };
-    });
+    // PERSISTENCE FIX: Mark job as ready in DB so it doesn't get auto-deleted as "stuck"
+    if (job.status !== 'ready') {
+      try {
+        console.log(`[Status] Updating job ${username} to ready...`);
+        await updateUserJob(username, {
+          status: 'ready',
+          updatedAt: Math.floor(Date.now() / 1000),
+        });
+        console.log(`[Status] Job ${username} marked as ready.`);
+      } catch (updateErr) {
+        console.error(`[Status] Failed to update job status for ${username}:`, updateErr);
+        // Soft fail - don't block the response, but log it
+      }
+    }
 
-    // Generate Genre Game
-    const genreGameData = generateGenreGame(allFilmsWithMeta, { limit: 8 });
-
-    // Generate Rating Game
-    const ratingGameData = await generateRatingGame(userFilms, metadataMap, {
-      minRatedFilms: minFilms,
-    });
-
-    // Calculate User Stats
-    const userRatings = userFilms.map((f) => f.userRating).filter((r) => r !== null);
-    const ratingDist = calculateRatingDistribution(userRatings);
-    const basicStats = calculateBasicStats(userRatings);
-    const commStats = calculateCommunityComparison(allFilmsWithMeta);
-    const commRatings = allFilmsWithMeta
-      .map((f) => f.averageRating)
-      .filter((r) => r != null && r > 0);
-    const commDist = calculateRatingDistribution(commRatings);
-
-    // Guilty Pleasure
-    const candidates = allFilmsWithMeta
-      .filter((f) => f.averageRating)
-      .map((f) => ({
-        ...f,
-        communityRating: f.averageRating,
-      }));
-
-    const { guiltyPleasures, controversialPicks } = findGuiltyPleasure(candidates);
-
-    const stats = {
-      totalMovies: userFilms.length,
-      averageRating: basicStats.average,
-      ratingDistribution: ratingDist,
-      generosity: {
-        median: basicStats.median,
-        average: basicStats.average,
-        stdDev: basicStats.stdDev,
-      },
-      communityComparison: commStats,
-      communityRatingDistribution: commDist,
-      guiltyPleasures,
-      controversialPicks,
-    };
+    // Use GameService to generate all game data and stats
+    const gameData = await GameService.generateAll(userFilms, metadataMap, minFilms);
 
     return {
       statusCode: 200,
       body: JSON.stringify({
         status: 'ready',
         progress: 1,
-        userStats: stats,
-        ratingGame: ratingGameData,
-        genreGame: genreGameData,
+        ...gameData,
       }),
     };
   } catch (error) {

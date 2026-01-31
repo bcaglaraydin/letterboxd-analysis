@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useExperienceStore } from '@/store/core/experienceStore';
 import { GameBackground } from '@/components/game/shared/GameBackground';
 import { GameLayout } from '@/components/game/shared/GameLayout';
+import { GAME_PHASES } from '@/lib/gameTypes';
 
 import { RATING_GAME_CONFIG } from '@/components/game/rating/constants';
 import { GENRE_RANKING_CONFIG } from '@/components/game/genre/ranking/constants';
@@ -14,9 +15,9 @@ import { GENRE_RANKING_CONFIG } from '@/components/game/genre/ranking/constants'
 export const GameHub = () => {
   const { scores, startGenreGame, startRatingGame, unlockedGames, completedGames } =
     useExperienceStore();
-  const isGenreUnlocked = unlockedGames.includes('genre-game');
-  const isRatingCompleted = completedGames.includes('rating-game');
-  const isGenreCompleted = completedGames.includes('genre-game');
+  const isGenreUnlocked = unlockedGames.includes(GAME_PHASES.GENRE);
+  const isRatingCompleted = completedGames.includes(GAME_PHASES.RATING);
+  const isGenreCompleted = completedGames.includes(GAME_PHASES.GENRE);
   const allGamesCompleted = isRatingCompleted && isGenreCompleted;
 
   const container = {

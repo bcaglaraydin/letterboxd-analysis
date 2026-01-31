@@ -19,7 +19,9 @@ export interface Film {
   year: number;
   director: string;
   posterUrl: string;
-  correctGenreIds: string[];
+  correctGenres: string[];
+  genreScoring?: Record<string, { correct: number; penalty: number }>;
+  theoreticalMax?: number;
 }
 
 export interface GenreSelection {
@@ -36,11 +38,11 @@ export interface RevealedGenre {
 
 export type GamePhase = 'selecting' | 'locked' | 'revealing' | 'showing-missed' | 'complete';
 
-// Points configuration per tier
+// Points configuration per tier (Synced with backend)
 export const TIER_POINTS: Record<GenreTier, { correct: number; incorrect: number }> = {
-  niche: { correct: 15, incorrect: -5 },
-  'mid-tier': { correct: 10, incorrect: -3 },
-  popular: { correct: 5, incorrect: -2 },
+  niche: { correct: 5, incorrect: -4 },
+  'mid-tier': { correct: 3, incorrect: -2 },
+  popular: { correct: 1, incorrect: -1 },
 };
 
 // Tier display info

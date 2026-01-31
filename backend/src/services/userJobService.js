@@ -133,3 +133,16 @@ export async function getUserJob(username) {
     return null;
   }
 }
+
+export async function deleteUserJob(username) {
+  if (!TABLE_NAME) return;
+  try {
+    await import('./dynamoDbService.js').then((module) =>
+      module.deleteItem(TABLE_NAME, { username })
+    );
+    console.log(`[UserJobService] Deleted job for ${username}`);
+  } catch (error) {
+    console.error(`[UserJobService] Failed to delete job for ${username}:`, error);
+    throw error;
+  }
+}

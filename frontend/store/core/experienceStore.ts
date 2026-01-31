@@ -1,8 +1,7 @@
 import { create } from 'zustand';
 import { pollMetricsStatus, fetchFullStats as apiFetchFullStats } from '@/lib/api';
 import type { UserStats, Genre, GenreGameData, MetricsResponse } from '@/lib/api';
-
-export type GamePhase = 'rating-game' | 'hub' | 'genre-game';
+import { GamePhase, GAME_PHASES } from '@/lib/gameTypes';
 
 // Re-export types for backwards compatibility
 export type { UserStats, Genre, GenreGameData };
@@ -32,12 +31,12 @@ interface ExperienceState {
 }
 
 export const useExperienceStore = create<ExperienceState>((set, get) => ({
-  currentPhase: 'rating-game',
+  currentPhase: GAME_PHASES.RATING,
   scores: {
     rating: 0,
     genre: 0,
   },
-  unlockedGames: ['rating-game'],
+  unlockedGames: [GAME_PHASES.RATING],
   completedGames: [],
   backgroundStatus: 'idle',
   username: null,
@@ -45,33 +44,33 @@ export const useExperienceStore = create<ExperienceState>((set, get) => ({
   completeRatingGame: (score) =>
     set((state) => ({
       scores: { ...state.scores, rating: score },
-      unlockedGames: [...new Set([...state.unlockedGames, 'genre-game'])],
-      completedGames: [...new Set([...state.completedGames, 'rating-game'])],
-      currentPhase: 'hub',
+      unlockedGames: [...new Set([...state.unlockedGames, GAME_PHASES.GENRE])],
+      completedGames: [...new Set([...state.completedGames, GAME_PHASES.RATING])],
+      currentPhase: GAME_PHASES.HUB,
     })),
 
   startGenreGame: () =>
     set({
-      currentPhase: 'genre-game',
+      currentPhase: GAME_PHASES.GENRE,
     }),
 
   startRatingGame: () =>
     set({
-      currentPhase: 'rating-game',
+      currentPhase: GAME_PHASES.RATING,
     }),
 
   completeGenreGame: (score) =>
     set((state) => ({
       scores: { ...state.scores, genre: score },
-      completedGames: [...new Set([...state.completedGames, 'genre-game'])],
-      currentPhase: 'hub',
+      completedGames: [...new Set([...state.completedGames, GAME_PHASES.GENRE])],
+      currentPhase: GAME_PHASES.HUB,
     })),
 
   resetExperience: () =>
     set({
-      currentPhase: 'rating-game',
+      currentPhase: GAME_PHASES.RATING,
       scores: { rating: 0, genre: 0 },
-      unlockedGames: ['rating-game'],
+      unlockedGames: [GAME_PHASES.RATING],
       completedGames: [],
       backgroundStatus: 'idle',
       username: null,

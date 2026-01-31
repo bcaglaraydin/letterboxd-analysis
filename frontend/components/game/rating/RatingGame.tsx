@@ -108,7 +108,7 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
                 />
               </div>
             )}
-            
+
             {/* Desktop: Interaction Section Grouped with Card */}
             <div className="hidden md:block w-full mt-4">
               <div className="shrink-0 space-y-6 lg:space-y-8 text-center w-full max-w-xl mx-auto">
