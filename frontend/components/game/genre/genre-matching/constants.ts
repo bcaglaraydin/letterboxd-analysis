@@ -37,7 +37,7 @@ export const MOCK_FILMS: Film[] = [
     year: 2017,
     director: 'Denis Villeneuve',
     posterUrl: 'https://image.tmdb.org/t/p/w500/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg',
-    correctGenreIds: ['scifi', 'drama', 'mystery', 'neo-noir'],
+    correctGenres: ['scifi', 'drama', 'mystery', 'neo-noir'],
   },
   {
     id: 'film-2',
@@ -45,7 +45,7 @@ export const MOCK_FILMS: Film[] = [
     year: 2019,
     director: 'Bong Joon-ho',
     posterUrl: 'https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg',
-    correctGenreIds: ['drama', 'thriller', 'comedy', 'crime'],
+    correctGenres: ['drama', 'thriller', 'comedy', 'crime'],
   },
   {
     id: 'film-3',
@@ -53,7 +53,7 @@ export const MOCK_FILMS: Film[] = [
     year: 2014,
     director: 'Wes Anderson',
     posterUrl: 'https://image.tmdb.org/t/p/w500/eWdyYQreja6JGCzqHWXpWHDrrPo.jpg',
-    correctGenreIds: ['comedy', 'drama', 'crime', 'mystery'],
+    correctGenres: ['comedy', 'drama', 'crime', 'mystery'],
   },
   {
     id: 'film-4',
@@ -61,7 +61,7 @@ export const MOCK_FILMS: Film[] = [
     year: 2011,
     director: 'Nicolas Winding Refn',
     posterUrl: 'https://image.tmdb.org/t/p/w500/602vevIURmpDfzbnv5Ubi6wIkQm.jpg',
-    correctGenreIds: ['crime', 'drama', 'thriller', 'neo-noir'],
+    correctGenres: ['crime', 'drama', 'thriller', 'neo-noir'],
   },
   {
     id: 'film-5',
@@ -69,7 +69,7 @@ export const MOCK_FILMS: Film[] = [
     year: 2018,
     director: 'Bob Persichetti',
     posterUrl: 'https://image.tmdb.org/t/p/w500/iiZZdoQBEYBv6id8su7ImL0oCbD.jpg',
-    correctGenreIds: ['animation', 'action', 'scifi', 'comedy'],
+    correctGenres: ['animation', 'action', 'scifi', 'comedy'],
   },
 ];
 

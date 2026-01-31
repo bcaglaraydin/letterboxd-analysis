@@ -51,12 +51,37 @@ export interface RatingGameData {
 
 export type MetricsStatus = 'accepted' | 'processing' | 'partial_ready' | 'ready' | 'error';
 
+export interface GenreMatchingRound {
+  id: string;
+  slug: string;
+  title: string;
+  posterUrl: string;
+  year: number;
+  correctGenres: string[];
+  genreScoring: Record<string, { correct: number; penalty: number }>;
+  theoreticalMax: number;
+  director?: string;
+}
+
+export interface ScoringConfig {
+  WEIGHTS: Record<string, number>;
+  PENALTY_FACTOR: number;
+}
+
+export interface GenreMatchingGameData {
+  rounds: GenreMatchingRound[];
+  rarityMap: Record<string, string>;
+  scoring: ScoringConfig;
+  maxScorePerMovie: number;
+}
+
 export interface MetricsResponse {
   status: MetricsStatus;
   progress?: number;
   message?: string;
   ratingGame?: RatingGameData;
   genreGame?: GenreGameData;
+  genreMatchingGame?: GenreMatchingGameData;
   userStats?: UserStats;
 }
 

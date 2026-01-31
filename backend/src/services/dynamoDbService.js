@@ -119,45 +119,63 @@ export async function batchGet(tableName, keys) {
     chunks.push(keys.slice(i, i + batchSize));
   }
 
-  const results = await Promise.all(
-    chunks.map(async (batchKeys) => {
-      let attempt = 0;
-      let items = [];
-      let currentKeys = batchKeys;
+  const results = [];
 
-      while (currentKeys.length > 0 && attempt < 3) {
-        const command = new BatchGetCommand({
-          RequestItems: {
-            [tableName]: { Keys: currentKeys },
-          },
-        });
+  // Process sequentially to avoid throttling/provisioned throughput exceptions
+  for (const batchKeys of chunks) {
+    let attempt = 0;
+    let items = [];
+    let currentKeys = batchKeys;
 
-        try {
-          const response = await docClient.send(command);
-          if (response.Responses && response.Responses[tableName]) {
-            items = items.concat(response.Responses[tableName]);
-          }
+    while (currentKeys.length > 0 && attempt < 5) {
+      // Increased retries to 5
+      const command = new BatchGetCommand({
+        RequestItems: {
+          [tableName]: { Keys: currentKeys },
+        },
+      });
 
-          if (response.UnprocessedKeys && response.UnprocessedKeys[tableName]) {
-            const unprocessed = response.UnprocessedKeys[tableName];
-            console.warn(`BatchGet: ${unprocessed.Keys.length} keys unprocessed. Retrying...`);
-            currentKeys = unprocessed.Keys;
-            attempt++;
-            await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
-          } else {
-            currentKeys = [];
-          }
-        } catch (error) {
-          console.error(`Error batch getting from ${tableName}:`, error);
-          throw error;
+      try {
+        console.log(`[BatchGet] Requesting ${currentKeys.length} keys from ${tableName}`);
+        const response = await docClient.send(command);
+        if (response.Responses && response.Responses[tableName]) {
+          const found = response.Responses[tableName].length;
+          console.log(`[BatchGet] Got ${found} items from ${tableName}`);
+          items = items.concat(response.Responses[tableName]);
+        } else {
+          console.warn(`[BatchGet] Response empty for ${tableName}`);
         }
+
+        if (response.UnprocessedKeys && response.UnprocessedKeys[tableName]) {
+          const unprocessed = response.UnprocessedKeys[tableName];
+          console.warn(
+            `BatchGet: ${unprocessed.Keys.length} keys unprocessed. Retrying (attempt ${attempt + 1})...`
+          );
+          currentKeys = unprocessed.Keys;
+          attempt++;
+          // Exponential backoff: 500ms, 1000ms, 2000ms, 4000ms, 8000ms
+          await new Promise((resolve) => setTimeout(resolve, 500 * Math.pow(2, attempt)));
+        } else {
+          currentKeys = [];
+        }
+      } catch (error) {
+        console.error(`Error batch getting from ${tableName}:`, error);
+        // If it's a throughput error, wait and retry. Else throw?
+        // For simplicity, we define general retry logic above, but catching error here might break the loop.
+        // Let's assume transient errors can be retried if we had logic, but here we just log and throw to be safe or maybe continue?
+        // Better to throw so we know something is wrong.
+        throw error;
       }
-      if (currentKeys.length > 0) {
-        console.error(`Failed to get batch from ${tableName} after 3 attempts.`);
-      }
-      return items;
-    })
-  );
+    }
+
+    if (currentKeys.length > 0) {
+      console.error(
+        `Failed to get batch from ${tableName} after 5 attempts. Missing ${currentKeys.length} items.`
+      );
+    }
+
+    results.push(items);
+  }
 
   return results.flat();
 }

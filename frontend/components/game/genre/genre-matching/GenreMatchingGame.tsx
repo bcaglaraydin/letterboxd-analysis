@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { Lock, ArrowRight, RotateCcw, Sparkles, X } from 'lucide-react';
 import Image from 'next/image';
@@ -10,8 +10,8 @@ import { GameRoundIndicator } from '@/components/game/shared/GameRoundIndicator'
 import { ScorePanel } from '@/components/game/shared/ScorePanel';
 import { Button } from '@/components/ui/button';
 
-import { MOCK_GENRES, FILMS_PER_GAME } from './constants';
-import { GenreTier, TIER_POINTS, TIER_INFO } from './types';
+import { FILMS_PER_GAME } from './constants';
+import { GenreTier, TIER_INFO } from './types';
 import { GenreChipAnimated } from './GenreChipAnimated';
 import { useGenreMatchingGame } from './useGenreMatchingGame';
 
@@ -20,7 +20,11 @@ import { useGenreMatchingGame } from './useGenreMatchingGame';
  * Layout: Available genres LEFT, Movie card + collected zone RIGHT
  * Mobile: Stacked with genres first, then movie
  */
-export function GenreMatchingGame() {
+interface GenreMatchingGameProps {
+  onGameComplete?: (score: number) => void;
+}
+
+export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
   const {
     currentFilmIndex,
     currentFilm,
@@ -32,37 +36,53 @@ export function GenreMatchingGame() {
     flyFromPosition,
     isGameComplete,
     canLock,
-    correctGenreIds,
     chipRefsMap,
     getChipState,
     getTierGenres,
     handleGenreClick,
-    handleLock,
-    handleNext,
     handleReset,
     clearSelections,
     collectedGenreIds,
+    scoringConfig,
+    getGenre,
+    handleLock,
+    handleNext,
+    getGenrePoints,
   } = useGenreMatchingGame();
 
+  // Helper to get points/penalty for a tier (used for header display only now)
+  const getTierPoints = useCallback(
+    (tier: GenreTier) => {
+      const points = scoringConfig.WEIGHTS[tier] || 0;
+      const penalty = -Math.max(1, Math.floor(points * scoringConfig.PENALTY_FACTOR));
+      return { points, penalty };
+    },
+    [scoringConfig],
+  );
+
   // Calculate specific points for this card to drive animation
-  const maxCardPoints = useMemo(() => {
-    return Array.from(correctGenreIds).reduce((sum, id) => {
-      const genre = MOCK_GENRES.find((g) => g.id === id);
-      return sum + (genre ? TIER_POINTS[genre.tier].correct : 0);
-    }, 0);
-  }, [correctGenreIds]);
+  const maxCardPoints = currentFilm?.theoreticalMax || 20;
 
   const currentCardPoints = useMemo(() => {
     let score = 0;
     evaluatedGenres.forEach((result, id) => {
-      const genre = MOCK_GENRES.find((g) => g.id === id);
+      // Use specific scoring check if available (for correct genres)
+      if (currentFilm?.genreScoring?.[id]) {
+        if (result === 'correct') score += currentFilm.genreScoring[id].correct;
+        else if (result === 'incorrect') score += currentFilm.genreScoring[id].penalty;
+        return;
+      }
+
+      // Fallback to tier-based scoring for incorrect guesses (or if mapping missing)
+      const genre = getGenre(id);
       if (genre) {
-        if (result === 'correct') score += TIER_POINTS[genre.tier].correct;
-        else if (result === 'incorrect') score += TIER_POINTS[genre.tier].incorrect;
+        const { points, penalty } = getTierPoints(genre.tier);
+        if (result === 'correct') score += points;
+        else if (result === 'incorrect') score += penalty;
       }
     });
     return Math.max(0, score);
-  }, [evaluatedGenres]);
+  }, [evaluatedGenres, getGenre, currentFilm, getTierPoints]);
 
   const getDynamicStyle = () => {
     if (phase === 'selecting') return {};
@@ -80,6 +100,7 @@ export function GenreMatchingGame() {
   const renderTierSection = (tier: GenreTier) => {
     const genres = getTierGenres(tier);
     const info = TIER_INFO[tier];
+    const { points, penalty } = getTierPoints(tier);
 
     if (genres.length === 0 && phase !== 'selecting') {
       return null;
@@ -99,7 +120,7 @@ export function GenreMatchingGame() {
             {info.stars} {info.label}
           </span>
           <span className="text-[8px] md:text-[9px] lg:text-[10px] xl:text-xs opacity-60">
-            (+{TIER_POINTS[tier].correct}/{TIER_POINTS[tier].incorrect})
+            (+{points}/{penalty})
           </span>
         </div>
         <div className="flex flex-wrap gap-1 md:gap-1 lg:gap-1.5 xl:gap-2.5 min-h-[28px] md:min-h-[28px] lg:min-h-[40px] xl:min-h-[48px]">
@@ -111,6 +132,7 @@ export function GenreMatchingGame() {
                 state={getChipState(genre.id)}
                 isDisabled={phase !== 'selecting'}
                 onClick={() => handleGenreClick(genre.id)}
+                pointsConfig={getGenrePoints(genre.id)}
               />
             ))}
           </AnimatePresence>
@@ -119,19 +141,17 @@ export function GenreMatchingGame() {
     );
   };
 
-  // Chip ref callback for flying animation positioning
-  const createChipRefCallback = (genreId: string) => (el: HTMLButtonElement | null) => {
-    if (el) {
-      requestAnimationFrame(() => {
-        const rect = el.getBoundingClientRect();
-        if (rect.width > 0 && rect.height > 0) {
-          chipRefsMap.current.set(genreId, el);
-        }
-      });
-    } else {
-      chipRefsMap.current.delete(genreId);
-    }
-  };
+  // Stable ref handler passed to children
+  const handleChipRef = useCallback(
+    (el: HTMLButtonElement | null, id: string) => {
+      if (el) {
+        chipRefsMap.current.set(id, el);
+      } else {
+        chipRefsMap.current.delete(id);
+      }
+    },
+    [chipRefsMap],
+  );
 
   return (
     <LayoutGroup>
@@ -156,11 +176,9 @@ export function GenreMatchingGame() {
         middle={
           <div className="flex flex-col gap-2 md:gap-3 w-full max-w-6xl mx-auto flex-1 min-h-0 justify-center px-2 md:px-6">
             <div className="flex flex-col md:flex-row items-stretch gap-2 md:gap-8 lg:gap-12 min-h-0 flex-1">
-              
               {/* INTERACTION COLUMN: Genres + Selections + Buttons */}
               {/* Mobile: Bottom | Desktop: Left */}
               <div className="order-2 md:order-1 flex flex-col gap-4 flex-1 min-h-0 justify-center">
-                
                 {/* Genres List */}
                 <div className="w-full bg-card/30 rounded-xl border border-border/20 overflow-y-auto no-scrollbar flex flex-col relative shadow-inner max-h-[60vh]">
                   <div className="p-2 md:p-4 md:space-y-4 space-y-2">
@@ -194,7 +212,8 @@ export function GenreMatchingGame() {
                           state={getChipState(genre.id)}
                           isDisabled={phase !== 'selecting'}
                           onClick={() => handleGenreClick(genre.id)}
-                          chipRef={createChipRefCallback(genre.id)}
+                          onRef={handleChipRef}
+                          pointsConfig={getGenrePoints(genre.id)}
                         />
                       ))}
                     </AnimatePresence>
@@ -208,7 +227,7 @@ export function GenreMatchingGame() {
 
                 {/* DESKTOP BUTTONS: Unified with Interaction Column */}
                 <div className="hidden md:flex gap-3 justify-center items-center pt-2">
-                   {phase === 'selecting' && collectedGenreIds.size > 0 && (
+                  {phase === 'selecting' && collectedGenreIds.size > 0 && (
                     <Button
                       onClick={clearSelections}
                       size="sm"
@@ -219,7 +238,7 @@ export function GenreMatchingGame() {
                       Clear
                     </Button>
                   )}
-                  
+
                   {phase === 'selecting' && (
                     <Button
                       onClick={handleLock}
@@ -239,7 +258,11 @@ export function GenreMatchingGame() {
                   )}
 
                   {phase === 'complete' && !isGameComplete && (
-                    <Button onClick={handleNext} size="lg" className="gap-2 text-base px-8 shadow-md hover:scale-105">
+                    <Button
+                      onClick={handleNext}
+                      size="lg"
+                      className="gap-2 text-base px-8 shadow-md hover:scale-105"
+                    >
                       Next Film
                       <ArrowRight className="w-4 h-4" />
                     </Button>
@@ -247,13 +270,24 @@ export function GenreMatchingGame() {
 
                   {isGameComplete && (
                     <Button
-                      onClick={handleReset}
+                      onClick={() => {
+                        if (onGameComplete) onGameComplete(totalScore);
+                        else handleReset();
+                      }}
                       size="lg"
-                      variant="outline"
+                      variant={onGameComplete ? 'default' : 'outline'}
                       className="gap-2 text-base"
                     >
-                      <RotateCcw className="w-4 h-4" />
-                      Play Again
+                      {onGameComplete ? (
+                        <>
+                          Complete <ArrowRight className="w-4 h-4" />
+                        </>
+                      ) : (
+                        <>
+                          <RotateCcw className="w-4 h-4" />
+                          Play Again
+                        </>
+                      )}
                     </Button>
                   )}
                 </div>
@@ -263,7 +297,7 @@ export function GenreMatchingGame() {
               {/* Mobile: Top | Desktop: Right */}
               <div className="order-1 md:order-2 shrink-0 md:flex-1 flex flex-col items-center justify-center md:py-8">
                 <div className="relative h-[30vh] md:h-auto md:w-[80%] max-w-[400px] aspect-[2/3] shadow-2xl shadow-black/50 rounded-lg md:rounded-2xl overflow-hidden">
-                   <AnimatePresence mode="wait">
+                  <AnimatePresence mode="wait">
                     <motion.div
                       key={currentFilm.id}
                       initial={{ opacity: 0 }}
@@ -281,7 +315,7 @@ export function GenreMatchingGame() {
                     </motion.div>
                   </AnimatePresence>
                 </div>
-                
+
                 <div className="text-center mt-2 md:mt-6 space-y-1">
                   <h2 className="text-base md:text-2xl lg:text-3xl font-serif font-bold text-foreground leading-tight">
                     {currentFilm.title}
@@ -291,7 +325,6 @@ export function GenreMatchingGame() {
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
         }
@@ -335,12 +368,7 @@ export function GenreMatchingGame() {
             )}
 
             {isGameComplete && (
-              <Button
-                onClick={handleReset}
-                size="sm"
-                variant="outline"
-                className="gap-1 text-xs"
-              >
+              <Button onClick={handleReset} size="sm" variant="outline" className="gap-1 text-xs">
                 <RotateCcw className="w-3 h-3" />
                 Play Again
               </Button>

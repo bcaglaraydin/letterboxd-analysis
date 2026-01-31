@@ -1,154 +1,20 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { GameBackground } from '@/components/game/shared/GameBackground';
-import { useRatingGameStore } from '@/store/rating/ratingStore';
-import { useGenreRankingStore } from '@/store/genre/rankingStore';
-import { useExperienceStore } from '@/store/core/experienceStore';
 import { Loader2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import { triggerMetrics, pollMetricsStatus } from '@/lib/api';
-
-const POLL_INTERVAL_MS = 2000;
-
+import { useGameInitialization } from '@/hooks/useGameInitialization';
 export default function LandingPage() {
   const [username, setUsername] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
-  const startGame = useRatingGameStore((state) => state.startGame);
-  const startGenreGame = useGenreRankingStore((state) => state.startGame);
-  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Cleanup polling on unmount
-  useEffect(() => {
-    return () => {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
-      }
-    };
-  }, []);
+  const { initializeGame, isLoading, error } = useGameInitialization();
 
   const handleStart = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username.trim()) return;
-
-    setIsLoading(true);
-    setError(null);
-
-    const startTime = Date.now();
-
-    try {
-      const data = await triggerMetrics(username);
-
-      // Handle immediate error
-      if (data.status === 'error') {
-        throw new Error(data.message || 'Analysis failed');
-      }
-
-      // Ensure minimum loading time for smooth UX (prevent flash)
-      const elapsed = Date.now() - startTime;
-      if (elapsed < 800) {
-        await new Promise((r) => setTimeout(r, 800 - elapsed));
-      }
-
-      // If already ready or partial_ready with game data, navigate immediately
-      if ((data.status === 'ready' || data.status === 'partial_ready') && data.ratingGame?.movies) {
-        // Explicitly reset first to ensure clean state
-        useRatingGameStore.getState().resetGame();
-
-        handleGameDataReady(data);
-        return;
-      }
-
-      // Start polling on landing page until we have game data
-      if (data.status === 'processing' || data.status === 'accepted') {
-        useExperienceStore.getState().setProcessing(username.trim());
-        startPolling(username.trim());
-      }
-    } catch (err: unknown) {
-      handleError(err);
-    }
-  };
-
-  const startPolling = (user: string) => {
-    pollIntervalRef.current = setInterval(async () => {
-      try {
-        const data = await pollMetricsStatus(user);
-
-        // Keep polling until we have game data
-        if (
-          (data.status === 'partial_ready' || data.status === 'ready') &&
-          data.ratingGame?.movies
-        ) {
-          // Stop polling
-          if (pollIntervalRef.current) {
-            clearInterval(pollIntervalRef.current);
-            pollIntervalRef.current = null;
-          }
-          handleGameDataReady(data);
-        }
-
-        // Handle error status
-        if (data.status === 'error') {
-          if (pollIntervalRef.current) {
-            clearInterval(pollIntervalRef.current);
-            pollIntervalRef.current = null;
-          }
-          throw new Error(data.message || 'Analysis failed');
-        }
-      } catch (err: unknown) {
-        if (pollIntervalRef.current) {
-          clearInterval(pollIntervalRef.current);
-          pollIntervalRef.current = null;
-        }
-        handleError(err);
-      }
-    }, POLL_INTERVAL_MS);
-  };
-
-  const handleGameDataReady = (data: Awaited<ReturnType<typeof pollMetricsStatus>>) => {
-    // Set experience store status
-    if (data.status === 'ready') {
-      useExperienceStore.getState().setReady();
-    } else {
-      useExperienceStore.getState().setPartialReady();
-    }
-
-    // Hydrate rating game
-    if (data.ratingGame?.movies) {
-      startGame({
-        movies: data.ratingGame.movies,
-        userStats: data.userStats || null,
-      });
-    }
-
-    // Hydrate genre game if available
-    if (data.genreGame) {
-      startGenreGame({
-        ...data.genreGame,
-        previousScore: 0,
-      });
-    }
-
-    router.push('/game');
-  };
-
-  const handleError = (err: unknown) => {
-    const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
-    if (
-      errorMessage.includes('User not found') ||
-      errorMessage.includes('profile is private') ||
-      errorMessage.includes('Request failed with status code 404')
-    ) {
-      setError('Who is that?');
-    } else {
-      setError('Something went wrong. Please try again.');
-    }
-    setIsLoading(false);
+    await initializeGame(username);
   };
 
   return (

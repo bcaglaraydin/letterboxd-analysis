@@ -3,14 +3,15 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { Genre, ChipDisplayState, TIER_POINTS } from './types';
+import { Genre, ChipDisplayState } from './types';
 
 interface GenreChipAnimatedProps {
   genre: Genre;
   state: ChipDisplayState;
   isDisabled: boolean;
   onClick?: () => void;
-  chipRef?: (el: HTMLButtonElement | null) => void;
+  onRef?: (el: HTMLButtonElement | null, id: string) => void;
+  pointsConfig: { correct: number; penalty: number };
 }
 
 export const GenreChipAnimated = ({
@@ -18,19 +19,31 @@ export const GenreChipAnimated = ({
   state,
   isDisabled,
   onClick,
-  chipRef,
+  onRef,
+  pointsConfig,
 }: GenreChipAnimatedProps) => {
-  const points = TIER_POINTS[genre.tier];
-
   const getStateStyle = () => {
     switch (state) {
       case 'selected':
         return 'bg-primary/20 border-primary ring-2 ring-primary/30 shadow-md';
       case 'correct':
-        // Solid green for maximum readability
-        return 'bg-green-600 border-green-700 text-white shadow-md font-bold ring-1 ring-green-700/50';
+        // Rarity background + Green border/glow to signal success
+        const tierStyle = (() => {
+          switch (genre.tier) {
+            case 'niche':
+              return 'bg-accent text-accent-foreground border-green-500 ring-green-500';
+            case 'mid-tier':
+              return 'bg-primary text-primary-foreground border-green-500 ring-green-500';
+            case 'popular':
+              // User specifically wants background to match text-muted-foreground color
+              return 'bg-[hsl(var(--muted-foreground))] text-background border-green-500 ring-green-500';
+          }
+        })();
+
+        return cn(tierStyle, 'font-bold shadow-md ring-2');
       case 'incorrect':
         // Clear red text, no opacity, no line-through for readability
+        // Maybe add faint background of tier?
         return 'bg-destructive/15 border-destructive text-destructive font-semibold';
       case 'missed':
         return 'border-dashed border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium';
@@ -45,16 +58,26 @@ export const GenreChipAnimated = ({
   };
 
   const getPointsLabel = () => {
-    if (state === 'correct') return `+${points.correct}`;
-    if (state === 'incorrect') return `${points.incorrect}`;
+    if (state === 'correct') return `+${pointsConfig.correct}`;
+    if (state === 'incorrect') return `${pointsConfig.penalty}`;
     return null;
   };
 
   const pointsLabel = getPointsLabel();
 
+  // Stable ref callback
+  const handleRef = React.useCallback(
+    (el: HTMLButtonElement | null) => {
+      if (onRef) {
+        onRef(el, genre.id);
+      }
+    },
+    [onRef, genre.id],
+  );
+
   return (
     <motion.button
-      ref={chipRef}
+      ref={handleRef}
       layout
       type="button"
       onClick={onClick}
