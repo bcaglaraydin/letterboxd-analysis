@@ -51,7 +51,10 @@ export interface UseGenreMatchingGameReturn {
   clearSelections: () => void;
 
   // Config
+  // Config
   scoringConfig: ScoringConfig;
+  maxPositivePoints: number;
+  maxNegativePoints: number;
 }
 
 export function useGenreMatchingGame(): UseGenreMatchingGameReturn {
@@ -420,5 +423,22 @@ export function useGenreMatchingGame(): UseGenreMatchingGameReturn {
     handleReset,
     clearSelections,
     scoringConfig: config.scoring,
+
+    // Dynamic scoring bounds for UI
+    maxPositivePoints: useMemo(() => {
+      // Find maximum possible correct score among available genres
+      return allGenres.reduce((max, genre) => {
+        const points = getGenrePoints(genre.id);
+        return Math.max(max, points.correct);
+      }, 0);
+    }, [allGenres, getGenrePoints]),
+
+    maxNegativePoints: useMemo(() => {
+      // Find maximum possible penalty (most negative number) among available genres
+      return allGenres.reduce((min, genre) => {
+        const points = getGenrePoints(genre.id);
+        return Math.min(min, points.penalty);
+      }, 0);
+    }, [allGenres, getGenrePoints]),
   };
 }

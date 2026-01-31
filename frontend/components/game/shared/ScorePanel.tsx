@@ -24,10 +24,12 @@ interface ScorePanelProps {
   size?: 'sm' | 'md' | 'lg';
   /** Position of the panel */
   position?: 'static' | 'top-right';
-  /** Maximum points possible per action (for flying point color, default: 15) */
-  pointsPerAction?: number;
   /** Whether to show maxScore next to current score (e.g., '45/120', default: false) */
   showMaxScore?: boolean;
+  /** Maximum possible point earned in a single action (for color scaling) */
+  maxPositivePoint?: number;
+  /** Maximum possible penalty (negative value) in a single action (for color scaling) */
+  maxNegativePoint?: number;
 }
 
 /**
@@ -54,8 +56,9 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
   className,
   size = 'lg',
   position = 'static',
-  pointsPerAction = 15,
   showMaxScore = false,
+  maxPositivePoint = 50,
+  maxNegativePoint = -50,
 }) => {
   // Display score (animated counting)
   const [displayScore, setDisplayScore] = useState(score);
@@ -173,18 +176,33 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
 
   // Get score color style for flying animation (supports negative values)
   const getFlyingPointsColor = (points: number): React.CSSProperties => {
+    // Split Spectrum Logic to maximize contrast between +1 and -1 (avoiding yellow)
+
+    if (points === 0) return { color: `hsl(60, 85%, 45%)` }; // Zero is yellow
+
     if (points > 0) {
-      // Positive: Red (0) -> Green (120) based on points/maxPointsPerAction ratio
-      const ratio = pointsPerAction > 0 ? points / pointsPerAction : 0;
-      const hue = Math.round(Math.min(1, Math.max(0, ratio)) * 120);
-      return { color: `hsl(${hue}, 70%, 35%)` };
+      // Positive: Map [0, maxPositive] to [Hue 85, 120] (Greenish -> Green)
+      // This ensures even +1 has a distinct green tint vs yellow.
+      const max = maxPositivePoint && maxPositivePoint > 0 ? maxPositivePoint : 100;
+      // Clamp to ensure we don't exceed bounds
+      const ratio = Math.min(1, Math.max(0, points / max));
+
+      const hue = 85 + ratio * 35; // 85 to 120
+      return { color: `hsl(${hue}, 85%, 45%)` };
     } else {
-      // Negative: Deep red (0) for max penalty, lighter red/orange (30) for small penalty
-      // Assuming max penalty is around -5 (popular tier)
-      const maxPenalty = 5;
-      const ratio = Math.min(1, Math.abs(points) / maxPenalty);
-      const hue = Math.round((1 - ratio) * 30); // 0-30 range (deep red to orange-red)
-      return { color: `hsl(${hue}, 80%, 45%)` };
+      // Negative: Map [maxNegative, 0] to [Hue 0, 35] (Red -> Orange)
+      // This ensures even -1 has a distinct orange tint vs yellow.
+      const min = maxNegativePoint && maxNegativePoint < 0 ? maxNegativePoint : -100;
+
+      // Calculate severity ratio: 1 = max penalty (points == min), 0 = no penalty
+      // points is negative, min is negative.
+      // e.g. points = -9, min = -9 => ratio = 1
+      // e.g. points = -1, min = -9 => ratio = 0.11
+      const ratio = Math.min(1, Math.max(0, points / min));
+
+      // Map ratio 1 -> Hue 0 (Red), Ratio 0 -> Hue 35 (Orange)
+      const hue = 35 * (1 - ratio);
+      return { color: `hsl(${hue}, 85%, 45%)` };
     }
   };
 
