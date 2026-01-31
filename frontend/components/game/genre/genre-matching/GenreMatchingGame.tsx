@@ -5,6 +5,7 @@ import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { Lock, ArrowRight, RotateCcw, Sparkles, X } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { getScoreColor } from '@/lib/scoreUtils';
 import { GameLayout } from '@/components/game/shared/GameLayout';
 import { GameRoundIndicator } from '@/components/game/shared/GameRoundIndicator';
 import { ScorePanel } from '@/components/game/shared/ScorePanel';
@@ -50,6 +51,8 @@ export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
     getGenrePoints,
     maxPositivePoints,
     maxNegativePoints,
+    roundScore,
+    totalGameMaxScore,
   } = useGenreMatchingGame();
 
   // Helper to get points/penalty for a tier (used for header display only now)
@@ -165,7 +168,8 @@ export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
               score={totalScore}
               pointsEarned={lastPointsEarned}
               flyFromPosition={flyFromPosition}
-              maxScore={currentFilm?.theoreticalMax || 100}
+              maxScore={totalGameMaxScore}
+              showMaxScore={true}
               className="mb-0"
               size="md"
               position="static"
@@ -201,9 +205,32 @@ export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
                   )}
                   style={getDynamicStyle()}
                 >
-                  <div className="text-[10px] md:text-xs text-muted-foreground mb-1 md:mb-2 flex items-center gap-1.5 uppercase tracking-wider font-semibold">
-                    <Sparkles className="w-3 h-3 md:w-3.5 md:h-3.5" />
-                    <span>Your Selections</span>
+                  <div className="text-[10px] md:text-xs text-muted-foreground mb-1 md:mb-2 flex items-center justify-between uppercase tracking-wider font-semibold">
+                    <div className="flex items-center gap-1.5">
+                      <Sparkles className="w-3 h-3 md:w-3.5 md:h-3.5" />
+                      <span>Your Selections</span>
+                    </div>
+                    {/* Round Score Display */}
+                    <span
+                      style={
+                        roundScore === 0
+                          ? {}
+                          : getScoreColor(roundScore, maxPositivePoints, maxNegativePoints)
+                      }
+                      className={cn(
+                        'text-xs md:text-sm font-bold transition-colors duration-300',
+                        roundScore === 0 && 'text-muted-foreground/60 font-medium',
+                      )}
+                    >
+                      {roundScore === 0 ? (
+                        `Potential: ${currentFilm?.theoreticalMax || 20} pts`
+                      ) : (
+                        <>
+                          {roundScore > 0 ? '+' : ''}
+                          {roundScore}/{currentFilm?.theoreticalMax || 20}
+                        </>
+                      )}
+                    </span>
                   </div>
                   <div className="flex flex-wrap gap-1.5 md:gap-2 min-h-[24px] md:min-h-[32px]">
                     <AnimatePresence mode="popLayout">

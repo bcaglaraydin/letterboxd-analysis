@@ -55,6 +55,8 @@ export interface UseGenreMatchingGameReturn {
   scoringConfig: ScoringConfig;
   maxPositivePoints: number;
   maxNegativePoints: number;
+  roundScore: number;
+  totalGameMaxScore: number;
 }
 
 export function useGenreMatchingGame(): UseGenreMatchingGameReturn {
@@ -440,5 +442,21 @@ export function useGenreMatchingGame(): UseGenreMatchingGameReturn {
         return Math.min(min, points.penalty);
       }, 0);
     }, [allGenres, getGenrePoints]),
+
+    // Current Accumulated Round Score (for this specific movie)
+    roundScore: useMemo(() => {
+      let score = 0;
+      evaluatedGenres.forEach((result, genreId) => {
+        const pts = getGenrePoints(genreId);
+        if (result === 'correct') score += pts.correct;
+        else if (result === 'incorrect') score += pts.penalty;
+      });
+      return score;
+    }, [evaluatedGenres, getGenrePoints]),
+
+    // Total possible score for the entire game session
+    totalGameMaxScore: useMemo(() => {
+      return films.reduce((sum, film) => sum + (film.theoreticalMax || 20), 0);
+    }, [films]),
   };
 }
