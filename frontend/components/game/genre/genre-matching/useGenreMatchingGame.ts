@@ -304,8 +304,32 @@ export function useGenreMatchingGame(): UseGenreMatchingGameReturn {
           revealNext(queue, index + 1);
         }, ANIMATION_TIMING.FLY_ANIMATION_MS);
       }, ANIMATION_TIMING.INCORRECT_HOLD_MS);
+    } else if (result === 'missed') {
+      // 1. Trigger visual move (change state)
+      // This will cause re-render and move chip to 'Your Selections'
+      setEvaluatedGenres((prev) => new Map(prev).set(genreId, result));
+
+      // 2. Wait for layout move to complete, THEN fly points.
+      // 550ms covers frame updates + some layout transition time
+      setTimeout(() => {
+        const chipEl = chipRefsMap.current.get(genreId);
+        if (chipEl) {
+          const rect = chipEl.getBoundingClientRect();
+          setFlyFromPosition({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+        }
+
+        if (points !== 0) {
+          setTotalScore((prev) => prev + points);
+          setLastPointsEarned(points);
+        }
+
+        // Wait a bit after point flies before next reveal
+        revealTimeoutRef.current = setTimeout(() => {
+          revealNext(queue, index + 1);
+        }, ANIMATION_TIMING.REVEAL_STEP_MS);
+      }, 550);
     } else {
-      // Handle 'correct' AND 'missed' (both flow similarly, just update score/state)
+      // Correct Case
       setEvaluatedGenres((prev) => new Map(prev).set(genreId, result));
 
       const chipEl = chipRefsMap.current.get(genreId);
@@ -355,6 +379,7 @@ export function useGenreMatchingGame(): UseGenreMatchingGameReturn {
     setEvaluatedGenres(new Map());
     setLastPointsEarned(null);
     setFlyFromPosition(undefined);
+    chipRefsMap.current.clear(); // Clear refs to prevent stale entries
   }, []);
 
   // Move to next film
