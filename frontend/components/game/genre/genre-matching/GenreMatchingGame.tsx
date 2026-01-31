@@ -147,10 +147,14 @@ export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
   // Stable ref handler passed to children
   const handleChipRef = useCallback(
     (el: HTMLButtonElement | null, id: string) => {
+      // Only set if element exists. 
+      // We avoid deleting on unmount because of the race condition between 
+      // "Available" chip unmounting and "Selected" chip mounting.
+      // If we delete on unmount, we might remove the *new* ref if the *old* one unmounts last.
+      // Stale refs are handled by checking .isConnected or just strict usage.
+      // We explicitly clear the map on round reset.
       if (el) {
         chipRefsMap.current.set(id, el);
-      } else {
-        chipRefsMap.current.delete(id);
       }
     },
     [chipRefsMap],
