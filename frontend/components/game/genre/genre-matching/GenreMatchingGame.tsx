@@ -135,6 +135,7 @@ export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
                 isDisabled={phase !== 'selecting'}
                 onClick={() => handleGenreClick(genre.id)}
                 pointsConfig={getGenrePoints(genre.id)}
+                onRef={handleChipRef}
               />
             ))}
           </AnimatePresence>

@@ -11,7 +11,7 @@ interface GenreChipAnimatedProps {
   isDisabled: boolean;
   onClick?: () => void;
   onRef?: (el: HTMLButtonElement | null, id: string) => void;
-  pointsConfig: { correct: number; penalty: number };
+  pointsConfig: { correct: number; penalty: number; missed?: number };
 }
 
 export const GenreChipAnimated = ({
@@ -60,6 +60,7 @@ export const GenreChipAnimated = ({
   const getPointsLabel = () => {
     if (state === 'correct') return `+${pointsConfig.correct}`;
     if (state === 'incorrect') return `${pointsConfig.penalty}`;
+    if (state === 'missed') return `${pointsConfig.missed || -1}`;
     return null;
   };
 
@@ -110,6 +111,7 @@ export const GenreChipAnimated = ({
               'text-[8px] md:text-[10px] font-bold',
               state === 'correct' && 'text-green-400',
               state === 'incorrect' && 'text-destructive',
+              state === 'missed' && 'text-destructive',
             )}
           >
             {pointsLabel}

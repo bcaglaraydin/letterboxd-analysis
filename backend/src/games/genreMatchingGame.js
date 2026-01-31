@@ -153,6 +153,8 @@ const distributePoints = (genres, rarityMap) => {
       correct: a.points,
       // Penalty is negative, floor of points * factor, at least -1
       penalty: -Math.max(1, Math.floor(a.points * PENALTY_FACTOR)),
+      // Missed is always -1 for now
+      missed: -1,
     };
   });
 

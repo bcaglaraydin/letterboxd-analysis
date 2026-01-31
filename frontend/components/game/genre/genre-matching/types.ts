@@ -20,7 +20,7 @@ export interface Film {
   director: string;
   posterUrl: string;
   correctGenres: string[];
-  genreScoring?: Record<string, { correct: number; penalty: number }>;
+  genreScoring?: Record<string, { correct: number; penalty: number; missed?: number }>;
   theoreticalMax?: number;
 }
 
