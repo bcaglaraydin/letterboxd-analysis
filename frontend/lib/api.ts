@@ -3,6 +3,7 @@
  */
 
 const getApiUrl = () => process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const shouldUseMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
 
 // Types for API responses
 export interface RatingGameMovie {
@@ -51,7 +52,11 @@ export interface Genre {
   id: string;
   name: string;
   averageRating?: number;
+  tier: GenreTier;
 }
+
+// Keep explicit types here to avoid circular dependency with components
+export type GenreTier = 'niche' | 'mid-tier' | 'popular';
 
 export interface GenreGameData {
   genres: Genre[];
@@ -98,65 +103,80 @@ export interface MetricsResponse {
   userStats?: UserStats;
 }
 
-/**
- * Trigger metrics analysis for a username
- */
-export async function triggerMetrics(username: string): Promise<MetricsResponse> {
-  const shouldUseMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
-
-  if (shouldUseMock) {
-    const { triggerMetrics: mockTrigger } = await import('./mockApi');
-    return mockTrigger(username);
-  }
-
-  const response = await fetch(`${getApiUrl()}/analysis`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username: username.trim() }),
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.error || 'Failed to fetch data');
-  }
-
-  return data;
+// Define the interface for our Data Provider
+interface DataProvider {
+  triggerMetrics(username: string): Promise<MetricsResponse>;
+  pollMetricsStatus(username: string, minFilms?: number): Promise<MetricsResponse>;
+  fetchFullStats(username: string): Promise<MetricsResponse>;
 }
 
-/**
- * Poll for metrics status
- */
+// Real API Implementation
+const RealApiProvider: DataProvider = {
+  async triggerMetrics(username: string) {
+    const response = await fetch(`${getApiUrl()}/analysis`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: username.trim() }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to fetch data');
+    }
+
+    return data;
+  },
+
+  async pollMetricsStatus(username: string, minFilms: number = 5) {
+    const response = await fetch(
+      `${getApiUrl()}/analysis/status?username=${username}&minFilms=${minFilms}`,
+    );
+    const data = await response.json();
+    return data;
+  },
+
+  async fetchFullStats(username: string) {
+    const response = await fetch(`${getApiUrl()}/analysis/status?username=${username}`);
+    const data = await response.json();
+    return data;
+  },
+};
+
+// Mock API Loader (lazy loaded to save bundle size in prod)
+const getMockProvider = async (): Promise<DataProvider> => {
+  const mockApi = await import('./mockApi');
+  return {
+    triggerMetrics: mockApi.triggerMetrics,
+    pollMetricsStatus: mockApi.pollMetricsStatus,
+    fetchFullStats: mockApi.fetchFullStats,
+  };
+};
+
+// Facade Methodology
+export async function triggerMetrics(username: string): Promise<MetricsResponse> {
+  if (shouldUseMock) {
+    const provider = await getMockProvider();
+    return provider.triggerMetrics(username);
+  }
+  return RealApiProvider.triggerMetrics(username);
+}
+
 export async function pollMetricsStatus(
   username: string,
   minFilms: number = 5,
 ): Promise<MetricsResponse> {
-  const shouldUseMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
-
   if (shouldUseMock) {
-    const { pollMetricsStatus: mockPoll } = await import('./mockApi');
-    return mockPoll(username, minFilms);
+    const provider = await getMockProvider();
+    return provider.pollMetricsStatus(username, minFilms);
   }
-
-  const response = await fetch(
-    `${getApiUrl()}/analysis/status?username=${username}&minFilms=${minFilms}`,
-  );
-  const data = await response.json();
-  return data;
+  return RealApiProvider.pollMetricsStatus(username, minFilms);
 }
 
-/**
- * Fetch full stats (for PostGameScreen)
- */
 export async function fetchFullStats(username: string): Promise<MetricsResponse> {
-  const shouldUseMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
-
   if (shouldUseMock) {
-    const { fetchFullStats: mockFetch } = await import('./mockApi');
-    return mockFetch(username);
+    const provider = await getMockProvider();
+    return provider.fetchFullStats(username);
   }
-
-  const response = await fetch(`${getApiUrl()}/analysis/status?username=${username}`);
-  const data = await response.json();
-  return data;
+  return RealApiProvider.fetchFullStats(username);
 }
