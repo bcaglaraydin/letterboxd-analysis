@@ -4,10 +4,10 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import * as d3 from 'd3';
 import { Star } from 'lucide-react';
-import { GenreData } from './mockData';
+import { GenreStat } from '@/lib/api';
 
 interface TasteGapLineProps {
-  data: GenreData[];
+  data: GenreStat[];
 }
 
 export function TasteGapLine({ data }: TasteGapLineProps) {
