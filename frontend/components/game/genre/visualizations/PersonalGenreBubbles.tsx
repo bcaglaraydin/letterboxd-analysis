@@ -48,7 +48,7 @@ export function PersonalGenreBubbles() {
     // Size Scale
     const isMobile = dimensions.width > 0 && dimensions.width < 768;
     // Tighter radius range to ensure fitting on small screens
-    const radiusRange: [number, number] = isMobile ? [25, 70] : [50, 120];
+    const radiusRange: [number, number] = isMobile ? [20, 60] : [50, 120];
     const radiusScale = d3.scaleSqrt().domain([minCount, maxCount]).range(radiusRange);
 
     // Sort data by rating descending
@@ -104,8 +104,8 @@ export function PersonalGenreBubbles() {
     const packedRadius = Math.sqrt(totalArea / Math.PI);
 
     // Ensure the target orbit fits within the screen
-    // Note: radiusRange is [25, 70] for mobile, [50, 120] for desktop
-    const maxBubbleR = isMobile ? 70 : 120;
+    // Note: radiusRange is [20, 60] for mobile, [50, 120] for desktop
+    const maxBubbleR = isMobile ? 60 : 120;
     const minDimensionHalf = Math.min(width, height) / 2;
 
     // Add extra padding for mobile to prevent edge touching
@@ -125,9 +125,9 @@ export function PersonalGenreBubbles() {
         'collide',
         d3
           .forceCollide<BubbleNode>()
-          .radius((d) => d.r + 2)
-          .strength(0.8)
-          .iterations(2),
+          .radius((d) => d.r + 1) // Tighter collision radius
+          .strength(1) // Stiffer collision to prevent overlap
+          .iterations(3),
       )
       .force(
         'radial',
@@ -137,8 +137,7 @@ export function PersonalGenreBubbles() {
               const normalized = (d.genre.userAvgRating - minRating) / (maxRating - minRating || 1);
               // Invert normalized: High rating (1.0) -> inner center (0)
               // Low rating (0.0) -> outer edge (maxOrbitRadius)
-              // Adding even more separation for mobile to ensure core fits
-              const targetR = Math.pow(1 - normalized, 1.2) * maxOrbitRadius;
+              const targetR = Math.pow(1 - normalized, 1.5) * maxOrbitRadius; // steeper power curve
               return targetR;
             },
             centerX,
@@ -146,8 +145,8 @@ export function PersonalGenreBubbles() {
           )
           .strength((d) => {
             const normalized = (d.genre.userAvgRating - minRating) / (maxRating - minRating || 1);
-            // Stronger pull for decent ratings to ensure they cluster
-            return 0.8 + normalized * 0.4; // Range 0.8 - 1.2
+            // Much stronger pull for high rated items to force them to center
+            return 1.0 + normalized * 1.0; // Range 1.0 - 2.0
           }),
       );
 
