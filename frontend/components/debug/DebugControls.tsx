@@ -9,6 +9,16 @@ export const DebugControls = () => {
   const { currentPhase, startRatingGame, startGenreGame, resetExperience } = useExperienceStore();
   const { phase: genrePhase, setPhase: setGenrePhase } = useGenreOrchestrationStore();
 
+  const ensureDebugState = () => {
+    const state = useExperienceStore.getState();
+    if (!state.username) {
+      useExperienceStore.setState({
+        username: 'debug-user',
+        backgroundStatus: 'ready',
+      });
+    }
+  };
+
   if (process.env.NODE_ENV === 'production') return null;
 
   return (
@@ -59,7 +69,10 @@ export const DebugControls = () => {
                   {(['ranking', 'matching', 'post-game'] as GenrePhase[]).map((p) => (
                     <button
                       key={p}
-                      onClick={() => setGenrePhase(p)}
+                      onClick={() => {
+                        ensureDebugState();
+                        setGenrePhase(p);
+                      }}
                       className={`px-2 py-1 rounded text-left ${
                         genrePhase === p
                           ? 'bg-green-900/50 text-green-200'

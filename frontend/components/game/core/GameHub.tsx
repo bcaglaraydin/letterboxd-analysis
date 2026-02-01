@@ -3,22 +3,26 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Star, Film, Lock, ArrowRight, Play } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useExperienceStore } from '@/store/core/experienceStore';
+import {
+  useExperienceStore,
+  selectScores,
+  selectIsGenreUnlocked,
+  selectIsGenreCompleted,
+  selectAllGamesCompleted,
+} from '@/store/core/experienceStore';
 import { GameBackground } from '@/components/game/shared/GameBackground';
 import { GameLayout } from '@/components/game/shared/GameLayout';
-import { GAME_PHASES } from '@/lib/gameTypes';
-
 import { RATING_GAME_CONFIG } from '@/components/game/rating/constants';
 import { GENRE_RANKING_CONFIG } from '@/components/game/genre/ranking/constants';
 
 export const GameHub = () => {
-  const { scores, startGenreGame, startRatingGame, unlockedGames, completedGames } =
-    useExperienceStore();
-  const isGenreUnlocked = unlockedGames.includes(GAME_PHASES.GENRE);
-  const isRatingCompleted = completedGames.includes(GAME_PHASES.RATING);
-  const isGenreCompleted = completedGames.includes(GAME_PHASES.GENRE);
-  const allGamesCompleted = isRatingCompleted && isGenreCompleted;
+  // Use granular selectors to prevent unnecessary re-renders
+  const scores = useExperienceStore(selectScores);
+  const isGenreUnlocked = useExperienceStore(selectIsGenreUnlocked);
+  const isGenreCompleted = useExperienceStore(selectIsGenreCompleted);
+  const allGamesCompleted = useExperienceStore(selectAllGamesCompleted);
+  const startGenreGame = useExperienceStore((state) => state.startGenreGame);
+  const startRatingGame = useExperienceStore((state) => state.startRatingGame);
 
   const container = {
     hidden: { opacity: 0 },
@@ -35,8 +39,6 @@ export const GameHub = () => {
     hidden: { y: 20, opacity: 0 },
     show: { y: 0, opacity: 1 },
   };
-
-  // Handle "Still Analyzing" State - No loading screen here, only in PostGameScreen
 
   return (
     <GameBackground className="bg-background">
@@ -63,11 +65,17 @@ export const GameHub = () => {
           >
             {/* Rating Game Card */}
             <motion.div variants={item} className="w-full">
-              <div
-                className={`bg-card/50 border border-border/50 rounded-3xl p-6 md:p-8 relative overflow-hidden group hover:border-primary/20 transition-colors ${
-                  allGamesCompleted ? 'cursor-pointer hover:bg-card/80' : ''
+              <button
+                className={`w-full text-left bg-card/50 border border-border/50 rounded-3xl p-6 md:p-8 relative overflow-hidden group hover:border-primary/20 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none ${
+                  allGamesCompleted ? 'cursor-pointer hover:bg-card/80' : 'cursor-default'
                 }`}
                 onClick={allGamesCompleted ? startRatingGame : undefined}
+                disabled={!allGamesCompleted}
+                aria-label={
+                  allGamesCompleted
+                    ? 'Replay Rating Intuition Game'
+                    : 'Rating Intuition Game Completed'
+                }
               >
                 <div className="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity">
                   <Star className="w-12 h-12 text-primary/20" />
@@ -94,18 +102,19 @@ export const GameHub = () => {
                     </span>
                   </div>
                 </div>
-              </div>
+              </button>
             </motion.div>
 
             {/* Genre Ranking Game Card */}
             <motion.div variants={item} className="w-full h-full">
-              <div
-                className={`h-full bg-card border rounded-3xl p-6 md:p-8 relative overflow-hidden transition-all duration-300 ${
+              <button
+                className={`w-full text-left h-full bg-card border rounded-3xl p-6 md:p-8 relative overflow-hidden transition-all duration-300 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${
                   isGenreUnlocked
                     ? 'border-accent/50 bg-gradient-to-br from-accent/5 to-transparent hover:shadow-lg hover:shadow-accent/5 hover:scale-[1.02] cursor-pointer'
-                    : 'border-border/30 opacity-60'
+                    : 'border-border/30 opacity-60 cursor-not-allowed'
                 }`}
                 onClick={isGenreUnlocked ? startGenreGame : undefined}
+                disabled={!isGenreUnlocked}
               >
                 {!isGenreUnlocked && (
                   <div className="absolute inset-0 bg-background/50 backdrop-blur-[2px] z-10 flex items-center justify-center">
@@ -155,21 +164,15 @@ export const GameHub = () => {
                       </span>
                     </div>
                   ) : isGenreUnlocked ? (
-                    <Button
-                      className="w-full h-12 rounded-xl text-base font-bold shadow-lg shadow-accent/20 hover:shadow-accent/30 transition-all group"
-                      variant="default"
-                      style={{
-                        pointerEvents: 'none',
-                      }} /* Force pointer events none via style just in case */
-                    >
+                    <div className="w-full h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center text-base font-bold shadow-lg shadow-accent/20 transition-all group">
                       Continue
                       <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-0.5 transition-transform" />
-                    </Button>
+                    </div>
                   ) : (
                     <div className="h-12 w-full rounded-xl bg-muted/20" />
                   )}
                 </div>
-              </div>
+              </button>
             </motion.div>
           </motion.div>
         }

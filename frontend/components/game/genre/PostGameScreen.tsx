@@ -8,14 +8,14 @@ import { Loader2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserStats } from '@/lib/api';
 import { PersonalGenreBubbles } from './visualizations/PersonalGenreBubbles';
-import { TasteGapLine } from './visualizations/TasteGapLine';
+import { TasteGapLine } from '@/components/game/genre/visualizations/TasteGapLineChart';
 
 interface PostGameScreenProps {
   onComplete: () => void;
 }
 
 export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) => {
-  const { fetchFullStats, backgroundStatus } = useExperienceStore();
+  const { fetchFullStats, backgroundStatus, username } = useExperienceStore();
   const { postGameStep, setPostGameStep } = useGenreOrchestrationStore();
   const [userStats, setUserStats] = useState<UserStats | null>(null);
 
@@ -23,12 +23,12 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) =>
     // If we have access to a store that persists it, great. If not, fetch.
     // Ideally useExperienceStore would cache it, but it doesn't seem to persist "userStats" in state, only "scores".
     // So we fetch it.
-    if (backgroundStatus === 'ready') {
+    if (backgroundStatus === 'ready' && username) {
       fetchFullStats().then((data) => {
         if (data.userStats) setUserStats(data.userStats);
       });
     }
-  }, [fetchFullStats, backgroundStatus]);
+  }, [fetchFullStats, backgroundStatus, username]);
 
   // Transform GenreStat[] to the format components expect
   // PersonalGenreBubbles expects { name, userAvgRating, userWatchCount, id, exampleMovies }

@@ -113,3 +113,16 @@ export const useExperienceStore = create<ExperienceState>((set, get) => ({
     return data as { userStats: UserStats; genreGame: GenreGameData };
   },
 }));
+
+// Selectors
+export const selectScores = (state: ExperienceState) => state.scores;
+export const selectCurrentPhase = (state: ExperienceState) => state.currentPhase;
+export const selectIsRatingCompleted = (state: ExperienceState) =>
+  state.completedGames.includes(GAME_PHASES.RATING);
+export const selectIsGenreCompleted = (state: ExperienceState) =>
+  state.completedGames.includes(GAME_PHASES.GENRE);
+export const selectIsGenreUnlocked = (state: ExperienceState) =>
+  state.unlockedGames.includes(GAME_PHASES.GENRE);
+export const selectAllGamesCompleted = (state: ExperienceState) =>
+  state.completedGames.includes(GAME_PHASES.RATING) &&
+  state.completedGames.includes(GAME_PHASES.GENRE);
