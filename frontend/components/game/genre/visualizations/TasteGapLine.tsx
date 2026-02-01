@@ -11,9 +11,46 @@ interface TasteGapLineProps {
 }
 
 export function TasteGapLine({ data }: TasteGapLineProps) {
-  // Sort by user rating descending
-  const sortedData = [...data].sort((a, b) => b.userAvgRating - a.userAvgRating);
-  const scale = d3.scaleLinear().domain([0, 5]).range([0, 100]);
+  // Sort by Divergence (User - Community) descending
+  // Top: User loves it much more than community (Positive)
+  // Bottom: User likes it much less than community (Negative)
+  const sortedData = [...data].sort((a, b) => {
+    const diffA = a.userAvgRating - a.communityAvgRating;
+    const diffB = b.userAvgRating - b.communityAvgRating;
+    return diffB - diffA;
+  });
+
+  // Dynamic Scale Calculation for Position
+  const allValues = sortedData.flatMap((d) => [d.userAvgRating, d.communityAvgRating]);
+  const minVal = Math.min(...allValues);
+  const maxVal = Math.max(...allValues);
+
+  const PADDING = 0.4;
+  const domainMin = Math.max(0, minVal - PADDING);
+  const domainMax = Math.min(5, maxVal + PADDING);
+
+  const scale = d3.scaleLinear().domain([domainMin, domainMax]).range([0, 100]);
+
+  // Dynamic Color Scales for Divergence
+  // Calculate max divergence to normalize color intensity
+  const maxDiff = Math.max(
+    ...sortedData.map((d) => Math.abs(d.userAvgRating - d.communityAvgRating)),
+  );
+
+  // Color interpolators
+  // Positive (Green): Neutral -> Deep Sage
+  const positiveColorScale = d3
+    .scaleLinear<string>()
+    .domain([0, maxDiff || 1])
+    .range(['#A5A58D', '#2A9D8F'])
+    .interpolate(d3.interpolateRgb);
+
+  // Negative (Red): Neutral -> Terracotta
+  const negativeColorScale = d3
+    .scaleLinear<string>()
+    .domain([0, maxDiff || 1])
+    .range(['#A5A58D', '#E76F51'])
+    .interpolate(d3.interpolateRgb);
 
   return (
     <div className="flex flex-col gap-2 md:gap-4 w-full h-full">
@@ -23,23 +60,18 @@ export function TasteGapLine({ data }: TasteGapLineProps) {
 
         // Divergence Logic
         const diff = genre.userAvgRating - genre.communityAvgRating;
-        const isPositiveDivergence = diff > 0; // User > Community
-        const gapSize = Math.abs(diff);
+        const isPositiveDivergence = diff > 0;
 
-        // Colors from Design System
-        // User > Community (Positive): Deep Sage (Primary) -> #2A9D8F
-        // User < Community (Negative): Terracotta (Accent) -> #E76F51
-        // Neutral/Small Gap: Muted Grey -> #A5A58D
-
-        let gapColor = '#A5A58D';
-        if (gapSize >= 0.2) {
-          gapColor = isPositiveDivergence ? '#2A9D8F' : '#E76F51';
-        }
+        // Calculate color based on magnitude
+        const gapColor = isPositiveDivergence
+          ? positiveColorScale(Math.abs(diff))
+          : negativeColorScale(Math.abs(diff));
 
         return (
           <div
             key={genre.id}
-            className="flex-1 min-h-0 group relative bg-white rounded-xl md:rounded-2xl px-4 border border-[#E76F51]/10 shadow-[0_2px_8px_rgba(0,0,0,0.02)] grid grid-cols-[80px_1fr] md:grid-cols-[140px_1fr] lg:grid-cols-[180px_1fr] items-center gap-4 transition-shadow hover:shadow-md"
+            className="flex-1 min-h-0 group relative bg-white rounded-xl md:rounded-2xl px-4 border shadow-[0_2px_8px_rgba(0,0,0,0.02)] grid grid-cols-[80px_1fr] md:grid-cols-[140px_1fr] lg:grid-cols-[180px_1fr] items-center gap-4 transition-shadow hover:shadow-md"
+            style={{ borderColor: `${gapColor}20` }} // Subtle border tint using hex opacity
           >
             {/* Genre Label */}
             <div className="text-right">
@@ -100,7 +132,7 @@ export function TasteGapLine({ data }: TasteGapLineProps) {
                     className="rounded-full shadow-sm transition-all w-4 h-4 md:w-6 md:h-6 lg:w-8 lg:h-8 border-2 border-[#F8F5F2]"
                     style={{
                       backgroundColor: gapColor, // User dot matches the vibe
-                      boxShadow: gapSize > 0.5 ? `0 0 10px ${gapColor}66` : 'none',
+                      boxShadow: Math.abs(diff) > 0.3 ? `0 0 10px ${gapColor}66` : 'none',
                     }}
                   />
                   <div

@@ -120,6 +120,7 @@ export function PersonalGenreBubbles({ data }: PersonalGenreBubblesProps) {
     const safeOrbitRadius = Math.max(0, minDimensionHalf - maxBubbleR - screenPadding - 10);
 
     // Use the smaller of the ideal packed size or the safe screen limit
+    // Use the smaller of the ideal packed size or the safe screen limit
     const maxOrbitRadius = Math.min(packedRadius * 1.1, safeOrbitRadius);
 
     const simulation = d3
@@ -152,7 +153,22 @@ export function PersonalGenreBubbles({ data }: PersonalGenreBubblesProps) {
             // Much stronger pull for high rated items to force them to center
             return 1.0 + normalized * 1.0; // Range 1.0 - 2.0
           }),
-      );
+      )
+      .stop(); // STOP immediately to pre-calculate
+
+    // ------------------------------------------------------------
+    // PRE-CALCULATION (Warm Up) to avoid initial "flicker"
+    // ------------------------------------------------------------
+    const TICKS = 300;
+    for (let i = 0; i < TICKS; ++i) {
+      simulation.tick();
+      // Manually clamp during warmup to ensure they settle in bounds
+      nodes.forEach((d) => {
+        const r = d.r;
+        d.x = Math.max(r + screenPadding, Math.min(width - r - screenPadding, d.x!));
+        d.y = Math.max(r, Math.min(height - r, d.y!));
+      });
+    }
 
     // CONTAINER GROUP
     const nodeContainers = g
@@ -160,6 +176,9 @@ export function PersonalGenreBubbles({ data }: PersonalGenreBubblesProps) {
       .data(nodes)
       .join('g')
       .attr('class', 'cursor-pointer')
+      // Set initial position based on warmed-up coordinates
+      .attr('transform', (d) => `translate(${d.x},${d.y}) scale(0)`) // Start scaled down
+      .attr('opacity', 0)
       .on('mouseenter', (event, d) => {
         setHoveredGenre({ genre: d.genre, x: d.x!, y: d.y!, r: d.r });
       })
@@ -169,6 +188,19 @@ export function PersonalGenreBubbles({ data }: PersonalGenreBubblesProps) {
       .on('click', (event, d) => {
         event.stopPropagation();
         setHoveredGenre({ genre: d.genre, x: d.x!, y: d.y!, r: d.r });
+      });
+
+    // ENTRANCE ANIMATION
+    nodeContainers
+      .transition()
+      .duration(800)
+      .ease(d3.easeBackOut.overshoot(0.8)) // Nice bounce effect
+      .delay((d, i) => i * 15) // Staggered reveal
+      .attr('transform', (d) => `translate(${d.x},${d.y}) scale(1)`)
+      .attr('opacity', 1)
+      .on('end', () => {
+        // Optional: Restart simulation gently if we want floating,
+        // but for "stable" look, we might just leave them unless dragged (if we had drag)
       });
 
     const content = nodeContainers
@@ -184,14 +216,15 @@ export function PersonalGenreBubbles({ data }: PersonalGenreBubblesProps) {
         if (base) {
           const normalized = (d.genre.userAvgRating - minRating) / (maxRating - minRating || 1);
 
-          // Softer desaturation for lower ratings (User Feedback: previous was too harsh)
-          // Normalized 0 -> Saturation 0.4 (visible color but muted)
+          // Boost mid-tier saturation significantly (User Feedback: "still too gray")
+          // Normalized 0 -> Saturation 0.3 (grey-ish but still hinted)
+          // Normalized 0.5 -> Saturation ~0.75 (vibrant enough)
           // Normalized 1 -> Saturation 1.0 (full color)
-          // Using a gentler power curve to keep more items colorful
-          base.s = Math.min(1, base.s * (0.4 + 0.6 * Math.pow(normalized, 1.5)));
+          // Using power < 1 (e.g. 0.7) to boost the curve upwards for mid-values
+          base.s = Math.min(1, base.s * (0.3 + 0.7 * Math.pow(normalized, 0.7)));
 
-          // Lightness adjustment: less aggressive fading
-          base.l = Math.min(0.9, base.l + (1 - normalized) * 0.1);
+          // Lightness adjustment: minimal fading for low ratings to keep color depth
+          base.l = Math.min(0.9, base.l + (1 - normalized) * 0.05);
 
           return base.formatHex();
         }
@@ -254,20 +287,6 @@ export function PersonalGenreBubbles({ data }: PersonalGenreBubblesProps) {
            </div>
       `,
       );
-
-    // Update simulation positions with Bounding Box
-    simulation.on('tick', () => {
-      nodeContainers.attr('transform', (d) => {
-        // Hard Clamp to Screen Boundaries
-        const r = d.r;
-        // X: [r + padding, width - r - padding]
-        d.x = Math.max(r + screenPadding, Math.min(width - r - screenPadding, d.x!));
-        // Y: [r, height - r] (keep vertical strict but padding less critical unless desired)
-        d.y = Math.max(r, Math.min(height - r, d.y!));
-
-        return `translate(${d.x},${d.y})`;
-      });
-    });
 
     // Clean up
     return () => {
