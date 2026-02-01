@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { DebugControls } from '@/components/debug/DebugControls';
 
 interface GameLayoutProps {
   top?: React.ReactNode;
@@ -51,6 +52,8 @@ export const GameLayout: React.FC<GameLayoutProps> = ({
       {bottom && (
         <div className="shrink-0 z-10 w-full relative flex flex-col justify-center">{bottom}</div>
       )}
+
+      <DebugControls />
     </div>
   );
 };

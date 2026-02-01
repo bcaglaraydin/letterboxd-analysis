@@ -1,29 +1,32 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GenreRankingGame } from './ranking/GenreRankingGame';
 import { GenreMatchingGame } from './genre-matching/GenreMatchingGame';
+import { PostGameScreen } from './PostGameScreen';
+
+import { useGenreOrchestrationStore } from '@/store/genre/genreOrchestrationStore';
 
 interface GenreOrchestrationProps {
   onGameComplete: (totalScore: number) => void;
 }
 
-type Phase = 'ranking' | 'matching';
-
 export function GenreOrchestration({ onGameComplete }: GenreOrchestrationProps) {
-  const [phase, setPhase] = useState<Phase>('ranking');
-  const [rankingScore, setRankingScore] = useState(0);
+  const { phase, setPhase, setRankingScore, setMatchingScore, rankingScore, matchingScore } =
+    useGenreOrchestrationStore();
 
   const handleRankingComplete = (score: number) => {
     setRankingScore(score);
     setPhase('matching');
   };
 
-  const handleMatchingComplete = (matchingScore: number) => {
-    // Combine scores or handle as needed.
-    // Assuming the "Genre Score" in hub is the sum, or we might need to change how score is calculated.
-    // For now, let's sum them.
+  const handleMatchingComplete = (score: number) => {
+    setMatchingScore(score);
+    setPhase('post-game');
+  };
+
+  const handlePostGameComplete = () => {
     onGameComplete(rankingScore + matchingScore);
   };
 
@@ -51,6 +54,18 @@ export function GenreOrchestration({ onGameComplete }: GenreOrchestrationProps) 
             className="w-full h-full"
           >
             <GenreMatchingGame onGameComplete={handleMatchingComplete} />
+          </motion.div>
+        )}
+
+        {phase === 'post-game' && (
+          <motion.div
+            key="post-game"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="w-full h-full"
+          >
+            <PostGameScreen onComplete={handlePostGameComplete} />
           </motion.div>
         )}
       </AnimatePresence>

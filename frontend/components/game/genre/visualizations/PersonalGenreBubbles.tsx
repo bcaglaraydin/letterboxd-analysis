@@ -4,23 +4,27 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Film } from 'lucide-react';
 import * as d3 from 'd3';
-import { MOCK_GENRE_DATA, GenreData } from './mockData';
+import { GenreStat } from '@/lib/api';
 import { AnimatePresence } from 'framer-motion';
 import { BubblePosterStrip } from './BubblePosterStrip';
 
 interface BubbleNode extends d3.SimulationNodeDatum {
   id: string;
-  genre: GenreData;
+  genre: GenreStat;
   r: number;
   x?: number;
   y?: number;
 }
 
-export function PersonalGenreBubbles() {
+interface PersonalGenreBubblesProps {
+  data: GenreStat[];
+}
+
+export function PersonalGenreBubbles({ data }: PersonalGenreBubblesProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const [hoveredGenre, setHoveredGenre] = useState<{
-    genre: GenreData;
+    genre: GenreStat;
     x: number;
     y: number;
     r: number;
@@ -30,15 +34,15 @@ export function PersonalGenreBubbles() {
   // 1. Normalize Data
   const { nodes, getGenreBaseColor, minRating, maxRating } = useMemo(() => {
     // Filter for user data only
-    const data = MOCK_GENRE_DATA.filter((g) => g.userWatchCount > 0);
+    const validData = data.filter((g) => g.userWatchCount > 0);
 
     // Rating Range for Color Intensity
-    const minRating = d3.min(data, (d) => d.userAvgRating) || 0;
-    const maxRating = d3.max(data, (d) => d.userAvgRating) || 5;
+    const minRating = d3.min(validData, (d) => d.userAvgRating) || 0;
+    const maxRating = d3.max(validData, (d) => d.userAvgRating) || 5;
 
     // Watch Count Range for Size
-    const minCount = d3.min(data, (d) => d.userWatchCount) || 0;
-    const maxCount = d3.max(data, (d) => d.userWatchCount) || 100;
+    const minCount = d3.min(validData, (d) => d.userWatchCount) || 0;
+    const maxCount = d3.max(validData, (d) => d.userWatchCount) || 100;
 
     // Color Mapping
     const BASE_COLOR = '#E76F51';
@@ -52,9 +56,9 @@ export function PersonalGenreBubbles() {
     const radiusScale = d3.scaleSqrt().domain([minCount, maxCount]).range(radiusRange);
 
     // Sort data by rating descending
-    data.sort((a, b) => b.userAvgRating - a.userAvgRating);
+    validData.sort((a, b) => b.userAvgRating - a.userAvgRating);
 
-    const nodes: BubbleNode[] = data.map((d, i) => {
+    const nodes: BubbleNode[] = validData.map((d, i) => {
       return {
         id: d.id,
         r: radiusScale(d.userWatchCount),
@@ -65,7 +69,7 @@ export function PersonalGenreBubbles() {
     });
 
     return { nodes, getGenreBaseColor, minRating, maxRating };
-  }, [dimensions.width]);
+  }, [data, dimensions.width]);
 
   // 2. Handle Resize
   useEffect(() => {
@@ -179,17 +183,30 @@ export function PersonalGenreBubbles() {
         const base = d3.hsl(getGenreBaseColor(d.id));
         if (base) {
           const normalized = (d.genre.userAvgRating - minRating) / (maxRating - minRating || 1);
-          base.s = Math.min(1, base.s * (0.4 + 0.9 * Math.pow(normalized, 1.4)));
-          base.l = Math.min(0.9, base.l + (1 - normalized) * 0.05);
+
+          // Softer desaturation for lower ratings (User Feedback: previous was too harsh)
+          // Normalized 0 -> Saturation 0.4 (visible color but muted)
+          // Normalized 1 -> Saturation 1.0 (full color)
+          // Using a gentler power curve to keep more items colorful
+          base.s = Math.min(1, base.s * (0.4 + 0.6 * Math.pow(normalized, 1.5)));
+
+          // Lightness adjustment: less aggressive fading
+          base.l = Math.min(0.9, base.l + (1 - normalized) * 0.1);
+
           return base.formatHex();
         }
         return '#ccc';
       })
       .attr('fill-opacity', (d) => {
         const normalized = (d.genre.userAvgRating - minRating) / (maxRating - minRating || 1);
-        return 0.75 + normalized * 0.25;
+        // Lower opacity for low rated items
+        return 0.6 + normalized * 0.4;
       })
-      .attr('stroke', '#fff')
+      .attr('stroke', (d) => {
+        // Darker stroke for high rated, lighter for low rated
+        const normalized = (d.genre.userAvgRating - minRating) / (maxRating - minRating || 1);
+        return normalized > 0.5 ? '#fff' : '#ddd';
+      })
       .attr('stroke-width', 2)
       .attr('stroke-opacity', 0.4)
       .style('filter', 'drop-shadow(0px 4px 12px rgba(0,0,0,0.1))');

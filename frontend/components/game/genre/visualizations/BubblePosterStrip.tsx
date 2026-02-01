@@ -65,7 +65,14 @@ export function BubblePosterStrip({
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: i * 0.03, duration: 0.2 }}
           >
-            <img src={movie.posterUrl} alt={movie.title} className="w-full h-full object-cover" />
+            {/* Poster Image */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={movie.posterUrl}
+              alt={movie.title}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
           </motion.div>
         ))}
       </div>

@@ -123,3 +123,77 @@ export function findGuiltyPleasure(movies) {
     controversialPicks,
   };
 }
+
+/**
+ * Calculates per-genre statistics (User vs Community).
+ * @param {Array} films - Array of film objects with { genres, userRating, averageRating, poster, title, slug }.
+ * @returns {Array} - Array of genre stats sorted by userWatchCount desc.
+ */
+export function calculateGenreStats(films) {
+  const genreMap = {};
+
+  films.forEach((film) => {
+    if (!film.genres || !Array.isArray(film.genres)) return;
+
+    // Only count films the user has rated for user stats
+    const isRated = film.userRating !== null && film.userRating !== undefined;
+
+    film.genres.forEach((genreName) => {
+      if (!genreMap[genreName]) {
+        genreMap[genreName] = {
+          name: genreName,
+          userRatingSum: 0,
+          userRatingCount: 0,
+          commRatingSum: 0,
+          commRatingCount: 0,
+          films: [],
+        };
+      }
+
+      const entry = genreMap[genreName];
+
+      // Add to community stats (all films in user's list usually serve as basis, or just rated?
+      // Usually comparison is best on rated films to match apples-to-apples,
+      // but watch count usually implies "seen".
+      // Let's stick to "films user has rated" for the main consistency,
+      // OR "films user has logged".
+      // The current system relies on `userRating` for "User Avg".
+      // Let's rely on stored userRating.
+
+      if (isRated) {
+        entry.userRatingSum += film.userRating;
+        entry.userRatingCount += 1;
+        entry.films.push(film);
+      }
+
+      if (film.averageRating) {
+        entry.commRatingSum += film.averageRating;
+        entry.commRatingCount += 1;
+      }
+    });
+  });
+
+  return Object.values(genreMap)
+    .filter((g) => g.userRatingCount > 0) // Only return genres user has actually rated
+    .map((g) => {
+      // Sort films by user rating (desc) to get "best of" examples
+      const topFilms = g.films
+        .sort((a, b) => b.userRating - a.userRating)
+        .slice(0, 5)
+        .map((f) => ({
+          title: f.title,
+          posterUrl: f.poster || '',
+        }));
+
+      return {
+        id: g.name.toLowerCase().replace(/\s+/g, '-'),
+        name: g.name,
+        userAvgRating: parseFloat((g.userRatingSum / g.userRatingCount).toFixed(2)),
+        communityAvgRating:
+          g.commRatingCount > 0 ? parseFloat((g.commRatingSum / g.commRatingCount).toFixed(2)) : 0,
+        userWatchCount: g.userRatingCount,
+        exampleMovies: topFilms,
+      };
+    })
+    .sort((a, b) => b.userWatchCount - a.userWatchCount);
+}

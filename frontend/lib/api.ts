@@ -32,6 +32,19 @@ export interface UserStats {
   communityRatingDistribution: Record<string, number>;
   guiltyPleasures: RatingGameMovie[];
   controversialPicks: RatingGameMovie[];
+  genreOverview: GenreStat[];
+}
+
+export interface GenreStat {
+  id: string;
+  name: string;
+  userAvgRating: number;
+  communityAvgRating: number;
+  userWatchCount: number;
+  exampleMovies: {
+    title: string;
+    posterUrl: string;
+  }[];
 }
 
 export interface Genre {

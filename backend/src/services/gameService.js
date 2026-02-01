@@ -6,6 +6,7 @@ import {
   calculateBasicStats,
   calculateCommunityComparison,
   findGuiltyPleasure,
+  calculateGenreStats,
 } from './statsService.js';
 
 export const GameService = {
@@ -60,6 +61,9 @@ export const GameService = {
 
     const { guiltyPleasures, controversialPicks } = findGuiltyPleasure(candidates);
 
+    // Calculate Genre Stats
+    const genreOverview = calculateGenreStats(allFilmsWithMeta);
+
     const userStats = {
       totalMovies: userFilms.length,
       averageRating: basicStats.average,
@@ -73,6 +77,7 @@ export const GameService = {
       communityRatingDistribution: commDist,
       guiltyPleasures,
       controversialPicks,
+      genreOverview,
     };
 
     return {
