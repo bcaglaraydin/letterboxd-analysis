@@ -46,7 +46,10 @@ export function PersonalGenreBubbles() {
     const getGenreBaseColor = (_id: string) => BASE_COLOR;
 
     // Size Scale
-    const radiusScale = d3.scaleSqrt().domain([minCount, maxCount]).range([60, 140]);
+    const isMobile = dimensions.width > 0 && dimensions.width < 768;
+    // Tighter radius range to ensure fitting on small screens
+    const radiusRange: [number, number] = isMobile ? [25, 70] : [50, 120];
+    const radiusScale = d3.scaleSqrt().domain([minCount, maxCount]).range(radiusRange);
 
     // Sort data by rating descending
     data.sort((a, b) => b.userAvgRating - a.userAvgRating);
@@ -62,7 +65,7 @@ export function PersonalGenreBubbles() {
     });
 
     return { nodes, getGenreBaseColor, minRating, maxRating };
-  }, []);
+  }, [dimensions.width]);
 
   // 2. Handle Resize
   useEffect(() => {
@@ -89,15 +92,31 @@ export function PersonalGenreBubbles() {
 
     const width = dimensions.width;
     const height = dimensions.height;
+    const isMobile = width < 768;
     const centerX = width / 2;
-    const centerY = height / 2;
+    // Shift center down to avoid Header/Title overlap
+    const centerY = height / 2 + 50;
 
     const g = svg.append('g');
 
     // Forces
     const totalArea = nodes.reduce((acc, node) => acc + Math.PI * Math.pow(node.r + 5, 2), 0);
     const packedRadius = Math.sqrt(totalArea / Math.PI);
-    const maxOrbitRadius = packedRadius * 1.1;
+
+    // Ensure the target orbit fits within the screen
+    // Note: radiusRange is [25, 70] for mobile, [50, 120] for desktop
+    const maxBubbleR = isMobile ? 70 : 120;
+    const minDimensionHalf = Math.min(width, height) / 2;
+
+    // Add extra padding for mobile to prevent edge touching
+    const screenPadding = isMobile ? 15 : 0;
+
+    // Cap the orbit radius so the outer edge of bubbles stays inside:
+    // Available Space = minDimensionHalf - maxBubbleR - padding
+    const safeOrbitRadius = Math.max(0, minDimensionHalf - maxBubbleR - screenPadding - 10);
+
+    // Use the smaller of the ideal packed size or the safe screen limit
+    const maxOrbitRadius = Math.min(packedRadius * 1.1, safeOrbitRadius);
 
     const simulation = d3
       .forceSimulation<BubbleNode>(nodes)
@@ -116,7 +135,10 @@ export function PersonalGenreBubbles() {
           .forceRadial<BubbleNode>(
             (d) => {
               const normalized = (d.genre.userAvgRating - minRating) / (maxRating - minRating || 1);
-              const targetR = (1 - normalized) * maxOrbitRadius;
+              // Invert normalized: High rating (1.0) -> inner center (0)
+              // Low rating (0.0) -> outer edge (maxOrbitRadius)
+              // Adding even more separation for mobile to ensure core fits
+              const targetR = Math.pow(1 - normalized, 1.2) * maxOrbitRadius;
               return targetR;
             },
             centerX,
@@ -124,7 +146,8 @@ export function PersonalGenreBubbles() {
           )
           .strength((d) => {
             const normalized = (d.genre.userAvgRating - minRating) / (maxRating - minRating || 1);
-            return 0.6 + normalized * 0.6;
+            // Stronger pull for decent ratings to ensure they cluster
+            return 0.8 + normalized * 0.4; // Range 0.8 - 1.2
           }),
       );
 
@@ -145,7 +168,6 @@ export function PersonalGenreBubbles() {
         setHoveredGenre({ genre: d.genre, x: d.x!, y: d.y!, r: d.r });
       });
 
-    // CONTENT GROUP
     const content = nodeContainers
       .append('g')
       .attr('class', 'transition-transform duration-300 ease-out hover:scale-110');
@@ -217,9 +239,18 @@ export function PersonalGenreBubbles() {
       `,
       );
 
-    // Update simulation positions
+    // Update simulation positions with Bounding Box
     simulation.on('tick', () => {
-      nodeContainers.attr('transform', (d) => `translate(${d.x},${d.y})`);
+      nodeContainers.attr('transform', (d) => {
+        // Hard Clamp to Screen Boundaries
+        const r = d.r;
+        // X: [r + padding, width - r - padding]
+        d.x = Math.max(r + screenPadding, Math.min(width - r - screenPadding, d.x!));
+        // Y: [r, height - r] (keep vertical strict but padding less critical unless desired)
+        d.y = Math.max(r, Math.min(height - r, d.y!));
+
+        return `translate(${d.x},${d.y})`;
+      });
     });
 
     // Clean up
@@ -275,13 +306,23 @@ export function PersonalGenreBubbles() {
             <div
               style={{
                 position: 'absolute',
-                left: hoveredGenre.x,
+                // Smart Clamping: Keep strip within screen bounds
+                left: (() => {
+                  const isMobile = dimensions.width < 768;
+                  const halfStripWidth = isMobile ? 140 : 210;
+                  const padding = 20;
+                  return Math.max(
+                    halfStripWidth + padding,
+                    Math.min(hoveredGenre.x, dimensions.width - halfStripWidth - padding),
+                  );
+                })(),
                 top: hoveredGenre.y,
               }}
             >
               <BubblePosterStrip
                 movies={hoveredGenre.genre.exampleMovies}
                 bubbleRadius={hoveredGenre.r}
+                isMobile={dimensions.width < 768}
               />
             </div>
           </div>

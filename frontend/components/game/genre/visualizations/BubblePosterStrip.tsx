@@ -9,9 +9,14 @@ interface Movie {
 interface BubblePosterStripProps {
   movies: Movie[];
   bubbleRadius: number;
+  isMobile?: boolean; // New prop
 }
 
-export function BubblePosterStrip({ movies, bubbleRadius }: BubblePosterStripProps) {
+export function BubblePosterStrip({
+  movies,
+  bubbleRadius,
+  isMobile = false,
+}: BubblePosterStripProps) {
   const displayMovies = movies.slice(0, 5);
 
   return (
@@ -33,9 +38,10 @@ export function BubblePosterStrip({ movies, bubbleRadius }: BubblePosterStripPro
         scale: 1,
         x: '-50%', // Maintain horizontal centering
         // Smart Positioning:
-        // Large bubbles: Position at top edge (-radius * 1.0)
-        // Small bubbles: Force to -160px to guarantee ample text clearance
-        y: Math.min(-bubbleRadius * 1.0, -200),
+        // Desktop: -160px (height ~140px, bottom @ -20px)
+        // Mobile: -105px (height ~82px, bottom @ -23px)
+        // Helps close the gap on mobile while keeping text safe
+        y: isMobile ? Math.min(-bubbleRadius * 1.0, -105) : Math.min(-bubbleRadius * 1.0, -160),
       }}
       exit={{
         opacity: 0,
@@ -50,11 +56,11 @@ export function BubblePosterStrip({ movies, bubbleRadius }: BubblePosterStripPro
         duration: 0.3,
       }}
     >
-      <div className="flex items-center justify-center gap-2 p-2 bg-black/20 backdrop-blur-sm rounded-xl border border-white/10 shadow-xl pointer-events-none">
+      <div className="flex items-center justify-center gap-1 sm:gap-2 p-1 sm:p-2 bg-black/20 backdrop-blur-sm rounded-xl border border-white/10 shadow-xl pointer-events-none">
         {displayMovies.map((movie, i) => (
           <motion.div
             key={i}
-            className="group relative w-16 md:w-20 aspect-[2/3] rounded-md overflow-hidden shadow-sm hover:scale-105 transition-transform bg-gray-900 border border-white/20"
+            className="group relative w-12 sm:w-16 md:w-20 aspect-[2/3] rounded-md overflow-hidden shadow-sm transition-transform bg-gray-900 border border-white/20"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: i * 0.03, duration: 0.2 }}
