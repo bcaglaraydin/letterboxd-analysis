@@ -211,25 +211,25 @@ export function PersonalGenreBubbles() {
 
     content
       .append('foreignObject')
-      .attr('width', (d) => d.r * 1.8) // Slightly wider to fit both
-      .attr('height', (d) => d.r * 0.6)
-      .attr('x', (d) => -d.r * 0.9) // Center width
+      .attr('width', (d) => d.r * 1.8)
+      .attr('height', (d) => d.r * 0.5)
+      .attr('x', (d) => -d.r * 0.9)
       .attr('y', (d) => d.r * 0.1) // Position below title
       .style('pointer-events', 'none')
       .append('xhtml:div')
-      .attr('class', 'flex flex-col items-center justify-start text-white')
       .style('width', '100%')
       .style('height', '100%')
+      .attr('class', 'flex items-center justify-center gap-3 text-white opacity-90')
+      .style('font-size', (d) => `${metaSize(d)}px`)
+      .style('text-shadow', '0px 1px 2px rgba(0,0,0,0.3)')
       .html(
         (d) => `
-        <div class="flex items-center gap-3 opacity-90" style="font-size: ${metaSize(d)}px; text-shadow: 0px 1px 2px rgba(0,0,0,0.3);">
            <span class="font-serif font-semibold">★ ${d.genre.userAvgRating.toFixed(1)}</span>
            <div class="w-px h-3 bg-white/40"></div>
            <div class="flex items-center gap-1">
              ${renderToStaticMarkup(<Film size="1em" strokeWidth={2.5} />)}
              <span class="font-sans font-medium leading-none mt-[1px]">${d.genre.userWatchCount}</span>
            </div>
-        </div>
       `,
       );
 
