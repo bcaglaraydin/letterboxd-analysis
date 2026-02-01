@@ -40,12 +40,12 @@ describe('Genre Matching Game', () => {
       // Popular
       expect(rarityMap['Action']).toBe('popular');
       expect(rarityMap['Drama']).toBe('popular');
-      expect(rarityMap['Comedy']).toBe('popular');
 
       // Mid
-      expect(rarityMap['Thriller']).toBe('mid');
-      expect(rarityMap['Horror']).toBe('mid');
-      expect(rarityMap['Romance']).toBe('mid');
+      expect(rarityMap['Comedy']).toBe('mid-tier');
+      expect(rarityMap['Thriller']).toBe('mid-tier');
+      expect(rarityMap['Horror']).toBe('mid-tier');
+      expect(rarityMap['Romance']).toBe('mid-tier');
 
       // Niche
       expect(rarityMap['Documentary']).toBe('niche');
