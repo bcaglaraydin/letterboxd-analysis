@@ -26,14 +26,14 @@ export default function LandingPage() {
           transition={{ duration: 0.8, ease: 'easeOut' }}
           className="w-full max-w-md space-y-8 text-center"
         >
-          <div className="space-y-6">
+          <div className="space-y-8">
             <div className="flex justify-center">
               <Image
                 src="/logo.svg"
                 alt="Letterboxd Analysis Logo"
-                width={120}
-                height={120}
-                className="w-32 h-32 md:w-40 md:h-40"
+                width={1150}
+                height={1200}
+                className="w-auto h-24 md:h-36 drop-shadow-2xl"
                 priority
               />
             </div>
