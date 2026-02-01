@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useCallback, useMemo, useRef } from 'react';
-import { MOCK_FILMS, MOCK_GENRES, ANIMATION_TIMING } from './constants';
+import { MOCK_MATCHING_FILMS, MOCK_MATCHING_GENRES } from '../../../../mocks/data';
+import { ANIMATION_TIMING } from './constants';
+
 import { Genre, GenreTier, GamePhase, ChipDisplayState } from './types';
 import { useGenreMatchingStore } from '@/store/genre/matchingStore';
 import { ScoringConfig } from '@/lib/api';
@@ -97,7 +99,7 @@ export function useGenreMatchingGame(): UseGenreMatchingGameReturn {
   });
 
   const currentFilmIndex = hasRealData ? currentIndex : 0;
-  const films = hasRealData ? rounds : MOCK_FILMS;
+  const films = hasRealData ? rounds : MOCK_MATCHING_FILMS;
   const currentFilmRaw = films[currentFilmIndex] || films[0];
 
   // Adapter for film object structure differences if any
@@ -122,7 +124,7 @@ export function useGenreMatchingGame(): UseGenreMatchingGameReturn {
 
   // Generate Genre Objects from Rarity Map
   const allGenres = useMemo(() => {
-    if (!hasRealData) return MOCK_GENRES;
+    if (!hasRealData) return MOCK_MATCHING_GENRES;
 
     return Object.entries(rarityMap).map(([name, tierRaw]) => {
       // Map backend 'mid' to frontend 'mid-tier'

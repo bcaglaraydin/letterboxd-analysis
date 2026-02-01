@@ -15,6 +15,7 @@ import { DraggableRankingList } from './DraggableRankingList';
 import { ActualRankingColumn } from './ActualRankingColumn';
 import { useRevealAnimation } from './useRevealAnimation';
 import { Button } from '@/components/ui/button';
+// import { MOCK_GENRE_STATS } from '@/mocks/data';
 
 interface GenreRankingGameProps {
   onGameComplete: (score: number) => void;
@@ -61,21 +62,11 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
   });
 
   // Initialize with mock data on mount (for development)
-  // Initialize with mock data on mount (for development)
   /*
   useEffect(() => {
     if (genres.length === 0 && phase === "intro") {
-      const mockGenres = [
-        { id: "drama", name: "Drama" },
-        { id: "comedy", name: "Comedy" },
-        { id: "action", name: "Action" },
-        { id: "romance", name: "Romance" },
-        { id: "thriller", name: "Thriller" },
-        { id: "horror", name: "Horror" },
-        { id: "scifi", name: "Sci-Fi" },
-        { id: "documentary", name: "Documentary" },
-      ];
-      const actualOrder = mockGenres.map((g) => g.id);
+      const mockGenres = MOCK_GENRE_STATS.map(g => ({ id: g.id, name: g.name }));
+      const actualOrder = MOCK_GENRE_STATS.map((g) => g.id); // Or utilize actualRanking from mock if available
       startGame({
         genres: mockGenres,
         actualRanking: actualOrder,
