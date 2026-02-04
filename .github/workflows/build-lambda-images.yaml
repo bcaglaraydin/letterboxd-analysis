@@ -78,6 +78,7 @@ jobs:
           context: backend
           file: backend/docker/base/Dockerfile
           platforms: linux/arm64
+          provenance: false
           push: true
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/letterboxd-base-dev:${{ steps.vars.outputs.image_tag }}
@@ -129,6 +130,7 @@ jobs:
           context: backend
           file: backend/docker/lambdas/${{ matrix.lambda }}/Dockerfile
           platforms: linux/arm64
+          provenance: false
           push: true
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/letterboxd-${{ matrix.lambda }}-dev:${{ needs.build-base.outputs.image_tag }}
@@ -178,6 +180,7 @@ jobs:
           build-args: |
             BASE_IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/letterboxd-base-dev:${{ needs.build-base.outputs.image_tag }}
           platforms: linux/arm64
+          provenance: false
           push: true
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/letterboxd-${{ matrix.lambda }}-dev:${{ needs.build-base.outputs.image_tag }}
