@@ -61,7 +61,7 @@ jobs:
       - name: Terragrunt Apply
         working-directory: ${{ inputs.working_directory }}
         run: |
-          terragrunt apply --non-interactive
+          terragrunt apply -auto-approve
 
       - name: Get Output
         id: output
