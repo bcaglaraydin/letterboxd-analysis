@@ -14,6 +14,12 @@ variable "environment" {
   default     = "dev"
 }
 
+variable "alias_name" {
+  description = "Name of the Lambda alias"
+  type        = string
+  default     = "dev"
+}
+
 variable "environment_variables" {
   description = "Environment variables for the Lambda function"
   type        = map(string)

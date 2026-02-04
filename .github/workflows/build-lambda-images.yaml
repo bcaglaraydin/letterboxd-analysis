@@ -14,12 +14,6 @@ name: Build Lambda Container Images
 
 on:
   workflow_call: # Called by deploy-backend workflow
-  push:
-    branches:
-      - master
-    paths:
-      - 'backend/**'
-      - '.github/workflows/build-lambda-images.yaml'
   workflow_dispatch:
     inputs:
       image_tag:
@@ -50,10 +44,11 @@ jobs:
         id: vars
         run: |
           if [ -n "${{ inputs.image_tag }}" ]; then
-            echo "image_tag=${{ inputs.image_tag }}" >> $GITHUB_OUTPUT
+            TAG="${{ inputs.image_tag }}"
           else
-            echo "image_tag=${{ github.sha }}" >> $GITHUB_OUTPUT
+            TAG="${{ github.sha }}"
           fi
+          echo "image_tag=${TAG}" >> $GITHUB_OUTPUT
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -90,9 +85,56 @@ jobs:
           echo "image_uri=${{ steps.login-ecr.outputs.registry }}/letterboxd-base-dev:${{ steps.vars.outputs.image_tag }}" >> $GITHUB_OUTPUT
 
   # ============================================================================
-  # BUILD LAMBDA IMAGES
+  # BUILD LIGHTWEIGHT LAMBDA IMAGES (No Chromium needed)
   # ============================================================================
-  build-lambdas:
+  build-lightweight-lambdas:
+    name: Build Lambda - ${{ matrix.lambda }}
+    needs: build-base  # Only for image_tag output
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    strategy:
+      matrix:
+        lambda:
+          - start
+          - status
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-deploy-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Lambda image
+        uses: docker/build-push-action@v5
+        with:
+          context: backend
+          file: backend/docker/lambdas/${{ matrix.lambda }}/Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/letterboxd-${{ matrix.lambda }}-dev:${{ needs.build-base.outputs.image_tag }}
+            ${{ steps.login-ecr.outputs.registry }}/letterboxd-${{ matrix.lambda }}-dev:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ============================================================================
+  # BUILD BROWSER LAMBDA IMAGES (Chromium base required)
+  # ============================================================================
+  build-browser-lambdas:
     name: Build Lambda - ${{ matrix.lambda }}
     needs: build-base
     runs-on: ubuntu-latest
@@ -102,9 +144,7 @@ jobs:
     strategy:
       matrix:
         lambda:
-          - start
           - list-scraper
-          - status
           - worker
     steps:
       - uses: actions/checkout@v4
@@ -145,7 +185,7 @@ jobs:
   # ============================================================================
   summary:
     name: Build Summary
-    needs: [build-base, build-lambdas]
+    needs: [build-base, build-lightweight-lambdas, build-browser-lambdas]
     runs-on: ubuntu-latest
     steps:
       - name: Print image tags
@@ -156,7 +196,9 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Images Built" >> $GITHUB_STEP_SUMMARY
           echo "- letterboxd-base-dev" >> $GITHUB_STEP_SUMMARY
+          echo "#### Lightweight (Node.js 22 base)" >> $GITHUB_STEP_SUMMARY
           echo "- letterboxd-start-dev" >> $GITHUB_STEP_SUMMARY
-          echo "- letterboxd-list-scraper-dev" >> $GITHUB_STEP_SUMMARY
           echo "- letterboxd-status-dev" >> $GITHUB_STEP_SUMMARY
+          echo "#### Browser (Chromium base)" >> $GITHUB_STEP_SUMMARY
+          echo "- letterboxd-list-scraper-dev" >> $GITHUB_STEP_SUMMARY
           echo "- letterboxd-worker-dev" >> $GITHUB_STEP_SUMMARY
