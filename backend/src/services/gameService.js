@@ -11,6 +11,26 @@ import {
 
 export const GameService = {
   /**
+   * Generates a rating game for partial_ready state (progressive loading).
+   * Filters films to only those with valid metadata before generating.
+   * @param {Array} userFilms - List of user's films with basic info (slug, userRating).
+   * @param {Map} metadataMap - Map of slug -> full metadata from DB.
+   * @param {number} minFilms - Minimum number of rated films required.
+   * @returns {Promise<object>} - Rating game data.
+   */
+  async generatePartialRatingGame(userFilms, metadataMap, minFilms) {
+    // Filter for films with valid metadata and ratings
+    const partialUserFilms = userFilms.filter((f) => {
+      const meta = metadataMap.get(f.slug);
+      return meta && meta.year && meta.year !== '????' && f.userRating != null;
+    });
+
+    return generateRatingGame(partialUserFilms, metadataMap, {
+      minRatedFilms: minFilms,
+    });
+  },
+
+  /**
    * Generates all games and statistics for a user.
    * @param {Array} userFilms - List of user's films with basic info (slug, userRating).
    * @param {Map} metadataMap - Map of slug -> full metadata from DB.

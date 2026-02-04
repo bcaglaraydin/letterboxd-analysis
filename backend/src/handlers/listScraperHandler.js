@@ -16,6 +16,19 @@ export const handler = async (event) => {
         const body = JSON.parse(record.body);
         const { action, username, jobId } = body;
 
+        if (action === 'test_browser') {
+          console.log('[ListScraper] Running browser test...');
+          try {
+            const { fetchHtmlWithBrowser } = await import('../utils/browser.js');
+            const html = await fetchHtmlWithBrowser('https://example.com');
+            console.log(`[ListScraper] Browser Test Success. HTML Length: ${html.length}`);
+          } catch (e) {
+            console.error('[ListScraper] Browser Test Failed:', e);
+            throw e;
+          }
+          return;
+        }
+
         if (action !== 'scrape_user_list' || !username) {
           console.warn('[ListScraper] Invalid message:', body);
           return;

@@ -1,0 +1,119 @@
+# ==============================================================================
+# LETTERBOXD ANALYSIS - DOCKER COMPOSE
+# ==============================================================================
+# Local development environment for Lambda containers
+# Usage:
+#   docker compose build base           # Build base image first
+#   docker compose build                # Build all Lambda images
+#   docker compose up list-scraper      # Run a specific Lambda
+#   docker compose up -d                # Run all Lambdas in background
+# ==============================================================================
+
+x-common-env: &common-env
+  AWS_REGION: eu-west-1
+  AWS_SHARED_CREDENTIALS_FILE: /root/.aws/credentials
+  AWS_CONFIG_FILE: /root/.aws/config
+  FILMS_TABLE: ${FILMS_TABLE:-Films}
+  USER_JOBS_TABLE: ${USER_JOBS_TABLE:-UserJobs}
+  SQS_QUEUE_URL: ${SQS_QUEUE_URL:-https://sqs.eu-west-1.amazonaws.com/617969167018/film-scrape-queue}
+  SQS_LIST_QUEUE_URL: ${SQS_LIST_QUEUE_URL:-https://sqs.eu-west-1.amazonaws.com/617969167018/list-scrape-queue}
+  NODE_ENV: development
+
+services:
+  # ==========================================================================
+  # BASE IMAGE (build this first)
+  # ==========================================================================
+  base:
+    build:
+      context: .
+      dockerfile: docker/base/Dockerfile
+    # Docker will use host architecture (amd64 on Windows/Mac)
+    image: letterboxd-base:local
+
+  # ==========================================================================
+  # LAMBDA: START ANALYSIS
+  # ==========================================================================
+  # Endpoint: POST /analysis
+  # Port: 9001
+  start:
+    build:
+      context: .
+      dockerfile: docker/lambdas/start/Dockerfile
+      args:
+        BASE_IMAGE_URI: letterboxd-base:local
+    image: letterboxd-start:local
+    ports:
+      - '9001:8080'
+    volumes:
+      - ${USERPROFILE}/.aws:/root/.aws:ro
+    environment:
+      <<: *common-env
+      AWS_SDK_LOAD_CONFIG: '1'
+      AWS_PROFILE: 'default'
+
+  # ==========================================================================
+  # LAMBDA: LIST SCRAPER (SQS Consumer)
+  # ==========================================================================
+  # Endpoint: SQS triggered
+  # Port: 9002
+  list-scraper:
+    build:
+      context: .
+      dockerfile: docker/lambdas/list-scraper/Dockerfile
+      args:
+        BASE_IMAGE_URI: letterboxd-base:local
+    image: letterboxd-list-scraper:local
+    ports:
+      - '9002:8080'
+    volumes:
+      - ${USERPROFILE}/.aws:/root/.aws:ro
+    environment:
+      <<: *common-env
+      BROWSER_MAX_PAGES: '3'
+      SCRAPING_CONCURRENCY_LIST: '2'
+      AWS_SDK_LOAD_CONFIG: '1'
+      AWS_PROFILE: 'default'
+
+  # ==========================================================================
+  # LAMBDA: STATUS
+  # ==========================================================================
+  # Endpoint: GET /analysis/status
+  # Port: 9003
+  status:
+    build:
+      context: .
+      dockerfile: docker/lambdas/status/Dockerfile
+      args:
+        BASE_IMAGE_URI: letterboxd-base:local
+    image: letterboxd-status:local
+    ports:
+      - '9003:8080'
+    volumes:
+      - ${USERPROFILE}/.aws:/root/.aws:ro
+    environment:
+      <<: *common-env
+      AWS_SDK_LOAD_CONFIG: '1'
+      AWS_PROFILE: 'default'
+
+  # ==========================================================================
+  # LAMBDA: WORKER (SQS Consumer)
+  # ==========================================================================
+  # Endpoint: SQS triggered
+  # Port: 9004
+  worker:
+    build:
+      context: .
+      dockerfile: docker/lambdas/worker/Dockerfile
+      args:
+        BASE_IMAGE_URI: letterboxd-base:local
+    image: letterboxd-worker:local
+    ports:
+      - '9004:8080'
+    volumes:
+      - ${USERPROFILE}/.aws:/root/.aws:ro
+    environment:
+      <<: *common-env
+      BROWSER_MAX_PAGES: '5'
+      BROWSER_CONCURRENCY: '5'
+      AWS_SDK_LOAD_CONFIG: '1'
+      AWS_PROFILE: 'default'

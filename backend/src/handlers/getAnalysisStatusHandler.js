@@ -1,7 +1,6 @@
 import { batchGet } from '../services/dynamoDbService.js';
-import { getUserJob, updateUserJob } from '../services/userJobService.js';
+import { getUserJob, updateUserJob, deleteUserJob } from '../services/userJobService.js';
 import { GameService } from '../services/gameService.js';
-import { generateRatingGame } from '../games/ratingGame.js'; // Kept for partial_ready logic
 
 export const handler = async (event) => {
   try {
@@ -51,7 +50,7 @@ export const handler = async (event) => {
           console.warn(
             `[Status] Job ${job.jobId} is STUCK (last update: ${now - lastUpdated}s ago). Auto-deleting.`
           );
-          await import('../services/userJobService.js').then((m) => m.deleteUserJob(username));
+          await deleteUserJob(username);
           return {
             statusCode: 200,
             body: JSON.stringify({
@@ -118,7 +117,7 @@ export const handler = async (event) => {
       console.warn(
         `[Status] DATA INCONSISTENCY! Expected ${expectedCount} films, found ${foundCount}. Auto-deleting job.`
       );
-      await import('../services/userJobService.js').then((m) => m.deleteUserJob(username));
+      await deleteUserJob(username);
       return {
         statusCode: 200,
         body: JSON.stringify({
@@ -158,15 +157,12 @@ export const handler = async (event) => {
           `[Status] Partial Ready: ${username} has ${ratedFilmsWithMetadata}/${minFilms} min films.`
         );
 
-        // Generate Rating Game with available data
-        const partialUserFilms = userFilms.filter((f) => {
-          const meta = metadataMap.get(f.slug);
-          return meta && meta.year && meta.year !== '????' && f.userRating != null;
-        });
-
-        const ratingGameData = await generateRatingGame(partialUserFilms, metadataMap, {
-          minRatedFilms: minFilms,
-        });
+        // Generate Rating Game with available data using GameService
+        const ratingGameData = await GameService.generatePartialRatingGame(
+          userFilms,
+          metadataMap,
+          minFilms
+        );
 
         return {
           statusCode: 200,

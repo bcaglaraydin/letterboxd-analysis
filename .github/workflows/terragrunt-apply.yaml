@@ -9,7 +9,7 @@ on:
       output_key:
         required: false
         type: string
-      install_backend_deps:
+      run_all:
         required: false
         type: boolean
         default: false
@@ -22,7 +22,6 @@ env:
   AWS_REGION: eu-west-1
   TERRAFORM_VERSION: 1.5.7
   TERRAGRUNT_VERSION: 0.54.12
-  NODE_VERSION: 22
 
 jobs:
   apply:
@@ -37,7 +36,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-deploy-role
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Setup Terraform
@@ -48,26 +47,18 @@ jobs:
 
       - name: Setup Terragrunt
         run: |
-          wget https://github.com/gruntwork-io/terragrunt/releases/download/v${{ env.TERRAGRUNT_VERSION }}/terragrunt_linux_amd64
+          wget -q https://github.com/gruntwork-io/terragrunt/releases/download/v${{ env.TERRAGRUNT_VERSION }}/terragrunt_linux_amd64
           chmod +x terragrunt_linux_amd64
           sudo mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
 
-      - name: Setup Node.js
-        if: ${{ inputs.install_backend_deps }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: backend/package-lock.json
-
-      - name: Install Backend Dependencies
-        if: ${{ inputs.install_backend_deps }}
-        working-directory: backend
-        run: npm ci
-
       - name: Terragrunt Apply
         working-directory: ${{ inputs.working_directory }}
-        run: terragrunt apply -auto-approve
+        run: |
+          if [ "${{ inputs.run_all }}" = "true" ]; then
+            terragrunt run --all apply --non-interactive
+          else
+            terragrunt apply --non-interactive
+          fi
 
       - name: Get Output
         id: output

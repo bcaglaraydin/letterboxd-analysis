@@ -1,0 +1,14 @@
+include "root" {
+  path = find_in_parent_folders()
+}
+
+terraform {
+  source = "../../../../modules/ecr"
+}
+
+inputs = {
+  repository_name         = "letterboxd-list-scraper-dev"
+  environment             = "dev"
+  enable_lifecycle_policy = true
+  max_image_count         = 10
+}
