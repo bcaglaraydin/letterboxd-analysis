@@ -1,0 +1,56 @@
+# ==============================================================================
+# DOCKER IGNORE FILE
+# ==============================================================================
+# Exclude files that should not be copied into Docker images
+# This reduces image size and build time
+
+# Dependencies (installed in container)
+node_modules
+
+# Tests and debugging
+tests
+debug_artifacts
+coverage
+*.log
+
+# Version control
+.git
+.github
+.gitignore
+.gitattributes
+
+# IDE and editor
+.vscode
+.idea
+*.swp
+*.swo
+
+# Documentation
+*.md
+docs
+
+# Environment files (use Docker env vars instead)
+.env
+.env.*
+!.env.example
+
+# Local development files
+local-run.js
+server.js
+
+# Config files not needed in Lambda
+.prettierrc
+.prettierignore
+eslint.config.mjs
+vitest.config.js
+.editorconfig
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Docker files (don't copy docker config into image)
+docker-compose.yml
+docker-compose.override.yml
+Dockerfile*
+docker/

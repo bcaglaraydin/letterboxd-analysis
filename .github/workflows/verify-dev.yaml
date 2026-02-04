@@ -1,3 +1,14 @@
+# ==============================================================================
+# VERIFY DEV BACKEND
+# ==============================================================================
+# Verifies the deployed backend is healthy by running Vitest-based tests:
+#   1. Unit tests (fast, mocked)
+#   2. Integration tests (AWS services)
+#   3. E2E tests (full API Gateway flow)
+#
+# Can be called from deploy-backend workflow or run standalone.
+# ==============================================================================
+
 name: Verify Dev Backend
 
 on:
@@ -6,13 +17,13 @@ on:
       api_url:
         required: false
         type: string
-      sqs_queue_name:
-        required: false
-        type: string
-      films_table:
-        required: false
-        type: string
+        description: 'API Gateway URL (fetched from AWS if not provided)'
   workflow_dispatch:
+    inputs:
+      api_url:
+        required: false
+        type: string
+        description: 'API Gateway URL (fetched from AWS if not provided)'
 
 permissions:
   id-token: write
@@ -20,8 +31,6 @@ permissions:
 
 env:
   AWS_REGION: eu-west-1
-  TERRAFORM_VERSION: 1.5.7
-  TERRAGRUNT_VERSION: 0.54.12
   NODE_VERSION: 22
 
 jobs:
@@ -38,50 +47,6 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-deploy-role
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Setup Terraform
-        if: ${{ inputs.api_url == '' }}
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TERRAFORM_VERSION }}
-          terraform_wrapper: false
-
-      - name: Setup Terragrunt
-        if: ${{ inputs.api_url == '' }}
-        run: |
-          wget https://github.com/gruntwork-io/terragrunt/releases/download/v${{ env.TERRAGRUNT_VERSION }}/terragrunt_linux_amd64
-          chmod +x terragrunt_linux_amd64
-          sudo mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
-
-      - name: Fetch Infrastructure Outputs
-        id: infra
-        run: |
-          if [ -n "${{ inputs.api_url }}" ]; then
-            echo "Using inputs..."
-            echo "API_URL=${{ inputs.api_url }}" >> $GITHUB_ENV
-            
-            # Construct SQS URL from name
-            QUEUE_URL="https://sqs.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.AWS_ACCOUNT_ID }}/${{ inputs.sqs_queue_name }}"
-            echo "SQS_QUEUE_URL=$QUEUE_URL" >> $GITHUB_ENV
-            
-            echo "FILMS_TABLE=${{ inputs.films_table }}" >> $GITHUB_ENV
-          else
-            echo "Fetching from Terragrunt..."
-            # API Endpoint
-            cd infra/envs/dev/api-gateway
-            API_URL=$(terragrunt output -raw api_endpoint)
-            echo "API_URL=$API_URL" >> $GITHUB_ENV
-            
-            # SQS Queue URL
-            cd ../sqs
-            SQS_QUEUE_URL=$(terragrunt output -raw queue_url)
-            echo "SQS_QUEUE_URL=$SQS_QUEUE_URL" >> $GITHUB_ENV
-            
-            # DynamoDB Table Name
-            cd ../dynamodb/films
-            FILMS_TABLE=$(terragrunt output -raw table_name)
-            echo "FILMS_TABLE=$FILMS_TABLE" >> $GITHUB_ENV
-          fi
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -93,21 +58,45 @@ jobs:
         working-directory: backend
         run: npm ci
 
-      - name: Install Playwright Browsers
-        working-directory: backend
-        run: |
-          npx playwright install chromium
-          npx playwright install-deps chromium
-
+      # ========================================================================
+      # UNIT TESTS (Fast, No AWS)
+      # ========================================================================
       - name: Run Unit Tests
         working-directory: backend
         run: npm run test:unit
 
+      # ========================================================================
+      # INTEGRATION TESTS (AWS Services)
+      # ========================================================================
       - name: Run Integration Tests
         working-directory: backend
         env:
-          API_URL: ${{ env.API_URL }}
-          SQS_QUEUE_URL: ${{ env.SQS_QUEUE_URL }}
-          FILMS_TABLE: ${{ env.FILMS_TABLE }}
           AWS_REGION: ${{ env.AWS_REGION }}
+          FILMS_TABLE: Films
+          USER_JOBS_TABLE: UserJobs
+          SQS_QUEUE_URL: https://sqs.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.AWS_ACCOUNT_ID }}/film-scrape-queue
+          SQS_LIST_QUEUE_URL: https://sqs.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.AWS_ACCOUNT_ID }}/list-scrape-queue
+          TEST_USERNAME: bcaglaraydin
         run: npm run test:integration
+
+      # ========================================================================
+      # E2E TESTS (Full API Gateway Flow)
+      # ========================================================================
+      - name: Get API Gateway URL
+        id: api
+        run: |
+          if [ -n "${{ inputs.api_url }}" ]; then
+            echo "API_GATEWAY_URL=${{ inputs.api_url }}" >> $GITHUB_ENV
+          else
+            API_URL=$(aws apigatewayv2 get-apis --query "Items[?Name=='letterboxd-analysis-api-dev'].ApiEndpoint" --output text)
+            echo "API_GATEWAY_URL=$API_URL" >> $GITHUB_ENV
+          fi
+          echo "API Endpoint: $API_GATEWAY_URL"
+
+      - name: Run E2E Tests
+        working-directory: backend
+        env:
+          API_GATEWAY_URL: ${{ env.API_GATEWAY_URL }}
+          TEST_USERNAME: bcaglaraydin
+          E2E_TIMEOUT_SECONDS: '120'
+        run: npm run test:e2e

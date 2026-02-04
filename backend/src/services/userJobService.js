@@ -1,4 +1,4 @@
-import { putItem, getItem, updateItem } from './dynamoDbService.js';
+import { putItem, getItem, updateItem, deleteItem } from './dynamoDbService.js';
 import { v4 as uuidv4 } from 'uuid';
 
 const TABLE_NAME = process.env.USER_JOBS_TABLE;
@@ -137,9 +137,7 @@ export async function getUserJob(username) {
 export async function deleteUserJob(username) {
   if (!TABLE_NAME) return;
   try {
-    await import('./dynamoDbService.js').then((module) =>
-      module.deleteItem(TABLE_NAME, { username })
-    );
+    await deleteItem(TABLE_NAME, { username });
     console.log(`[UserJobService] Deleted job for ${username}`);
   } catch (error) {
     console.error(`[UserJobService] Failed to delete job for ${username}:`, error);

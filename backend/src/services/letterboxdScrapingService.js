@@ -55,13 +55,12 @@ async function fetchFilmStats(filmSlug) {
 }
 
 /**
- * Scrapes the list of films from a user's Letterboxd profile.
- * Does NOT fetch film details.
+ * Shared helper to fetch all paginated film list pages for a user.
+ * Handles pagination detection, concurrent fetching, and retry logic.
  * @param {string} username - The Letterboxd username.
- * @returns {Promise<Array>} - Array of film objects (slug, userRating).
+ * @returns {Promise<Array>} - Array of film objects with basic info.
  */
-export async function scrapeUserFilmsList(username) {
-  console.log(`Starting list scrape for user: ${username}`);
+async function fetchPaginatedFilmsList(username) {
   const baseUrl = `${BASE_URL}/${username}/films/`;
 
   // 1. Fetch Profile & Determine Pagination
@@ -80,17 +79,19 @@ export async function scrapeUserFilmsList(username) {
   }
   console.log(`Found ${totalPages} pages of films.`);
 
-  // 2. Fetch All List Pages Concurrently & Extract Basic Info
+  // 2. Build page URLs
   const pageUrls = [];
   for (let i = 1; i <= totalPages; i++) {
     pageUrls.push(`${baseUrl}page/${i}/`);
   }
 
+  // 3. Fetch All List Pages Concurrently with retry logic
   const concurrency = parseInt(process.env.SCRAPING_CONCURRENCY_LIST || '5', 10);
   console.log(
     `[Scraper] SCRAPING_CONCURRENCY_LIST: ${process.env.SCRAPING_CONCURRENCY_LIST}, Parsed: ${concurrency}`
   );
   const listLimit = pLimit(concurrency);
+
   const filmBasicInfos = await Promise.all(
     pageUrls.map((url) =>
       listLimit(async () => {
@@ -100,17 +101,18 @@ export async function scrapeUserFilmsList(username) {
         while (attempts < MAX_RETRIES) {
           try {
             const html = await fetchHtmlWithFallback(url);
-            const $ = load(html);
+            const $page = load(html);
             const pageFilms = [];
 
-            $('.griditem').each((_, el) => {
-              const $el = $(el);
+            $page('.griditem').each((_, el) => {
+              const $el = $page(el);
               const $component = $el.find('.react-component');
 
               const filmSlug = $component.attr('data-item-slug');
               const posterUrl = $component.attr('data-poster-url');
               const title = $component.find('img').attr('alt') || filmSlug;
 
+              // Extract User Rating from star symbols (★½)
               let userRating = null;
               const ratingText = $el.find('.poster-viewingdata .rating').text().trim();
 
@@ -149,7 +151,18 @@ export async function scrapeUserFilmsList(username) {
     )
   );
 
-  const allFilmsBasic = filmBasicInfos.flat();
+  return filmBasicInfos.flat();
+}
+
+/**
+ * Scrapes the list of films from a user's Letterboxd profile.
+ * Does NOT fetch film details.
+ * @param {string} username - The Letterboxd username.
+ * @returns {Promise<Array>} - Array of film objects (slug, userRating).
+ */
+export async function scrapeUserFilmsList(username) {
+  console.log(`Starting list scrape for user: ${username}`);
+  const allFilmsBasic = await fetchPaginatedFilmsList(username);
   console.log(`Extracted ${allFilmsBasic.length} films from list pages.`);
 
   // Note: Browser session is NOT closed here to allow reuse for metadata scraping
@@ -159,96 +172,30 @@ export async function scrapeUserFilmsList(username) {
 }
 
 /**
- * Scrapes all films from a user's Letterboxd films page.
+ * Scrapes all films from a user's Letterboxd films page with full details.
  * @param {string} username - The Letterboxd username.
- * @returns {Promise<Array>} - Array of film objects.
+ * @returns {Promise<Array>} - Array of film objects with full metadata.
  */
 export async function scrapeUserFilms(username) {
-  console.log(`Starting scrape for user: ${username}`);
-  const baseUrl = `https://letterboxd.com/${username}/films/`;
+  console.log(`Starting full scrape for user: ${username}`);
 
-  // 1. Fetch Profile & Determine Pagination
-  const firstPageHtml = await fetchHtmlWithFallback(baseUrl);
-  const $ = load(firstPageHtml);
-
-  // Check if user exists/has films
-  if ($('body').hasClass('error')) {
-    throw new Error('User not found or profile is private');
-  }
-
-  let totalPages = 1;
-  const pagination = $('.paginate-pages ul li.paginate-page').last();
-  if (pagination.length > 0) {
-    totalPages = parseInt(pagination.text().trim(), 10);
-  }
-  console.log(`Found ${totalPages} pages of films.`);
-
-  // 2. Fetch All List Pages Concurrently & Extract Basic Info
-  const pageUrls = [];
-  for (let i = 1; i <= totalPages; i++) {
-    pageUrls.push(`${baseUrl}page/${i}/`);
-  }
-
-  const listLimit = pLimit(parseInt(process.env.SCRAPING_CONCURRENCY_LIST || '5', 10)); // Limit concurrency for list pages
-  const filmBasicInfos = await Promise.all(
-    pageUrls.map((url) =>
-      listLimit(async () => {
-        try {
-          const html = await fetchHtmlWithFallback(url);
-          const $ = load(html);
-          const pageFilms = [];
-
-          $('.griditem').each((_, el) => {
-            const $el = $(el);
-            const $component = $el.find('.react-component');
-
-            const filmSlug = $component.attr('data-item-slug');
-            const posterUrl = $component.attr('data-poster-url'); // e.g., /film/dune-2021/image-150/
-
-            // Extract User Rating
-            // Class looks like: "rating -micro -darker rated-8" (rated-8 = 4 stars)
-            let userRating = null;
-            const ratingClass = $el.find('.poster-viewingdata .rating').attr('class');
-            if (ratingClass) {
-              const match = ratingClass.match(/rated-(\d+)/);
-              if (match) {
-                userRating = parseInt(match[1], 10) / 2; // Convert 1-10 scale to 0.5-5 stars
-              }
-            }
-
-            if (filmSlug) {
-              pageFilms.push({
-                slug: filmSlug,
-                url: `https://letterboxd.com/film/${filmSlug}/`,
-                posterUrl: posterUrl ? `https://a.ltrbxd.com${posterUrl}` : null, // Construct full URL if relative
-                userRating,
-              });
-            }
-          });
-          return pageFilms;
-        } catch (err) {
-          console.error(`Failed to fetch list page! ${url}:`, err);
-          return [];
-        }
-      })
-    )
-  );
-
-  const allFilmsBasic = filmBasicInfos.flat();
+  // Use shared helper for list fetching
+  const allFilmsBasic = await fetchPaginatedFilmsList(username);
   console.log(`Extracted ${allFilmsBasic.length} films from list pages.`);
 
   if (allFilmsBasic.length === 0) {
     return [];
   }
 
-  // 3. Fetch Film Details & Stats Concurrently
-  const filmLimit = pLimit(parseInt(process.env.SCRAPING_CONCURRENCY_FILM || '15', 10)); // Limit concurrency for film details
+  // Fetch Film Details & Stats Concurrently
+  const filmLimit = pLimit(parseInt(process.env.SCRAPING_CONCURRENCY_FILM || '15', 10));
   const films = await Promise.all(
     allFilmsBasic.map((film) =>
       filmLimit(async () => {
         try {
+          const filmUrl = `${BASE_URL}/film/${film.slug}/`;
           // Fetch Details Page
-          const html = await fetchHtmlWithFallback(film.url);
+          const html = await fetchHtmlWithFallback(filmUrl);
           const $film = load(html);
 
           // --- JSON-LD Extraction ---
@@ -300,7 +247,7 @@ export async function scrapeUserFilms(username) {
 
           return {
             slug: film.slug,
-            url: film.url,
+            url: filmUrl,
             title,
             year,
             director,
@@ -311,15 +258,15 @@ export async function scrapeUserFilms(username) {
             runtime,
             backdropUrl,
             plot,
-            posterUrl: film.posterUrl, // Use the one from list, or jsonLd.image
+            posterUrl: film.posterUrl,
             userRating: film.userRating,
             averageRating,
             ratingCount,
             watchedCount: stats.watchedCount,
           };
         } catch (err) {
-          console.error(`Failed to fetch film details for ${film.url}:`, err);
-          return { error: true, url: film.url };
+          console.error(`Failed to fetch film details for ${film.slug}:`, err);
+          return { error: true, slug: film.slug };
         }
       })
     )

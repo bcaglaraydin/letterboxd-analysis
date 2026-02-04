@@ -1,0 +1,64 @@
+include "root" {
+  path = find_in_parent_folders()
+}
+
+terraform {
+  source = "../../../../modules/lambda-container"
+}
+
+dependency "sqs" {
+  config_path = "../../sqs"
+}
+
+dependency "films" {
+  config_path = "../../dynamodb/films"
+}
+
+dependency "ecr" {
+  config_path = "../../ecr/worker"
+}
+
+inputs = {
+  function_name = "letterboxd-analysis-worker-dev"
+  image_uri     = "${dependency.ecr.outputs.repository_url}:latest"
+  environment   = "dev"
+  memory_size   = 2048
+  timeout       = 300
+
+  environment_variables = {
+    NODE_ENV            = "development"
+    FILMS_TABLE         = dependency.films.outputs.table_name
+    SQS_QUEUE_URL       = dependency.sqs.outputs.queue_url
+    BROWSER_MAX_PAGES   = "10"
+    BROWSER_CONCURRENCY = "10"
+  }
+
+  sqs_event_source_arn = dependency.sqs.outputs.queue_arn
+  sqs_batch_size       = 10
+  sqs_batch_window     = 0
+
+  policy_arns = [
+    "arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole"
+  ]
+
+  inline_policy_json = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "dynamodb:PutItem",
+          "dynamodb:BatchWriteItem",
+          "dynamodb:GetItem",
+          "dynamodb:BatchGetItem"
+        ]
+        Effect   = "Allow"
+        Resource = dependency.films.outputs.table_arn
+      },
+      {
+        Action   = "sqs:SendMessage"
+        Effect   = "Allow"
+        Resource = dependency.sqs.outputs.queue_arn
+      }
+    ]
+  })
+}

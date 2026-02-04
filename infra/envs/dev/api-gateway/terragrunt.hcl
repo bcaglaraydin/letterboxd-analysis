@@ -7,11 +7,11 @@ terraform {
 }
 
 dependency "lambda_start" {
-  config_path = "../lambda/start"
+  config_path = "../lambda-container/start"
 }
 
 dependency "lambda_status" {
-  config_path = "../lambda/status"
+  config_path = "../lambda-container/status"
 }
 
 inputs = {
