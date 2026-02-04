@@ -97,26 +97,36 @@ jobs:
   # CORE INFRASTRUCTURE (DynamoDB, SQS)
   # ============================================================================
   deploy-core-infra:
-    name: Deploy Core Infrastructure
+    name: Deploy Core ${{ matrix.component }}
     needs: detect-changes
     if: needs.detect-changes.outputs.core_infra == 'true' || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        component: 
+          - dynamodb/films
+          - dynamodb/user-jobs
+          - sqs
+          - sqs-list
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
-      working_directory: infra/envs/dev
-      run_all: true
+      working_directory: infra/envs/dev/${{ matrix.component }}
     secrets: inherit
 
   # ============================================================================
   # ECR REPOSITORIES
   # ============================================================================
   deploy-ecr:
-    name: Deploy ECR Repositories
+    name: Deploy ECR ${{ matrix.repo }}
     needs: detect-changes
     if: needs.detect-changes.outputs.ecr_infra == 'true' || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        repo: [base, start, status, list-scraper, worker]
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
-      working_directory: infra/envs/dev/ecr
-      run_all: true
+      working_directory: infra/envs/dev/ecr/${{ matrix.repo }}
     secrets: inherit
 
   # ============================================================================
@@ -140,7 +150,7 @@ jobs:
   # DEPLOY LAMBDA CONTAINERS
   # ============================================================================
   deploy-lambda-containers:
-    name: Deploy Lambda Containers
+    name: Deploy Lambda ${{ matrix.lambda }}
     needs: [detect-changes, deploy-core-infra, build-images]
     if: |
       always() && !failure() && !cancelled() &&
@@ -148,10 +158,13 @@ jobs:
        needs.detect-changes.outputs.lambda_infra == 'true' ||
        needs.detect-changes.outputs.lambda_dockerfiles == 'true' ||
        github.event_name == 'workflow_dispatch')
+    strategy:
+      fail-fast: false
+      matrix:
+        lambda: [start, status, list-scraper, worker]
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
-      working_directory: infra/envs/dev/lambda-container
-      run_all: true
+      working_directory: infra/envs/dev/lambda-container/${{ matrix.lambda }}
       env_vars: |
         IMAGE_TAG=${{ github.sha }}
     secrets: inherit
@@ -180,8 +193,9 @@ jobs:
     name: E2E Verification
     needs: [deploy-api-gateway]
     if: |
-      needs.deploy-api-gateway.result == 'success' &&
       !cancelled() &&
+      !failure() &&
+      (needs.deploy-api-gateway.result == 'success' || needs.deploy-api-gateway.result == 'skipped') &&
       github.event.inputs.skip_e2e != 'true'
     runs-on: ubuntu-latest
     steps:
@@ -203,7 +217,7 @@ jobs:
         run: |
           # Get from previous job output or fetch from AWS
           if [ -n "${{ needs.deploy-api-gateway.outputs.terragrunt_output }}" ]; then
-            API_URL="${{ needs.deploy-api-gateway.outputs.terragrunt_output }}"
+            API_URL="${{ needs.deploy-api-gateway.outputs.terragrunt_output || '' }}"
           else
             API_URL=$(aws apigatewayv2 get-apis --query "Items[?Name=='letterboxd-analysis-api-dev'].ApiEndpoint" --output text)
           fi
