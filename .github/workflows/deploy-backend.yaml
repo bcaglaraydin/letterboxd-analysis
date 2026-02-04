@@ -180,7 +180,8 @@ jobs:
     name: E2E Verification
     needs: [deploy-api-gateway]
     if: |
-      always() && !failure() && !cancelled() &&
+      needs.deploy-api-gateway.result == 'success' &&
+      !cancelled() &&
       github.event.inputs.skip_e2e != 'true'
     runs-on: ubuntu-latest
     steps:
@@ -215,7 +216,7 @@ jobs:
           API_GATEWAY_URL: ${{ env.API_GATEWAY_URL }}
           TEST_USERNAME: bcaglaraydin
           E2E_TIMEOUT_SECONDS: '120'
-        run: node scripts/e2e-test.js
+        run: npm run test:e2e
 
   # ============================================================================
   # SUMMARY
