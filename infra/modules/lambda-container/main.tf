@@ -32,6 +32,14 @@ resource "aws_lambda_function" "this" {
     Environment = var.environment
     ManagedBy   = "terraform"
   }
+
+  publish = true
+}
+
+resource "aws_lambda_alias" "this" {
+  name             = var.alias_name
+  function_name    = aws_lambda_function.this.function_name
+  function_version = aws_lambda_function.this.version
 }
 
 resource "aws_cloudwatch_log_group" "this" {

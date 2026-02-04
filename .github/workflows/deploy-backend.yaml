@@ -132,6 +132,8 @@ jobs:
        needs.detect-changes.outputs.lambda_dockerfiles == 'true' ||
        github.event.inputs.force_rebuild_images == 'true')
     uses: ./.github/workflows/build-lambda-images.yaml
+    with:
+      image_tag: ${{ github.sha }}
     secrets: inherit
 
   # ============================================================================
@@ -150,6 +152,8 @@ jobs:
     with:
       working_directory: infra/envs/dev/lambda-container
       run_all: true
+      env_vars: |
+        IMAGE_TAG=${{ github.sha }}
     secrets: inherit
 
   # ============================================================================

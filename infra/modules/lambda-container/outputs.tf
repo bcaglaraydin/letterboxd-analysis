@@ -3,6 +3,11 @@ output "function_name" {
   value       = aws_lambda_function.this.function_name
 }
 
+output "alias_arn" {
+  description = "The ARN of the Lambda alias"
+  value       = aws_lambda_alias.this.arn
+}
+
 output "function_arn" {
   description = "ARN of the Lambda function"
   value       = aws_lambda_function.this.arn

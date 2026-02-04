@@ -11,7 +11,7 @@ FROM ${BASE_IMAGE_URI}
 COPY package*.json ${LAMBDA_TASK_ROOT}/
 
 # Install production dependencies only
-RUN npm ci --omit=dev && npm cache clean --force
+RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev && npm cache clean --force
 
 # Copy application source code
 COPY src/ ${LAMBDA_TASK_ROOT}/src/

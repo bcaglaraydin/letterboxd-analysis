@@ -15,8 +15,8 @@ x-common-env: &common-env
   AWS_CONFIG_FILE: /root/.aws/config
   FILMS_TABLE: ${FILMS_TABLE:-Films}
   USER_JOBS_TABLE: ${USER_JOBS_TABLE:-UserJobs}
-  SQS_QUEUE_URL: ${SQS_QUEUE_URL:-https://sqs.eu-west-1.amazonaws.com/REDACTED_AWS_ACCOUNT_ID/film-scrape-queue}
-  SQS_LIST_QUEUE_URL: ${SQS_LIST_QUEUE_URL:-https://sqs.eu-west-1.amazonaws.com/REDACTED_AWS_ACCOUNT_ID/list-scrape-queue}
+  SQS_QUEUE_URL: https://sqs.eu-west-1.amazonaws.com/${AWS_ACCOUNT_ID:-123456789012}/film-scrape-queue
+  SQS_LIST_QUEUE_URL: https://sqs.eu-west-1.amazonaws.com/${AWS_ACCOUNT_ID:-123456789012}/list-scrape-queue
   NODE_ENV: development
 
 services:
