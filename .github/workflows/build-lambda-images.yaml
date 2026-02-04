@@ -14,6 +14,11 @@ name: Build Lambda Container Images
 
 on:
   workflow_call: # Called by deploy-backend workflow
+    inputs:
+      image_tag:
+        description: 'Image tag to use'
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       image_tag:
