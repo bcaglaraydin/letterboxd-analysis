@@ -212,6 +212,10 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
+      - name: Install Dependencies
+        working-directory: backend
+        run: npm ci
+
       - name: Get API Endpoint
         id: api
         run: |
