@@ -9,10 +9,7 @@ on:
       output_key:
         required: false
         type: string
-      run_all:
-        required: false
-        type: boolean
-        default: false
+
       env_vars:
         description: 'Environment variables to set (KEY=VALUE format, one per line)'
         required: false
@@ -64,11 +61,7 @@ jobs:
       - name: Terragrunt Apply
         working-directory: ${{ inputs.working_directory }}
         run: |
-          if [ "${{ inputs.run_all }}" = "true" ]; then
-            terragrunt run --all apply --non-interactive
-          else
-            terragrunt apply --non-interactive
-          fi
+          terragrunt apply --non-interactive
 
       - name: Get Output
         id: output
