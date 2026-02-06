@@ -167,7 +167,11 @@ export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
         className="p-1 md:p-4"
         top={
           <div className="flex items-center justify-between w-full px-2 py-1">
-            <GameRoundIndicator currentRound={currentFilmIndex + 1} totalRounds={FILMS_PER_GAME} />
+            <GameRoundIndicator
+              major={2}
+              majorTotal={2}
+              minor={{ current: currentFilmIndex + 1, total: FILMS_PER_GAME, label: 'Movie' }}
+            />
             {/* Score Panel */}
             <ScorePanel
               score={totalScore}
@@ -189,9 +193,9 @@ export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
             <div className="flex flex-col md:flex-row items-stretch gap-2 md:gap-8 lg:gap-12 min-h-0 flex-1">
               {/* INTERACTION COLUMN: Genres + Selections + Buttons */}
               {/* Mobile: Bottom | Desktop: Left */}
-              <div className="order-2 md:order-1 flex flex-col gap-4 flex-1 min-h-0 justify-center">
+              <div className="order-2 md:order-1 flex flex-col gap-4 shrink-0 md:flex-1 md:min-h-0 justify-center">
                 {/* Genres List */}
-                <div className="w-full bg-card/30 rounded-xl border border-border/20 overflow-y-auto no-scrollbar flex flex-col relative shadow-inner max-h-[60vh]">
+                <div className="w-full bg-card/30 rounded-xl border border-border/20 overflow-y-auto no-scrollbar flex flex-col relative shadow-inner max-h-[40vh] md:max-h-[60vh]">
                   <div className="p-2 md:p-4 md:space-y-4 space-y-2">
                     {renderTierSection('niche')}
                     {renderTierSection('mid-tier')}
@@ -227,17 +231,11 @@ export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
                         roundScore === 0 && 'text-muted-foreground/60 font-medium',
                       )}
                     >
-                      {roundScore === 0 ? (
-                        `Potential: ${currentFilm?.theoreticalMax || 20} pts`
-                      ) : (
-                        <>
-                          {roundScore > 0 ? '+' : ''}
-                          {roundScore}/{currentFilm?.theoreticalMax || 20}
-                        </>
-                      )}
+                      {roundScore > 0 ? '+' : ''}
+                      {roundScore}/{currentFilm?.theoreticalMax || 20}
                     </span>
                   </div>
-                  <div className="flex flex-wrap gap-1.5 md:gap-2 min-h-[24px] md:min-h-[32px]">
+                  <div className="flex flex-nowrap overflow-x-auto no-scrollbar md:flex-wrap md:overflow-visible gap-1.5 md:gap-2 min-h-[24px] md:min-h-[32px] [&>*]:shrink-0 pl-0.5 pr-8 md:pr-0 pb-1 [mask-image:linear-gradient(to_right,black_85%,transparent_100%)] md:[mask-image:none]">
                     <AnimatePresence mode="popLayout">
                       {collectedGenres.map((genre) => (
                         <GenreChipAnimated
@@ -251,8 +249,8 @@ export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
                         />
                       ))}
                     </AnimatePresence>
-                    {collectedGenres.length === 0 && (
-                      <span className="text-xs text-muted-foreground/40 italic py-0.5">
+                    {collectedGenres.length === 0 && phase === 'selecting' && (
+                      <span className="text-xs text-muted-foreground/40 italic py-0.5 shrink-0">
                         Select genres...
                       </span>
                     )}
@@ -329,8 +327,8 @@ export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
 
               {/* POSTER COLUMN */}
               {/* Mobile: Top | Desktop: Right */}
-              <div className="order-1 md:order-2 shrink-0 md:flex-1 flex flex-col items-center justify-center md:py-8">
-                <div className="relative h-[30vh] md:h-auto md:w-[80%] max-w-[400px] aspect-[2/3] shadow-2xl shadow-black/50 rounded-lg md:rounded-2xl overflow-hidden">
+              <div className="order-1 md:order-2 flex-1 md:flex-1 min-h-0 flex flex-col items-center justify-center md:py-8">
+                <div className="relative h-full md:h-auto w-auto md:w-[80%] max-w-full md:max-w-[400px] aspect-[2/3] shadow-2xl shadow-black/50 rounded-lg md:rounded-2xl overflow-hidden mx-auto">
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={currentFilm.id}

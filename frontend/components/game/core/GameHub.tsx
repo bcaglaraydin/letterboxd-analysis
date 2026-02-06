@@ -44,18 +44,7 @@ export const GameHub = () => {
     <GameBackground className="bg-background">
       <GameLayout
         className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
-        top={
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center space-y-4 mb-8"
-          >
-            <h1 className="text-4xl md:text-5xl font-serif font-bold tracking-tight">
-              Your Journey
-            </h1>
-            <p className="text-muted-foreground text-lg">Unlock insights about your movie taste</p>
-          </motion.div>
-        }
+        top={null}
         middle={
           <motion.div
             variants={container}
@@ -77,9 +66,7 @@ export const GameHub = () => {
                     : 'Rating Intuition Game Completed'
                 }
               >
-                <div className="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity">
-                  <Star className="w-12 h-12 text-primary/20" />
-                </div>
+
 
                 <div className="space-y-4">
                   <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">

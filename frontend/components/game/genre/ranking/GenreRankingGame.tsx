@@ -97,33 +97,34 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full">
         <GameLayout
-          className="p-3 md:p-6 md:py-8"
+          className="p-3 md:p-6 md:py-8 max-w-7xl mx-auto"
           top={
-            <div className="w-full relative">
-              <div className="absolute left-0 top-1 md:top-0">
-                <GameRoundIndicator currentRound={1} totalRounds={1} />
-              </div>
+            <div className="flex justify-between items-start w-full relative z-[60]">
+              <GameRoundIndicator major={1} majorTotal={2} />
               {isRevealing ? (
-                /* Score display during reveal - flows in layout on mobile, fixed on desktop */
-                <div className="flex justify-end mb-2 md:mb-0">
-                  <ScorePanel
-                    score={totalScore}
-                    pointsEarned={flyingPoints}
-                    flyFromPosition={flyPosition}
-                    maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
-                    /* pointsPerAction removed from API, using maxPositivePoint */
-                    maxPositivePoint={GENRE_RANKING_CONFIG.POINTS_PER_ITEM}
-                    maxNegativePoint={0}
-                    showMaxScore={true}
-                    animationDelay={0}
-                    label="Score"
-                    size="md"
-                    position="static"
-                  />
-                </div>
-              ) : null}
+                /* Score display during reveal */
+                <ScorePanel
+                  score={totalScore}
+                  pointsEarned={flyingPoints}
+                  flyFromPosition={flyPosition}
+                  maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
+                  /* pointsPerAction removed from API, using maxPositivePoint */
+                  maxPositivePoint={GENRE_RANKING_CONFIG.POINTS_PER_ITEM}
+                  maxNegativePoint={0}
+                  showMaxScore={true}
+                  animationDelay={0}
+                  label="Score"
+                  size="md"
+                  position="static"
+                  className="mb-0"
+                />
+              ) : (
+                /* Spacer to maintain height if needed, or just empty */
+                <div />
+              )}
             </div>
           }
+
           middle={
             <div className="w-full max-w-[57.5rem] mx-auto flex flex-col justify-center h-full md:h-auto">
               {/* Header: Moved to Middle for better proximity */}
@@ -134,7 +135,7 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                   >
-                    Rank Your Top Genres
+                    Rank Your Genres
                   </motion.h2>
                   <motion.div
                     className="flex items-center justify-center gap-2 text-muted-foreground mt-2"
@@ -267,7 +268,7 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
                       size="lg"
                       className="px-6 py-3 h-auto rounded-xl font-semibold"
                     >
-                      Return to Hub <ArrowRight className="w-4 h-4 ml-2" />
+                      Continue <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </motion.div>
                 )}
@@ -308,7 +309,7 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
                       size="lg"
                       className="px-6 py-3 h-auto rounded-xl font-semibold"
                     >
-                      Return to Hub <ArrowRight className="w-4 h-4 ml-2" />
+                      Continue <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </motion.div>
                 )}

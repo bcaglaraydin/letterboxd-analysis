@@ -654,6 +654,34 @@ export const MOCK_METRICS_RESPONSE: MetricsResponse = {
       'horror',
     ],
   },
+  genreMatchingGame: {
+    rounds: MOCK_MATCHING_FILMS.map((film) => ({
+      id: film.id,
+      slug: film.id,
+      title: film.title,
+      posterUrl: film.posterUrl,
+      year: film.year,
+      director: film.director,
+      correctGenres: film.correctGenres,
+      theoreticalMax: 20,
+      genreScoring: film.correctGenres.reduce(
+        (acc, genreId) => ({
+          ...acc,
+          [genreId]: { correct: 5, penalty: -2, missed: -1 },
+        }),
+        {} as Record<string, { correct: number; penalty: number; missed?: number }>,
+      ),
+    })),
+    rarityMap: MOCK_MATCHING_GENRES.reduce(
+      (acc, g) => ({ ...acc, [g.id]: g.tier }),
+      {} as Record<string, string>,
+    ),
+    scoring: {
+      WEIGHTS: { niche: 3, 'mid-tier': 2, popular: 1 },
+      PENALTY_FACTOR: 0.5,
+    },
+    maxScorePerMovie: 20,
+  },
   userStats: {
     totalMovies: 1250,
     averageRating: 3.8,

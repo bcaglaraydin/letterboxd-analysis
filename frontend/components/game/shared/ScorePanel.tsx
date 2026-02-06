@@ -26,11 +26,14 @@ interface ScorePanelProps {
   /** Position of the panel */
   position?: 'static' | 'top-right';
   /** Whether to show maxScore next to current score (e.g., '45/120', default: false) */
+  /** Whether to show maxScore next to current score (e.g., '45/120', default: false) */
   showMaxScore?: boolean;
-  /** Maximum possible point earned in a single action (for color scaling) */
+  /** Maximum possible point (positive value) in a single action (for color scaling) */
   maxPositivePoint?: number;
   /** Maximum possible penalty (negative value) in a single action (for color scaling) */
   maxNegativePoint?: number;
+  /** Optional class name to override default color logic for flying points */
+  flyingPointsClassName?: string;
 }
 
 /**
@@ -60,6 +63,7 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
   showMaxScore = false,
   maxPositivePoint = 50,
   maxNegativePoint = -50,
+  flyingPointsClassName,
 }) => {
   // Display score (animated counting)
   const [displayScore, setDisplayScore] = useState(score);
@@ -156,19 +160,19 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
 
   const sizeClasses = {
     sm: {
-      label: 'text-[8px]',
-      score: 'text-3xl',
-      flying: 'text-3xl md:text-4xl',
+      label: 'text-[10px]',
+      score: 'text-2xl md:text-4xl',
+      flying: 'text-xl md:text-4xl',
     },
     md: {
-      label: 'text-[10px]',
-      score: 'text-4xl md:text-5xl',
-      flying: 'text-4xl md:text-5xl',
+      label: 'text-[10px] md:text-xs',
+      score: 'text-3xl md:text-6xl',
+      flying: 'text-2xl md:text-5xl',
     },
     lg: {
-      label: 'text-[10px]',
-      score: 'text-4xl md:text-6xl',
-      flying: 'text-4xl md:text-5xl',
+      label: 'text-[10px] md:text-xs',
+      score: 'text-4xl md:text-7xl',
+      flying: 'text-3xl md:text-6xl',
     },
   };
 
@@ -203,11 +207,11 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
               duration: flyDuration,
               ease: 'easeInOut',
             }}
-            className={`fixed z-[9999] font-bold drop-shadow-lg pointer-events-none ${sizeClasses[size].flying} flex items-center justify-center`}
+            className={`fixed z-[9999] font-bold drop-shadow-lg pointer-events-none ${sizeClasses[size].flying} flex items-center justify-center ${flyingPointsClassName || ''}`}
             style={{
               transform: 'translate(-50%, -50%)', // Centering adjustment
               position: 'fixed',
-              ...getFlyingPointsColor(flyingPoints.value),
+              ...(flyingPointsClassName ? {} : getFlyingPointsColor(flyingPoints.value)),
             }}
           >
             {flyingPoints.value > 0 ? '+' : ''}

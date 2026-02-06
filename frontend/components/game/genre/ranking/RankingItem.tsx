@@ -77,8 +77,9 @@ export const RankingItem = ({
   }, [hasJustLanded, onScorePosition, score]);
 
   // Common base styles - mobile uses h-full to fill parent container, desktop uses fixed height
+  // Reduced right padding to allow rating to sit closer to the edge
   const baseClasses =
-    'flex items-center gap-2 md:gap-4 p-1.5 md:p-4 rounded-md md:rounded-xl border-2 transition-all h-full md:h-[72px]';
+    'flex items-center gap-2 md:gap-4 pl-1.5 py-1.5 pr-1 md:pl-4 md:py-4 md:pr-2 rounded-md md:rounded-xl border-2 transition-all h-full md:h-[72px]';
 
   // Variant-specific styles
   const variantStyles = {
@@ -145,11 +146,18 @@ export const RankingItem = ({
         <motion.span
           layout="position"
           className={cn(
-            'font-serif font-semibold text-foreground flex-1 min-w-0 leading-none',
-            // Detailed dynamic sizing to ensure fit without truncation
-            genre.name.length > 15
-              ? 'text-[10px] md:text-sm'
-              : genre.name.length > 10
+            'font-serif font-semibold text-foreground flex-1 min-w-0 leading-none whitespace-nowrap overflow-hidden',
+            variant === 'actual-filled'
+              ? // Aggressive dynamic sizing for Actual Order (has rating/score)
+                genre.name.length > 18
+                ? 'text-[9px] md:text-xs tracking-tighter'
+                : genre.name.length > 14
+                  ? 'text-[10px] md:text-sm tracking-tight'
+                  : genre.name.length > 10
+                    ? 'text-xs md:text-base'
+                    : 'text-sm md:text-lg'
+              : // Standard sizing for Your Ranking (more space)
+                genre.name.length > 15
                 ? 'text-xs md:text-base'
                 : 'text-sm md:text-lg',
           )}
@@ -158,47 +166,50 @@ export const RankingItem = ({
         </motion.span>
       )}
 
-      {/* Average Rating Display (Only for actual-filled or revealed items) */}
-      {(variant === 'actual-filled' || (isRevealed && variant === 'static')) &&
-        genre.averageRating !== undefined && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-xs md:text-sm font-semibold text-muted-foreground mr-0 md:mr-1 shrink-0 whitespace-nowrap"
-          >
-            ★ {genre.averageRating.toFixed(1)}
-          </motion.div>
+      {/* Right Content Group: Rating & Score & Drag Handle */}
+      <div className="flex shrink-0 items-center justify-end gap-1.5 md:gap-3 ml-1.5 md:ml-3">
+        {/* Drag Handle - only for draggable variant */}
+        {variant === 'draggable' && showDragHandle && (
+          <div className="flex flex-col gap-0.5 opacity-40">
+            <div className="w-3 md:w-4 h-0.5 bg-muted-foreground rounded" />
+            <div className="w-3 md:w-4 h-0.5 bg-muted-foreground rounded" />
+            <div className="w-3 md:w-4 h-0.5 bg-muted-foreground rounded" />
+          </div>
         )}
 
-      {/* Drag Handle - only for draggable variant */}
-      {variant === 'draggable' && showDragHandle && (
-        <div className="flex flex-col gap-0.5 opacity-40">
-          <div className="w-3 md:w-4 h-0.5 bg-muted-foreground rounded" />
-          <div className="w-3 md:w-4 h-0.5 bg-muted-foreground rounded" />
-          <div className="w-3 md:w-4 h-0.5 bg-muted-foreground rounded" />
-        </div>
-      )}
+        {/* Average Rating Display (Only for actual-filled or revealed items) */}
+        {(variant === 'actual-filled' || (isRevealed && variant === 'static')) &&
+          genre.averageRating !== undefined && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-xs md:text-sm font-semibold text-muted-foreground whitespace-nowrap text-right"
+            >
+              ★ {genre.averageRating.toFixed(1)}
+            </motion.div>
+          )}
 
-      {/* In-Card Score Badge (Replaces Check/X) */}
-      <AnimatePresence>
-        {isRevealed && variant === 'actual-filled' && score !== undefined && (
-          <motion.div
-            ref={scoreBadgeRef}
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{
-              opacity: showScoreBadge ? 1 : 0,
-              scale: showScoreBadge ? 1 : 0.5,
-            }}
-            transition={{ type: 'spring', stiffness: 500, damping: 14 }}
-            className={cn('font-bold text-xs md:text-base ml-auto shrink-0 w-8 md:w-10 text-right')}
-            style={{
-              color: `hsl(${Math.round((score / pointsPerItem) * 120)}, 70%, 35%)`,
-            }}
-          >
-            +{score}
-          </motion.div>
-        )}
-      </AnimatePresence>
+        {/* In-Card Score Badge (Replaces Check/X) */}
+        <AnimatePresence>
+          {isRevealed && variant === 'actual-filled' && score !== undefined && (
+            <motion.div
+              ref={scoreBadgeRef}
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{
+                opacity: showScoreBadge ? 1 : 0,
+                scale: showScoreBadge ? 1 : 0.5,
+              }}
+              transition={{ type: 'spring', stiffness: 500, damping: 14 }}
+              className={cn('font-bold text-xs md:text-base text-right min-w-[2ch]')}
+              style={{
+                color: `hsl(${Math.round((score / pointsPerItem) * 120)}, 70%, 35%)`,
+              }}
+            >
+              +{score}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </motion.div>
   );
 };
