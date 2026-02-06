@@ -55,7 +55,8 @@ export function PersonalGenreBubbles({ data, insights }: PersonalGenreBubblesPro
     const isMobile = dimensions.width > 0 && dimensions.width < 768;
     // Tighter radius range to ensure fitting on small screens
     // Desktop: Increased from [50, 120] to [70, 160] for bigger impact
-    const radiusRange: [number, number] = isMobile ? [20, 60] : [70, 160];
+    // Mobile: Tuned to [28, 75] to fill space without being "too big"
+    const radiusRange: [number, number] = isMobile ? [28, 75] : [70, 160];
     const radiusScale = d3.scaleSqrt().domain([minCount, maxCount]).range(radiusRange);
 
     // Sort data by rating descending
@@ -111,12 +112,13 @@ export function PersonalGenreBubbles({ data, insights }: PersonalGenreBubblesPro
     const packedRadius = Math.sqrt(totalArea / Math.PI);
 
     // Ensure the target orbit fits within the screen
-    // Note: radiusRange is [20, 60] for mobile, [70, 160] for desktop
-    const maxBubbleR = isMobile ? 60 : 160;
+    // Note: radiusRange is [28, 75] for mobile, [70, 160] for desktop
+    const maxBubbleR = isMobile ? 75 : 160;
     const minDimensionHalf = Math.min(width, height) / 2;
 
     // Add extra padding for mobile to prevent edge touching
-    const screenPadding = isMobile ? 15 : 0;
+    // Increased to 30px for "perfect" safe zone
+    const screenPadding = isMobile ? 30 : 0;
 
     // Cap the orbit radius so the outer edge of bubbles stays inside:
     // Available Space = minDimensionHalf - maxBubbleR - padding
@@ -136,8 +138,35 @@ export function PersonalGenreBubbles({ data, insights }: PersonalGenreBubblesPro
           .radius((d) => d.r + 1) // Tighter collision radius
           .strength(1) // Stiffer collision to prevent overlap
           .iterations(3),
-      )
-      .force(
+      );
+
+    // Responsive Force Logic:
+    // Portrait (Mobile): Use anisotropic X/Y forces to spread vertically
+    // Landscape (Desktop): Use Radial force for a perfect circle
+    const isPortrait = height > width;
+
+    if (isPortrait) {
+      // VERTICAL SPREAD LOGIC
+      simulation
+        .force(
+          'x',
+          d3.forceX<BubbleNode>(centerX).strength((d) => {
+            const normalized = (d.genre.userAvgRating - minRating) / (maxRating - minRating || 1);
+            // Strong horizontal pull to keep them in a column
+            return 0.5 + normalized * 1.5;
+          }),
+        )
+        .force(
+          'y',
+          d3.forceY<BubbleNode>(centerY).strength((d) => {
+            const normalized = (d.genre.userAvgRating - minRating) / (maxRating - minRating || 1);
+            // Weak vertical pull to allow spreading out
+            return 0.1 + normalized * 0.4;
+          }),
+        );
+    } else {
+      // CIRCULAR/RADIAL LOGIC (Original)
+      simulation.force(
         'radial',
         d3
           .forceRadial<BubbleNode>(
@@ -156,8 +185,10 @@ export function PersonalGenreBubbles({ data, insights }: PersonalGenreBubblesPro
             // Much stronger pull for high rated items to force them to center
             return 1.0 + normalized * 1.0; // Range 1.0 - 2.0
           }),
-      )
-      .stop(); // STOP immediately to pre-calculate
+      );
+    }
+
+    simulation.stop(); // STOP immediately to pre-calculate
 
     // ------------------------------------------------------------
     // PRE-CALCULATION (Warm Up) to avoid initial "flicker"
@@ -166,10 +197,11 @@ export function PersonalGenreBubbles({ data, insights }: PersonalGenreBubblesPro
     for (let i = 0; i < TICKS; ++i) {
       simulation.tick();
       // Manually clamp during warmup to ensure they settle in bounds
+      // IMPORTANT: Apply screenPadding to x AND y to prevent overlap with header/footer
       nodes.forEach((d) => {
         const r = d.r;
         d.x = Math.max(r + screenPadding, Math.min(width - r - screenPadding, d.x!));
-        d.y = Math.max(r, Math.min(height - r, d.y!));
+        d.y = Math.max(r + screenPadding, Math.min(height - r - screenPadding, d.y!));
       });
     }
 
@@ -300,14 +332,14 @@ export function PersonalGenreBubbles({ data, insights }: PersonalGenreBubblesPro
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full min-h-screen overflow-hidden bg-[#F8F5F2] flex flex-col items-center"
+      className="relative w-full h-full overflow-hidden bg-[#F8F5F2] flex flex-col items-center"
       onClick={() => setHoveredGenre(null)} // Click outside to close
       style={{ fontFamily: 'var(--font-sans)' }}
     >
       {/* Header / Intro Line */}
       <div className="relative shrink-0 pt-6 md:pt-10 z-10 px-4 flex flex-col items-center gap-2 md:gap-4 pointer-events-none w-full max-w-4xl mx-auto">
         <h1 className="text-3xl md:text-5xl font-serif font-bold text-[#2D2D2D] drop-shadow-sm">
-          Your Genre Landscape
+          Your Genre Bubbles
         </h1>
         <div className="flex flex-wrap justify-center gap-4 md:gap-8 text-sm md:text-lg font-medium text-[#555]">
           <span className="flex items-center gap-2 bg-white/60 px-3 py-1.5 rounded-full backdrop-blur-md shadow-sm border border-white/20">
