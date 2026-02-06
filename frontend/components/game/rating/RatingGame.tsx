@@ -11,6 +11,7 @@ import { StarRating } from '@/components/game/rating/StarRating';
 import { FeedbackOverlay } from '@/components/game/rating/FeedbackOverlay';
 import { PostGameScreen } from '@/components/game/rating/PostGameScreen';
 import { Button } from '@/components/ui/button';
+import { getScoreFeedback } from './constants';
 
 interface RatingGameProps {
   onGameComplete: (score: number) => void;
@@ -80,7 +81,7 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
         className="h-[100dvh] !min-h-0 overflow-hidden md:h-auto md:min-h-screen md:overflow-visible w-full max-w-7xl mx-auto"
         top={
           <div className="flex justify-between items-start p-4 md:p-8 w-full relative z-[60]">
-            <GameRoundIndicator currentRound={currentRound} totalRounds={totalRounds} />
+            <GameRoundIndicator major={currentRound} majorTotal={totalRounds} />
 
             <ScorePanel
               score={score}
@@ -93,6 +94,7 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
               position="static"
               maxPositivePoint={20}
               maxNegativePoint={0}
+              flyingPointsClassName={showFeedback ? getScoreFeedback(roundScore).color : undefined}
             />
           </div>
         }

@@ -80,17 +80,14 @@ export const GenreChipAnimated = ({
     <motion.button
       ref={handleRef}
       layout
+      transition={{ type: 'tween', ease: 'backOut', duration: 0.3 }}
       type="button"
       onClick={onClick}
       disabled={isDisabled}
       whileTap={{ scale: isDisabled ? 1 : 0.95 }}
       whileHover={{ scale: isDisabled ? 1 : 1.03 }}
       initial={{ opacity: 0, scale: 0.8 }}
-      animate={{
-        opacity: 1,
-        scale: 1,
-        transition: { type: 'spring', stiffness: 600, damping: 25, mass: 0.8 },
-      }}
+      animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.15 } }}
       className={cn(
         'relative px-2 py-1 md:px-2.5 md:py-1 lg:px-3 lg:py-1.5 xl:px-4 xl:py-2 rounded-full border transition-colors duration-200 shrink-0',
@@ -101,7 +98,7 @@ export const GenreChipAnimated = ({
         getStateStyle(),
       )}
     >
-      <span className="inline-flex items-center gap-1">
+      <motion.span layout className="inline-flex items-center gap-1">
         {genre.name}
         {pointsLabel && (
           <motion.span
@@ -117,7 +114,7 @@ export const GenreChipAnimated = ({
             {pointsLabel}
           </motion.span>
         )}
-      </span>
+      </motion.span>
     </motion.button>
   );
 };
