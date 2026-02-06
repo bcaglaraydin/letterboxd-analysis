@@ -17,6 +17,12 @@ export interface RatingGameMovie {
   runtimeMinutes: number | null;
 }
 
+export interface GenreInsight {
+  type: string;
+  text: string;
+  genreId?: string;
+}
+
 export interface UserStats {
   totalMovies: number;
   averageRating: number;
@@ -34,6 +40,7 @@ export interface UserStats {
   guiltyPleasures: RatingGameMovie[];
   controversialPicks: RatingGameMovie[];
   genreOverview: GenreStat[];
+  genreInsights?: GenreInsight[];
 }
 
 export interface GenreStat {

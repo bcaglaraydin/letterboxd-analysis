@@ -66,8 +66,6 @@ export const GameHub = () => {
                     : 'Rating Intuition Game Completed'
                 }
               >
-
-
                 <div className="space-y-4">
                   <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
                     <Star className="w-6 h-6 fill-current" />

@@ -41,7 +41,10 @@ export const DebugControls = () => {
               <div className="flex flex-col gap-1">
                 <div className="text-[10px] text-gray-500 mb-1">Current: {currentPhase}</div>
                 <button
-                  onClick={resetExperience}
+                  onClick={() => {
+                    useGenreOrchestrationStore.getState().resetGenreGame();
+                    resetExperience();
+                  }}
                   className="px-2 py-1 bg-red-900/50 hover:bg-red-900/80 rounded text-left"
                 >
                   Reset Experience
@@ -53,7 +56,10 @@ export const DebugControls = () => {
                   Go to Rating Game
                 </button>
                 <button
-                  onClick={startGenreGame}
+                  onClick={() => {
+                    useGenreOrchestrationStore.getState().resetGenreGame();
+                    startGenreGame();
+                  }}
                   className="px-2 py-1 bg-gray-800 hover:bg-gray-700 rounded text-left"
                 >
                   Go to Genre Game

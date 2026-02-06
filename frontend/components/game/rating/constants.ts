@@ -23,7 +23,7 @@ export const SCORE_FEEDBACK = {
 /** Get feedback for a given score */
 export const getScoreFeedback = (score: number | null) => {
   if (score === null) return SCORE_FEEDBACK.OK;
-  if (score === SCORE_FEEDBACK.PERFECT.threshold) return SCORE_FEEDBACK.PERFECT;
+  if (score >= SCORE_FEEDBACK.PERFECT.threshold) return SCORE_FEEDBACK.PERFECT;
   if (score >= SCORE_FEEDBACK.CLOSE.threshold) return SCORE_FEEDBACK.CLOSE;
   if (score >= SCORE_FEEDBACK.OK.threshold) return SCORE_FEEDBACK.OK;
   return SCORE_FEEDBACK.MISS;

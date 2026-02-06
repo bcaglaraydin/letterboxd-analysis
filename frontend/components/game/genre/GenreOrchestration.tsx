@@ -7,6 +7,7 @@ import { GenreMatchingGame } from './genre-matching/GenreMatchingGame';
 import { PostGameScreen } from './PostGameScreen';
 
 import { useGenreOrchestrationStore } from '@/store/genre/genreOrchestrationStore';
+import { useExperienceStore } from '@/store/core/experienceStore';
 
 interface GenreOrchestrationProps {
   onGameComplete: (totalScore: number) => void;
@@ -15,6 +16,7 @@ interface GenreOrchestrationProps {
 export function GenreOrchestration({ onGameComplete }: GenreOrchestrationProps) {
   const { phase, setPhase, setRankingScore, setMatchingScore, rankingScore, matchingScore } =
     useGenreOrchestrationStore();
+  const { setReady, setProcessing, username } = useExperienceStore();
 
   const handleRankingComplete = (score: number) => {
     setRankingScore(score);
@@ -24,6 +26,9 @@ export function GenreOrchestration({ onGameComplete }: GenreOrchestrationProps) 
   const handleMatchingComplete = (score: number) => {
     setMatchingScore(score);
     setPhase('post-game');
+    // Ensure we have a valid state for PostGameScreen logic
+    if (!username) setProcessing('mock-user');
+    setReady();
   };
 
   const handlePostGameComplete = () => {

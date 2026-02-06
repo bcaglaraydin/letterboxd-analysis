@@ -2,10 +2,10 @@
 
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { Film } from 'lucide-react';
+import { Film, Sparkles as SparklesIcon } from 'lucide-react';
 import * as d3 from 'd3';
-import { GenreStat } from '@/lib/api';
-import { AnimatePresence } from 'framer-motion';
+import { GenreStat, GenreInsight } from '@/lib/api';
+import { AnimatePresence, motion } from 'framer-motion';
 import { BubblePosterStrip } from './BubblePosterStrip';
 
 interface BubbleNode extends d3.SimulationNodeDatum {
@@ -18,11 +18,13 @@ interface BubbleNode extends d3.SimulationNodeDatum {
 
 interface PersonalGenreBubblesProps {
   data: GenreStat[];
+  insights?: GenreInsight[];
 }
 
-export function PersonalGenreBubbles({ data }: PersonalGenreBubblesProps) {
+export function PersonalGenreBubbles({ data, insights }: PersonalGenreBubblesProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+  const svgWrapperRef = useRef<HTMLDivElement>(null);
   const [hoveredGenre, setHoveredGenre] = useState<{
     genre: GenreStat;
     x: number;
@@ -77,7 +79,7 @@ export function PersonalGenreBubbles({ data }: PersonalGenreBubblesProps) {
       if (containerRef.current) {
         setDimensions({
           width: containerRef.current.clientWidth,
-          height: window.innerHeight,
+          height: svgWrapperRef.current?.clientHeight || window.innerHeight,
         });
       }
     };
@@ -99,7 +101,7 @@ export function PersonalGenreBubbles({ data }: PersonalGenreBubblesProps) {
     const isMobile = width < 768;
     const centerX = width / 2;
     // Shift center down to avoid Header/Title overlap
-    const centerY = height / 2 + 50;
+    const centerY = height / 2;
 
     const g = svg.append('g');
 
@@ -294,31 +296,59 @@ export function PersonalGenreBubbles({ data }: PersonalGenreBubblesProps) {
     };
   }, [dimensions, nodes, getGenreBaseColor, minRating, maxRating]);
 
+
+
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-screen overflow-hidden bg-[#F8F5F2] flex flex-col items-center"
+      className="relative w-full h-full min-h-screen overflow-hidden bg-[#F8F5F2] flex flex-col items-center"
       onClick={() => setHoveredGenre(null)} // Click outside to close
       style={{ fontFamily: 'var(--font-sans)' }}
     >
       {/* Header / Intro Line */}
-      <div className="absolute top-8 left-0 right-0 text-center pointer-events-none z-10 px-4">
-        <h1 className="text-3xl md:text-4xl font-serif font-bold text-[#2D2D2D] mb-2">
+      <div className="relative shrink-0 pt-6 md:pt-10 z-10 px-4 flex flex-col items-center gap-2 md:gap-4 pointer-events-none w-full max-w-4xl mx-auto">
+        <h1 className="text-3xl md:text-5xl font-serif font-bold text-[#2D2D2D] drop-shadow-sm">
           Your Genre Landscape
         </h1>
-        <div className="flex justify-center gap-6 text-sm text-[#666]">
-          <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-[#E76F51]"></span>
+        <div className="flex flex-wrap justify-center gap-4 md:gap-8 text-sm md:text-lg font-medium text-[#555]">
+          <span className="flex items-center gap-2 bg-white/60 px-3 py-1.5 rounded-full backdrop-blur-md shadow-sm border border-white/20">
+            <span className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-[#E76F51] shadow-inner"></span>
             Brighter = Higher Rated
           </span>
-          <span className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded-full border border-gray-400"></span>
+          <span className="flex items-center gap-2 bg-white/60 px-3 py-1.5 rounded-full backdrop-blur-md shadow-sm border border-white/20">
+            <span className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-transparent border-2 border-gray-400"></span>
             Bigger = More Watched
           </span>
         </div>
+
+        {/* Dynamic Insights */}
+        <div className="flex flex-col gap-2 w-full max-w-lg items-center mt-2">
+          <AnimatePresence>
+            {insights?.map((insight, index) => (
+              <motion.div
+                key={insight.type + index}
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ delay: 1.5 + index * 0.2, type: 'spring' }}
+                className="w-full bg-white/90 backdrop-blur-xl px-5 py-3 rounded-2xl text-center shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-[#E76F51]/10"
+              >
+                <div className="flex items-center justify-center gap-2 text-[#E76F51] uppercase tracking-widest text-[10px] md:text-xs font-bold mb-0.5">
+                  <SparklesIcon className="w-3 h-3" />
+                  {insight.type}
+                  <SparklesIcon className="w-3 h-3" />
+                </div>
+                <p className="text-[#333] text-sm md:text-base font-medium leading-relaxed">
+                  {insight.text}
+                </p>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
       </div>
 
-      <svg ref={svgRef} width="100%" height="100%" className="touch-none" />
+      <div ref={svgWrapperRef} className="flex-1 w-full relative min-h-0">
+        <svg ref={svgRef} width="100%" height="100%" className="touch-none absolute inset-0" />
+      </div>
 
       {/* Helper Interaction Hint */}
       <div className="absolute bottom-6 left-0 right-0 text-center text-[#999] text-xs pointer-events-none">

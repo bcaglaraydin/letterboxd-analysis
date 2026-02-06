@@ -124,7 +124,6 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
               )}
             </div>
           }
-
           middle={
             <div className="w-full max-w-[57.5rem] mx-auto flex flex-col justify-center h-full md:h-auto">
               {/* Header: Moved to Middle for better proximity */}
