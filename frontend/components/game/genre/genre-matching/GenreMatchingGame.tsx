@@ -400,9 +400,25 @@ export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
             )}
 
             {isGameComplete && (
-              <Button onClick={handleReset} size="sm" variant="outline" className="gap-1 text-xs">
-                <RotateCcw className="w-3 h-3" />
-                Play Again
+              <Button
+                onClick={() => {
+                  if (onGameComplete) onGameComplete(totalScore);
+                  else handleReset();
+                }}
+                size="sm"
+                variant={onGameComplete ? 'default' : 'outline'}
+                className="gap-1 text-xs"
+              >
+                {onGameComplete ? (
+                  <>
+                    Complete <ArrowRight className="w-3 h-3" />
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="w-3 h-3" />
+                    Play Again
+                  </>
+                )}
               </Button>
             )}
           </div>

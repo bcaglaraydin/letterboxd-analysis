@@ -2,19 +2,26 @@ import { useCallback } from 'react';
 
 /**
  * Pure function for distance-based scoring (for use outside React components).
- * Formula: score = pointsPerUnit × (1 - distance / maxDistance)
+ * Formula: score = pointsPerRound × (1 - distance / maxDistance)
+ * A distance of 0 returns exactly pointsPerRound (e.g., 20 for perfect guess).
  */
 export function calculateDistanceScore(
   distance: number,
   maxScore: number,
   maxDistance: number,
 ): number {
-  if (maxDistance <= 0) return maxScore;
-  const pointsPerUnit = maxScore / (maxDistance + 1);
-  const normalizedDistance = Math.abs(distance) / maxDistance;
-  const rawScore = pointsPerUnit * (1 - normalizedDistance);
-  const clampedScore = Math.max(0, Math.min(pointsPerUnit, rawScore));
-  return Math.round(clampedScore);
+  // Points per round = maxScore / totalRounds (e.g., 100 / 5 = 20)
+  const pointsPerRound = maxScore / 5; // 5 total rounds
+
+  if (maxDistance <= 0) return pointsPerRound;
+
+  // Normalize distance (0 to 1, where 0 = perfect, 1 = max error)
+  const normalizedDistance = Math.min(1, Math.abs(distance) / maxDistance);
+
+  // Linear scoring: perfect (0 diff) = 20pts, max error (5 diff) = 0pts
+  const rawScore = pointsPerRound * (1 - normalizedDistance);
+
+  return Math.round(rawScore);
 }
 
 interface UseDistanceScoreProps {

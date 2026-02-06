@@ -53,7 +53,7 @@ export function TasteGapLine({ data }: TasteGapLineProps) {
     .interpolate(d3.interpolateRgb);
 
   return (
-    <div className="flex flex-col gap-2 md:gap-4 w-full h-full">
+    <div className="flex flex-col gap-2 md:gap-4 w-full">
       {sortedData.map((genre) => {
         const userPos = scale(genre.userAvgRating);
         const commPos = scale(genre.communityAvgRating);
@@ -70,7 +70,7 @@ export function TasteGapLine({ data }: TasteGapLineProps) {
         return (
           <div
             key={genre.id}
-            className="flex-1 min-h-0 group relative bg-white rounded-xl md:rounded-2xl px-4 border shadow-[0_2px_8px_rgba(0,0,0,0.02)] grid grid-cols-[80px_1fr] md:grid-cols-[140px_1fr] lg:grid-cols-[180px_1fr] items-center gap-4 transition-shadow hover:shadow-md"
+            className="w-full shrink-0 min-h-[80px] md:min-h-[100px] group relative bg-white rounded-xl md:rounded-2xl px-3 py-3 md:px-6 md:py-5 border shadow-[0_2px_8px_rgba(0,0,0,0.02)] grid grid-cols-[80px_1fr] md:grid-cols-[140px_1fr] lg:grid-cols-[180px_1fr] items-center gap-3 md:gap-6 transition-shadow hover:shadow-md"
             style={{ borderColor: `${gapColor}20` }} // Subtle border tint using hex opacity
           >
             {/* Genre Label */}
