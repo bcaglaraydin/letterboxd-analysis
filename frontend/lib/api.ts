@@ -43,6 +43,13 @@ export interface UserStats {
   genreInsights?: GenreInsight[];
 }
 
+export type GenreBubbleTagType = 'hidden_gem' | 'comfort_zone' | 'true_love';
+
+export interface GenreBubbleTag {
+  type: GenreBubbleTagType;
+  label: string;
+}
+
 export interface GenreStat {
   id: string;
   name: string;
@@ -53,6 +60,8 @@ export interface GenreStat {
     title: string;
     posterUrl: string;
   }[];
+  /** Optional tag for interesting bubbles - provided by backend */
+  tag?: GenreBubbleTag;
 }
 
 export interface Genre {
