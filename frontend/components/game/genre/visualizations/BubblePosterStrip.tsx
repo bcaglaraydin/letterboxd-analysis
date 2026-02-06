@@ -1,5 +1,8 @@
+'use client';
+
 import React from 'react';
 import { motion } from 'framer-motion';
+import { GenreBubbleTag } from '@/lib/api';
 
 interface Movie {
   title: string;
@@ -9,45 +12,78 @@ interface Movie {
 interface BubblePosterStripProps {
   movies: Movie[];
   bubbleRadius: number;
-  isMobile?: boolean; // New prop
+  isMobile?: boolean;
+  tag?: GenreBubbleTag;
 }
+
+// Earthy Design System Themes
+// Primary (Sage): hsl(132, 11%, 33%) -> #4b5e4e
+// Accent (Terracotta): hsl(28, 67%, 44%) -> #bb6b25
+// Chart-3 (Ochre): hsl(35, 40%, 50%) -> #b28a4d
+
+const TAG_THEMES: Record<
+  string,
+  {
+    badgeBg: string; // Solid color for badge
+    stripBorder: string; // Matching border for strip
+    stripBg: string; // Subtle tint for strip background
+  }
+> = {
+  hidden_gem: {
+    badgeBg: 'bg-[#4b5e4e]', // Deep Sage
+    stripBorder: 'border-[#4b5e4e]',
+    stripBg: 'bg-[#4b5e4e]/10',
+  },
+  comfort_zone: {
+    badgeBg: 'bg-[#b28a4d]', // Warm Ochre
+    stripBorder: 'border-[#b28a4d]',
+    stripBg: 'bg-[#b28a4d]/10',
+  },
+  true_love: {
+    badgeBg: 'bg-[#bb6b25]', // Terracotta
+    stripBorder: 'border-[#bb6b25]',
+    stripBg: 'bg-[#bb6b25]/10',
+  },
+};
+
+// Configuration for gap between bubble and strip
+// Modify these values to adjust the distance
+const GAP_MOBILE = 140;
+const GAP_DESKTOP = 140;
 
 export function BubblePosterStrip({
   movies,
   bubbleRadius,
   isMobile = false,
+  tag,
 }: BubblePosterStripProps) {
   const displayMovies = movies.slice(0, 5);
+  const theme = tag ? TAG_THEMES[tag.type] : null;
 
   return (
     <motion.div
-      className="absolute flex items-center justify-center gap-2 pointer-events-none"
+      className="absolute flex flex-col items-center justify-center gap-2 pointer-events-none"
       style={{
         width: 'max-content',
-        // Position relative to the bubble center (0,0 in this local context)
-        // detailed positioning handled by parent or transform here
       }}
       initial={{
         opacity: 0,
         scale: 0.5,
-        x: '-50%', // Center horizontally relative to origin
-        y: 0, // Start exactly at center
+        x: '-50%',
+        y: 0,
       }}
       animate={{
         opacity: 1,
         scale: 1,
-        x: '-50%', // Maintain horizontal centering
-        // Smart Positioning:
-        // Desktop: -160px (height ~140px, bottom @ -20px)
-        // Mobile: -105px (height ~82px, bottom @ -23px)
-        // Helps close the gap on mobile while keeping text safe
-        y: isMobile ? Math.min(-bubbleRadius * 1.0, -105) : Math.min(-bubbleRadius * 1.0, -160),
+        x: '-50%',
+        // Fixed distance from top of bubble using configured gaps
+        y: isMobile ? -(bubbleRadius + GAP_MOBILE) : -(bubbleRadius + GAP_DESKTOP),
       }}
       exit={{
         opacity: 0,
         scale: 0.5,
         x: '-50%',
-        y: 0, // Return to center
+        y: 0,
       }}
       transition={{
         type: 'spring',
@@ -56,7 +92,29 @@ export function BubblePosterStrip({
         duration: 0.3,
       }}
     >
-      <div className="flex items-center justify-center gap-1 sm:gap-2 p-1 sm:p-2 bg-black/20 backdrop-blur-sm rounded-xl border border-white/10 shadow-xl pointer-events-none">
+      {/* Tag Label Badge */}
+      {tag && theme && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className={`px-4 py-1.5 rounded-full shadow-md ${theme.badgeBg} border border-white/10`}
+        >
+          <span
+            className="text-xs sm:text-sm font-bold uppercase tracking-widest text-[#F9F5EB]" // Warm white text
+            style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}
+          >
+            {tag.label}
+          </span>
+        </motion.div>
+      )}
+
+      {/* Poster Strip - Colored Design */}
+      <div
+        className={`flex items-center justify-center gap-1 sm:gap-2 p-1 sm:p-2 backdrop-blur-md rounded-xl shadow-xl pointer-events-none transition-colors duration-300
+          ${theme ? `${theme.stripBg} border-2 ${theme.stripBorder}` : 'bg-black/60 border border-white/10'}
+        `}
+      >
         {displayMovies.map((movie, i) => (
           <motion.div
             key={i}
@@ -65,7 +123,6 @@ export function BubblePosterStrip({
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: i * 0.03, duration: 0.2 }}
           >
-            {/* Poster Image */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={movie.posterUrl}

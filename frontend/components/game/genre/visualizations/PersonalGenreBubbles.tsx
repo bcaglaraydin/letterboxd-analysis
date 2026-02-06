@@ -54,7 +54,8 @@ export function PersonalGenreBubbles({ data, insights }: PersonalGenreBubblesPro
     // Size Scale
     const isMobile = dimensions.width > 0 && dimensions.width < 768;
     // Tighter radius range to ensure fitting on small screens
-    const radiusRange: [number, number] = isMobile ? [20, 60] : [50, 120];
+    // Desktop: Increased from [50, 120] to [70, 160] for bigger impact
+    const radiusRange: [number, number] = isMobile ? [20, 60] : [70, 160];
     const radiusScale = d3.scaleSqrt().domain([minCount, maxCount]).range(radiusRange);
 
     // Sort data by rating descending
@@ -110,8 +111,8 @@ export function PersonalGenreBubbles({ data, insights }: PersonalGenreBubblesPro
     const packedRadius = Math.sqrt(totalArea / Math.PI);
 
     // Ensure the target orbit fits within the screen
-    // Note: radiusRange is [20, 60] for mobile, [50, 120] for desktop
-    const maxBubbleR = isMobile ? 60 : 120;
+    // Note: radiusRange is [20, 60] for mobile, [70, 160] for desktop
+    const maxBubbleR = isMobile ? 60 : 160;
     const minDimensionHalf = Math.min(width, height) / 2;
 
     // Add extra padding for mobile to prevent edge touching
@@ -244,7 +245,7 @@ export function PersonalGenreBubbles({ data, insights }: PersonalGenreBubblesPro
       })
       .attr('stroke-width', 2)
       .attr('stroke-opacity', 0.4)
-      .style('filter', 'drop-shadow(0px 4px 12px rgba(0,0,0,0.1))');
+      .style('filter', 'drop-shadow(0px 4px 12px rgba(0,0,0,0.1))'); // Standard shadow for all
 
     // Text: Genre Name
     content
@@ -296,8 +297,6 @@ export function PersonalGenreBubbles({ data, insights }: PersonalGenreBubblesPro
     };
   }, [dimensions, nodes, getGenreBaseColor, minRating, maxRating]);
 
-
-
   return (
     <div
       ref={containerRef}
@@ -348,51 +347,53 @@ export function PersonalGenreBubbles({ data, insights }: PersonalGenreBubblesPro
 
       <div ref={svgWrapperRef} className="flex-1 w-full relative min-h-0">
         <svg ref={svgRef} width="100%" height="100%" className="touch-none absolute inset-0" />
-      </div>
 
-      {/* Helper Interaction Hint */}
-      <div className="absolute bottom-6 left-0 right-0 text-center text-[#999] text-xs pointer-events-none">
-        Hover or tap a bubble to explore
-      </div>
-
-      {/* Poster Strip Overlay */}
-      <AnimatePresence>
-        {hoveredGenre && (
-          <div
-            className="absolute pointer-events-none"
-            style={{
-              left: 0,
-              top: 0,
-              width: '100%',
-              height: '100%',
-              zIndex: 50,
-            }}
-          >
-            <div
-              style={{
-                position: 'absolute',
-                // Smart Clamping: Keep strip within screen bounds
-                left: (() => {
-                  const isMobile = dimensions.width < 768;
-                  const halfStripWidth = isMobile ? 140 : 210;
-                  const padding = 20;
-                  return Math.max(
-                    halfStripWidth + padding,
-                    Math.min(hoveredGenre.x, dimensions.width - halfStripWidth - padding),
-                  );
-                })(),
-                top: hoveredGenre.y,
-              }}
-            >
-              <BubblePosterStrip
-                movies={hoveredGenre.genre.exampleMovies}
-                bubbleRadius={hoveredGenre.r}
-                isMobile={dimensions.width < 768}
+        {/* Highlight & Poster Strip Overlay - Inside wrapper for correct coordinates */}
+        <AnimatePresence>
+          {hoveredGenre && (
+            <div className="absolute inset-0 pointer-events-none z-50">
+              {/* Active Bubble Highlight Ring */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.1 }}
+                className="absolute rounded-full border-2 border-white/80"
+                style={{
+                  left: hoveredGenre.x - hoveredGenre.r,
+                  top: hoveredGenre.y - hoveredGenre.r,
+                  width: hoveredGenre.r * 2,
+                  height: hoveredGenre.r * 2,
+                  boxShadow: '0 0 0 4px rgba(255, 255, 255, 0.15), 0 0 15px rgba(0,0,0,0.2)',
+                }}
               />
+
+              <div
+                style={{
+                  position: 'absolute',
+                  // Smart Clamping: Keep strip within screen bounds
+                  left: (() => {
+                    const isMobile = dimensions.width < 768;
+                    const halfStripWidth = isMobile ? 140 : 210;
+                    const padding = 20;
+                    return Math.max(
+                      halfStripWidth + padding,
+                      Math.min(hoveredGenre.x, dimensions.width - halfStripWidth - padding),
+                    );
+                  })(),
+                  top: hoveredGenre.y,
+                }}
+              >
+                <BubblePosterStrip
+                  movies={hoveredGenre.genre.exampleMovies}
+                  bubbleRadius={hoveredGenre.r}
+                  isMobile={dimensions.width < 768}
+                  tag={hoveredGenre.genre.tag}
+                />
+              </div>
             </div>
-          </div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

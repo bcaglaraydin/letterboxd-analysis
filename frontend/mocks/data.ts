@@ -106,6 +106,7 @@ export const MOCK_GENRE_STATS: GenreStat[] = [
         posterUrl: 'https://image.tmdb.org/t/p/w500/tFXcEccSQMf3lfhfWD24NvqHezc.jpg',
       },
     ],
+    tag: { type: 'true_love', label: 'True Love' },
   },
   {
     id: 'romance',
@@ -198,6 +199,7 @@ export const MOCK_GENRE_STATS: GenreStat[] = [
     id: 'documentary',
     name: 'Documentary',
     userAvgRating: 4.5,
+    tag: { type: 'hidden_gem', label: 'Hidden Gem' },
     communityAvgRating: 4.0,
     userWatchCount: 10,
     exampleMovies: [
@@ -229,6 +231,7 @@ export const MOCK_GENRE_STATS: GenreStat[] = [
     userAvgRating: 3.2,
     communityAvgRating: 3.9,
     userWatchCount: 200,
+    tag: { type: 'comfort_zone', label: 'Comfort Zone' },
     exampleMovies: [
       {
         title: 'The Godfather',
