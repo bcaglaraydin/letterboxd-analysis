@@ -29,6 +29,9 @@ jobs:
   apply:
     name: Apply
     runs-on: ubuntu-22.04
+    permissions:
+      id-token: write
+      contents: read
     outputs:
       terragrunt_output: ${{ steps.output.outputs.value }}
     steps:
