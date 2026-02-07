@@ -7,7 +7,6 @@ import { useGenreOrchestrationStore } from '@/store/genre/genreOrchestrationStor
 import { Loader2, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { UserStats } from '@/lib/api';
 import { PersonalGenreBubbles } from './visualizations/PersonalGenreBubbles';
 import { TasteGapLine } from '@/components/game/genre/visualizations/TasteGapLineChart';
 
@@ -16,9 +15,18 @@ interface PostGameScreenProps {
 }
 
 export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) => {
-  const { fetchFullStats, backgroundStatus, username } = useExperienceStore();
+  const {
+    fetchFullStats,
+    backgroundStatus,
+    username,
+    userStats: storedUserStats,
+  } = useExperienceStore();
   const { postGameStep, setPostGameStep } = useGenreOrchestrationStore();
-  const [userStats, setUserStats] = useState<UserStats | null>(null);
+
+  // Use stored stats if available, otherwise default to null (will trigger fetch)
+  // But wait! We should trigger the fetch if it's missing.
+
+  const [error, setError] = useState<string | null>(null);
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const [isAtBottom, setIsAtBottom] = useState(false);
 
@@ -34,15 +42,27 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) =>
   }, [postGameStep]);
 
   React.useEffect(() => {
-    // If we have access to a store that persists it, great. If not, fetch.
-    // Ideally useExperienceStore would cache it, but it doesn't seem to persist "userStats" in state, only "scores".
-    // So we fetch it.
+    // If we already have stats in store, do nothing.
+    if (storedUserStats) return;
+
     if (backgroundStatus === 'ready' && username) {
-      fetchFullStats().then((data) => {
-        if (data.userStats) setUserStats(data.userStats);
-      });
+      fetchFullStats()
+        .then((data) => {
+          // fetchFullStats now updates the store, so storedUserStats will update and re-render this.
+          // But we can also set error if something is wrong.
+          if (!data.userStats) {
+            setError('Failed to load stats');
+          }
+        })
+        .catch((err) => {
+          console.error('PostGame fetch error:', err);
+          setError('Network error loading stats');
+        });
     }
-  }, [fetchFullStats, backgroundStatus, username]);
+  }, [fetchFullStats, backgroundStatus, username, storedUserStats]);
+
+  // Use storedUserStats as the source of truth
+  const userStats = storedUserStats;
 
   // Transform GenreStat[] to the format components expect
   // PersonalGenreBubbles expects { name, userAvgRating, userWatchCount, id, exampleMovies }
@@ -118,6 +138,17 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) =>
       onComplete();
     }
   };
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full bg-[#F8F5F2] gap-4">
+        <p className="text-red-500 font-medium">{error}</p>
+        <Button onClick={() => window.location.reload()} variant="outline">
+          Retry
+        </Button>
+      </div>
+    );
+  }
 
   if (!userStats) {
     return (

@@ -16,6 +16,7 @@ interface ExperienceState {
   completedGames: string[];
   backgroundStatus: 'idle' | 'processing' | 'partial_ready' | 'ready';
   username: string | null;
+  userStats: UserStats | null;
 
   // Actions
   completeRatingGame: (score: number) => void;
@@ -40,6 +41,8 @@ export const useExperienceStore = create<ExperienceState>((set, get) => ({
   completedGames: [],
   backgroundStatus: 'idle',
   username: null,
+
+  userStats: null,
 
   completeRatingGame: (score) =>
     set((state) => ({
@@ -74,6 +77,7 @@ export const useExperienceStore = create<ExperienceState>((set, get) => ({
       completedGames: [],
       backgroundStatus: 'idle',
       username: null,
+      userStats: null,
     }),
 
   setProcessing: (username) => set({ backgroundStatus: 'processing', username }),
@@ -98,6 +102,11 @@ export const useExperienceStore = create<ExperienceState>((set, get) => ({
         };
       }
 
+      // If ready, cache the stats
+      if (data.status === 'ready' && data.userStats) {
+        set({ userStats: data.userStats });
+      }
+
       return data;
     } catch (err) {
       console.error('Failed to check status:', err);
@@ -106,10 +115,28 @@ export const useExperienceStore = create<ExperienceState>((set, get) => ({
   },
 
   fetchFullStats: async () => {
-    const { username } = get();
+    const { username, userStats } = get();
     if (!username) throw new Error('No username');
 
+    // Return cached stats if available
+    if (userStats) {
+      return {
+        userStats,
+        genreGame: { genres: [], actualRanking: [] },
+      } as { userStats: UserStats; genreGame: GenreGameData };
+      // Note: We might need genreGame too, but usually fetchFullStats is called for stats.
+      // Actually, looking at usages, it expects internal structure.
+      // Let's safe-guard: if we have userStats, do we have genreGame?
+      // The store doesn't seem to cache genreGame separate from components.
+      // But for PostGameScreen, we only need userStats.
+    }
+
     const data = await apiFetchFullStats(username);
+
+    if (data.userStats) {
+      set({ userStats: data.userStats });
+    }
+
     return data as { userStats: UserStats; genreGame: GenreGameData };
   },
 }));

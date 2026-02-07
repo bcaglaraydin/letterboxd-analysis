@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { genreToColor, type Genre } from '@/store/genre/rankingStore';
 import { useRankingScore } from '@/hooks/useDistanceScore';
+import { getScoreColor } from '@/lib/scoreUtils';
 
 interface RankingItemProps {
   genre: Genre;
@@ -201,9 +202,11 @@ export const RankingItem = ({
               }}
               transition={{ type: 'spring', stiffness: 500, damping: 14 }}
               className={cn('font-bold text-xs md:text-base text-right min-w-[2ch]')}
-              style={{
-                color: `hsl(${Math.round((score / pointsPerItem) * 120)}, 70%, 35%)`,
-              }}
+              style={
+                score !== undefined
+                  ? getScoreColor(score, pointsPerItem, 0)
+                  : { color: 'var(--foreground)' }
+              }
             >
               +{score}
             </motion.div>
