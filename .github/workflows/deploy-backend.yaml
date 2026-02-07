@@ -94,7 +94,7 @@ jobs:
              BASE_REBUILD="true" # Rebuild base just in case
           elif [ -n "$TARGETS" ]; then
              echo "Targeting specific lambdas: $TARGETS"
-             SAFE_TARGETS=$(echo $TARGETS | tr ',' '\n' | jq -R . | jq -s .)
+             SAFE_TARGETS=$(echo $TARGETS | tr ',' '\n' | jq -R . | jq -s -c .)
              LAMBDAS_JSON="$SAFE_TARGETS"
              HAS_AFFECTED="true"
           else
@@ -118,7 +118,7 @@ jobs:
              fi
              
              if [ ${#AFFECTED[@]} -gt 0 ]; then
-               LAMBDAS_JSON=$(printf '%s\n' "${AFFECTED[@]}" | jq -R . | jq -s .)
+               LAMBDAS_JSON=$(printf '%s\n' "${AFFECTED[@]}" | jq -R . | jq -s -c .)
                HAS_AFFECTED="true"
              fi
           fi
