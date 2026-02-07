@@ -179,6 +179,9 @@ jobs:
     name: Deploy ECR
     needs: detect-changes
     if: needs.detect-changes.outputs.ecr_infra == 'true'
+    permissions:
+      id-token: write
+      contents: read
     strategy:
        matrix:
          repo: [base, start, status, list-scraper, worker]
@@ -218,6 +221,9 @@ jobs:
     name: Deploy Core ${{ matrix.component }}
     needs: detect-changes
     if: needs.detect-changes.outputs.core_infra == 'true'
+    permissions:
+      id-token: write
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -237,6 +243,9 @@ jobs:
   deploy-lambdas:
     name: Deploy ${{ matrix.lambda }}
     needs: [detect-changes, build, deploy-core-infra]
+    permissions:
+      id-token: write
+      contents: read
     # Run only if build succeeded (or was skipped? No, build is mandatory for affected)
     if: always() && needs.build.result == 'success' && (needs.deploy-core-infra.result == 'success' || needs.deploy-core-infra.result == 'skipped')
     strategy:
@@ -257,6 +266,9 @@ jobs:
     name: Deploy API Gateway
     needs: [detect-changes, deploy-lambdas]
     if: always() && (needs.deploy-lambdas.result == 'success' || needs.detect-changes.outputs.gateway_infra == 'true')
+    permissions:
+      id-token: write
+      contents: read
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/api-gateway
