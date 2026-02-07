@@ -193,6 +193,9 @@ jobs:
   build:
     name: Build ${{ matrix.lambda }}
     needs: [detect-changes, build-base] # Optional dependency on build-base
+    permissions:
+      id-token: write
+      contents: read
     # Run if we have affected lambdas AND (base build skipped OR succeeded)
     if: |
       always() && 
