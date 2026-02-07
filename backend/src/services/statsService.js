@@ -213,7 +213,7 @@ export function calculateGenreStats(films) {
       comfortZone.tag = { type: 'comfort_zone', label: 'Comfort Zone' };
     }
 
-    // 2. Assign others (True Love / Hidden Gem) - Mutually exclusive with Comfort Zone
+    // 2. Assign (True Love / Hidden Gem) - Mutually exclusive with Comfort Zone
     stats.forEach((genre) => {
       if (genre.tag) return; // Skip if already tagged (e.g. Comfort Zone)
 
