@@ -173,7 +173,7 @@ export function calculateGenreStats(films) {
     });
   });
 
-  return Object.values(genreMap)
+  const stats = Object.values(genreMap)
     .filter((g) => g.userRatingCount > 0) // Only return genres user has actually rated
     .map((g) => {
       // Sort films by user rating (desc) to get "best of" examples
@@ -196,4 +196,42 @@ export function calculateGenreStats(films) {
       };
     })
     .sort((a, b) => b.userWatchCount - a.userWatchCount);
+
+  // -------------------------------------------------------------------------
+  // TAG LOGIC (Comfort Zone, Hidden Gem, True Love)
+  // -------------------------------------------------------------------------
+  if (stats.length > 0) {
+    const watchCounts = stats.map((s) => s.userWatchCount).sort((a, b) => a - b);
+    const getPercentile = (arr, val) => {
+      const idx = arr.findIndex((x) => x >= val);
+      return (idx / arr.length) * 100;
+    };
+
+    // 1. Comfort Zone: The #1 most watched genre (must have > 5 films to be meaningful)
+    const comfortZone = stats[0]; // Already sorted by watchCount desc
+    if (comfortZone && comfortZone.userWatchCount > 5) {
+      comfortZone.tag = { type: 'comfort_zone', label: 'Comfort Zone' };
+    }
+
+    // 2. Assign others (True Love / Hidden Gem) - Mutually exclusive with Comfort Zone
+    stats.forEach((genre) => {
+      if (genre.tag) return; // Skip if already tagged (e.g. Comfort Zone)
+
+      const percentile = getPercentile(watchCounts, genre.userWatchCount);
+
+      // True Love: High Rating (>= 4.0) AND Significant Watch Count (Top 25% i.e. >= 75th percentile)
+      if (genre.userAvgRating >= 4.0 && percentile >= 75) {
+        genre.tag = { type: 'true_love', label: 'True Love' };
+        return;
+      }
+
+      // Hidden Gem: High Rating (>= 4.0) AND Low Watch Count (Bottom 10% i.e. <= 10th percentile)
+      // Must have at least 3 films to be a "trend" not a fluke
+      if (genre.userAvgRating >= 4.0 && percentile <= 10 && genre.userWatchCount >= 3) {
+        genre.tag = { type: 'hidden_gem', label: 'Hidden Gem' };
+      }
+    });
+  }
+
+  return stats;
 }
