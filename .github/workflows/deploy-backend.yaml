@@ -1,15 +1,8 @@
 # ==============================================================================
-# DEPLOY BACKEND - Container-based Lambda Architecture
+# DEPLOY BACKEND - SELECTIVE CI/CD
 # ==============================================================================
-#
-# This workflow deploys the complete backend infrastructure:
-#   1. Core infrastructure (DynamoDB, SQS, ECR)
-#   2. Build & push Docker images to ECR
-#   3. Deploy Lambda containers
-#   4. Deploy API Gateway
-#   5. E2E verification
-#
-# Trigger: Push to master (backend/** or infra/**) or manual dispatch
+# This workflow implements the selective build/deploy strategy using 
+# dorny/paths-filter and native GitHub Actions logic.
 # ==============================================================================
 
 name: Deploy Backend
@@ -17,14 +10,14 @@ name: Deploy Backend
 on:
   workflow_dispatch:
     inputs:
-      force_rebuild_images:
-        description: 'Force rebuild all Docker images'
+      force_rebuild_all:
+        description: 'Force rebuild ALL images'
         type: boolean
         default: false
-      skip_e2e:
-        description: 'Skip E2E verification'
-        type: boolean
-        default: false
+      target_lambdas:
+        description: 'Specific Comma-separated Lambdas to deploy (e.g. status,worker)'
+        type: string
+        default: ''
   push:
     branches:
       - master
@@ -32,15 +25,11 @@ on:
       - 'backend/**'
       - 'infra/**'
       - '.github/workflows/deploy-backend.yaml'
-      - '.github/workflows/build-lambda-images.yaml'
+      - '.github/filters.yaml'
 
 concurrency:
   group: deploy-backend-${{ github.ref }}
-  cancel-in-progress: false # Don't cancel in-progress deploys
-
-permissions:
-  id-token: write
-  contents: read
+  cancel-in-progress: false
 
 env:
   AWS_REGION: eu-west-1
@@ -50,56 +39,182 @@ env:
 
 jobs:
   # ============================================================================
-  # DETECT CHANGES
+  # DETECT CHANGES 
   # ============================================================================
   detect-changes:
     name: Detect Changes
     runs-on: ubuntu-latest
     outputs:
-      backend_code: ${{ steps.filter.outputs.backend_code }}
-      base_dockerfile: ${{ steps.filter.outputs.base_dockerfile }}
-      lambda_dockerfiles: ${{ steps.filter.outputs.lambda_dockerfiles }}
-      ecr_infra: ${{ steps.filter.outputs.ecr_infra }}
-      lambda_infra: ${{ steps.filter.outputs.lambda_infra }}
-      gateway_infra: ${{ steps.filter.outputs.gateway_infra }}
+      # Pass through all filter outputs
+      start: ${{ steps.filter.outputs.start }}
+      status: ${{ steps.filter.outputs.status }}
+      list_scraper: ${{ steps.filter.outputs.list_scraper }}
+      worker: ${{ steps.filter.outputs.worker }}
+      base_image: ${{ steps.filter.outputs.base_image }}
       core_infra: ${{ steps.filter.outputs.core_infra }}
+      ecr_infra: ${{ steps.filter.outputs.ecr_infra }}
+      gateway_infra: ${{ steps.filter.outputs.gateway_infra }}
+      
+      # Computed list for matrix strategy
+      affected_lambdas: ${{ steps.compute.outputs.affected_lambdas }}
+      has_affected: ${{ steps.compute.outputs.has_affected }}
+      base_needs_rebuild: ${{ steps.compute.outputs.base_needs_rebuild }}
+      
     steps:
       - uses: actions/checkout@v4
-
+      
       - uses: dorny/paths-filter@v3
         id: filter
         with:
-          filters: |
-            backend_code:
-              - 'backend/src/**'
-              - 'backend/package*.json'
-            base_dockerfile:
-              - 'backend/docker/base/**'
-            lambda_dockerfiles:
-              - 'backend/docker/lambdas/**'
-            ecr_infra:
-              - 'infra/envs/dev/ecr/**'
-              - 'infra/modules/ecr/**'
-            lambda_infra:
-              - 'infra/envs/dev/lambda-container/**'
-              - 'infra/modules/lambda-container/**'
-            gateway_infra:
-              - 'infra/envs/dev/api-gateway/**'
-              - 'infra/modules/api-gateway/**'
-            core_infra:
-              - 'infra/envs/dev/dynamodb/**'
-              - 'infra/envs/dev/sqs/**'
-              - 'infra/envs/dev/sqs-list/**'
-              - 'infra/modules/dynamodb/**'
-              - 'infra/modules/sqs/**'
+          filters: .github/filters.yaml
+
+      - name: Compute Strategy
+        id: compute
+        run: |
+          # Initialize empty array for JSON
+          LAMBDAS_JSON="[]"
+          HAS_AFFECTED="false"
+          BASE_REBUILD="false"
+          
+          # Check inputs first
+          FORCE="${{ github.event.inputs.force_rebuild_all }}"
+          TARGETS="${{ github.event.inputs.target_lambdas }}"
+          
+          # Check filter outputs
+          START_CHANGED="${{ steps.filter.outputs.start }}"
+          STATUS_CHANGED="${{ steps.filter.outputs.status }}"
+          LIST_CHANGED="${{ steps.filter.outputs.list_scraper }}"
+          WORKER_CHANGED="${{ steps.filter.outputs.worker }}"
+          BASE_CHANGED="${{ steps.filter.outputs.base_image }}"
+          
+          if [ "$FORCE" == "true" ]; then
+             echo "Rebuilding ALL due to force"
+             LAMBDAS_JSON='["start","status","list-scraper","worker"]'
+             HAS_AFFECTED="true"
+             BASE_REBUILD="true" # Rebuild base just in case
+          elif [ -n "$TARGETS" ]; then
+             echo "Targeting specific lambdas: $TARGETS"
+             SAFE_TARGETS=$(echo $TARGETS | tr ',' '\n' | jq -R . | jq -s .)
+             LAMBDAS_JSON="$SAFE_TARGETS"
+             HAS_AFFECTED="true"
+          else
+             # Build list based on changes
+             AFFECTED=()
+             
+             # Lightweight lambdas (independent of base image changes)
+             if [ "$START_CHANGED" == "true" ]; then AFFECTED+=("start"); fi
+             if [ "$STATUS_CHANGED" == "true" ]; then AFFECTED+=("status"); fi
+             
+             # Browser lambdas (depend on Base Image OR their own changes)
+             if [ "$LIST_CHANGED" == "true" ] || [ "$BASE_CHANGED" == "true" ]; then 
+                AFFECTED+=("list-scraper"); 
+             fi
+             if [ "$WORKER_CHANGED" == "true" ] || [ "$BASE_CHANGED" == "true" ]; then 
+                AFFECTED+=("worker"); 
+             fi
+             
+             if [ "$BASE_CHANGED" == "true" ]; then
+                BASE_REBUILD="true"
+             fi
+             
+             if [ ${#AFFECTED[@]} -gt 0 ]; then
+               LAMBDAS_JSON=$(printf '%s\n' "${AFFECTED[@]}" | jq -R . | jq -s .)
+               HAS_AFFECTED="true"
+             fi
+          fi
+          
+          echo "affected_lambdas=$LAMBDAS_JSON" >> $GITHUB_OUTPUT
+          echo "has_affected=$HAS_AFFECTED" >> $GITHUB_OUTPUT
+          echo "base_needs_rebuild=$BASE_REBUILD" >> $GITHUB_OUTPUT
+          
+          echo "Strategy Computed:"
+          echo "Affected: $LAMBDAS_JSON"
+          echo "Base Rebuild: $BASE_REBUILD"
 
   # ============================================================================
-  # CORE INFRASTRUCTURE (DynamoDB, SQS)
+  # BUILD BASE IMAGE (If Needed)
+  # ============================================================================
+  build-base:
+    name: Build Base Image
+    needs: detect-changes
+    if: needs.detect-changes.outputs.base_needs_rebuild == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-deploy-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build and push base image
+        uses: docker/build-push-action@v5
+        with:
+          context: backend
+          file: backend/docker/base/Dockerfile
+          platforms: linux/arm64
+          provenance: false
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/letterboxd-base-dev:${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/letterboxd-base-dev:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ============================================================================
+  # DEPLOY ECR REPOS (If Needed)
+  # ============================================================================
+  deploy-ecr:
+    name: Deploy ECR
+    needs: detect-changes
+    if: needs.detect-changes.outputs.ecr_infra == 'true'
+    strategy:
+       matrix:
+         repo: [base, start, status, list-scraper, worker]
+    uses: ./.github/workflows/terragrunt-apply.yaml
+    with:
+      working_directory: infra/envs/dev/ecr/${{ matrix.repo }}
+    secrets: inherit
+
+  # ============================================================================
+  # BUILD AFFECTED LAMBDAS
+  # ============================================================================
+  build:
+    name: Build ${{ matrix.lambda }}
+    needs: [detect-changes, build-base] # Optional dependency on build-base
+    # Run if we have affected lambdas AND (base build skipped OR succeeded)
+    if: |
+      always() && 
+      needs.detect-changes.outputs.has_affected == 'true' &&
+      (needs.build-base.result == 'success' || needs.build-base.result == 'skipped')
+    strategy:
+      fail-fast: false
+      matrix:
+        lambda: ${{ fromJson(needs.detect-changes.outputs.affected_lambdas) }}
+    uses: ./.github/workflows/build-single-lambda.yaml
+    with:
+      lambda_name: ${{ matrix.lambda }}
+      image_tag: ${{ github.sha }}
+    secrets: inherit
+
+  # ============================================================================
+  # CORE INFRASTRUCTURE
   # ============================================================================
   deploy-core-infra:
     name: Deploy Core ${{ matrix.component }}
     needs: detect-changes
-    if: needs.detect-changes.outputs.core_infra == 'true' || github.event_name == 'workflow_dispatch'
+    if: needs.detect-changes.outputs.core_infra == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -114,54 +229,17 @@ jobs:
     secrets: inherit
 
   # ============================================================================
-  # ECR REPOSITORIES
+  # DEPLOY AFFECTED LAMBDAS
   # ============================================================================
-  deploy-ecr:
-    name: Deploy ECR ${{ matrix.repo }}
-    needs: detect-changes
-    if: needs.detect-changes.outputs.ecr_infra == 'true' || github.event_name == 'workflow_dispatch'
+  deploy-lambdas:
+    name: Deploy ${{ matrix.lambda }}
+    needs: [detect-changes, build, deploy-core-infra]
+    # Run only if build succeeded (or was skipped? No, build is mandatory for affected)
+    if: always() && needs.build.result == 'success' && (needs.deploy-core-infra.result == 'success' || needs.deploy-core-infra.result == 'skipped')
     strategy:
       fail-fast: false
       matrix:
-        repo: [base, start, status, list-scraper, worker]
-    uses: ./.github/workflows/terragrunt-apply.yaml
-    with:
-      working_directory: infra/envs/dev/ecr/${{ matrix.repo }}
-    secrets: inherit
-
-  # ============================================================================
-  # BUILD & PUSH DOCKER IMAGES
-  # ============================================================================
-  build-images:
-    name: Build Docker Images
-    needs: [detect-changes, deploy-ecr]
-    if: |
-      always() && !failure() && !cancelled() &&
-      (needs.detect-changes.outputs.backend_code == 'true' ||
-       needs.detect-changes.outputs.base_dockerfile == 'true' ||
-       needs.detect-changes.outputs.lambda_dockerfiles == 'true' ||
-       github.event.inputs.force_rebuild_images == 'true')
-    uses: ./.github/workflows/build-lambda-images.yaml
-    with:
-      image_tag: ${{ github.sha }}
-    secrets: inherit
-
-  # ============================================================================
-  # DEPLOY LAMBDA CONTAINERS
-  # ============================================================================
-  deploy-lambda-containers:
-    name: Deploy Lambda ${{ matrix.lambda }}
-    needs: [detect-changes, deploy-core-infra, build-images]
-    if: |
-      always() && !failure() && !cancelled() &&
-      (needs.detect-changes.outputs.backend_code == 'true' ||
-       needs.detect-changes.outputs.lambda_infra == 'true' ||
-       needs.detect-changes.outputs.lambda_dockerfiles == 'true' ||
-       github.event_name == 'workflow_dispatch')
-    strategy:
-      fail-fast: false
-      matrix:
-        lambda: [start, status, list-scraper, worker]
+        lambda: ${{ fromJson(needs.detect-changes.outputs.affected_lambdas) }}
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/lambda-container/${{ matrix.lambda }}
@@ -174,12 +252,8 @@ jobs:
   # ============================================================================
   deploy-api-gateway:
     name: Deploy API Gateway
-    needs: [detect-changes, deploy-lambda-containers]
-    if: |
-      always() && !failure() && !cancelled() &&
-      (needs.detect-changes.outputs.gateway_infra == 'true' ||
-       needs.detect-changes.outputs.lambda_infra == 'true' ||
-       github.event_name == 'workflow_dispatch')
+    needs: [detect-changes, deploy-lambdas]
+    if: always() && (needs.deploy-lambdas.result == 'success' || needs.detect-changes.outputs.gateway_infra == 'true')
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/api-gateway
@@ -192,42 +266,24 @@ jobs:
   verify-e2e:
     name: E2E Verification
     needs: [deploy-api-gateway]
-    if: |
-      !cancelled() &&
-      !failure() &&
-      (needs.deploy-api-gateway.result == 'success' || needs.deploy-api-gateway.result == 'skipped') &&
-      github.event.inputs.skip_e2e != 'true'
+    if: needs.deploy-api-gateway.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-deploy-role
-          aws-region: ${{ env.AWS_REGION }}
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-
       - name: Install Dependencies
         working-directory: backend
         run: npm ci
-
       - name: Get API Endpoint
-        id: api
         run: |
-          # Get from previous job output or fetch from AWS
-          if [ -n "${{ needs.deploy-api-gateway.outputs.terragrunt_output }}" ]; then
-            API_URL="${{ needs.deploy-api-gateway.outputs.terragrunt_output || '' }}"
-          else
-            API_URL=$(aws apigatewayv2 get-apis --query "Items[?Name=='letterboxd-analysis-api-dev'].ApiEndpoint" --output text)
-          fi
-          echo "API_GATEWAY_URL=$API_URL" >> $GITHUB_ENV
-          echo "API Endpoint: $API_URL"
-
+           if [ -n "${{ needs.deploy-api-gateway.outputs.terragrunt_output }}" ]; then
+             echo "API_GATEWAY_URL=${{ needs.deploy-api-gateway.outputs.terragrunt_output }}" >> $GITHUB_ENV
+           else
+             echo "API_GATEWAY_URL=" >> $GITHUB_ENV
+           fi
       - name: Run E2E Test
         working-directory: backend
         env:
@@ -235,36 +291,3 @@ jobs:
           TEST_USERNAME: bcaglaraydin
           E2E_TIMEOUT_SECONDS: '120'
         run: npm run test:e2e
-
-  # ============================================================================
-  # SUMMARY
-  # ============================================================================
-  summary:
-    name: Deploy Summary
-    needs:
-      [
-        detect-changes,
-        deploy-core-infra,
-        deploy-ecr,
-        build-images,
-        deploy-lambda-containers,
-        deploy-api-gateway,
-        verify-e2e,
-      ]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Generate Summary
-        run: |
-          echo "## Backend Deploy Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Core Infrastructure | ${{ needs.deploy-core-infra.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| ECR Repositories | ${{ needs.deploy-ecr.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Docker Images | ${{ needs.build-images.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Lambda Containers | ${{ needs.deploy-lambda-containers.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| API Gateway | ${{ needs.deploy-api-gateway.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| E2E Verification | ${{ needs.verify-e2e.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**API Endpoint:** \`${{ needs.deploy-api-gateway.outputs.terragrunt_output }}\`" >> $GITHUB_STEP_SUMMARY
