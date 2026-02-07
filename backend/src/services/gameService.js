@@ -11,7 +11,7 @@ import {
 
 export const GameService = {
   /**
-   * Generates a rating game for partial_ready state (progressive loading).
+   * Generates a rating game for partial_ready state.
    * Filters films to only those with valid metadata before generating.
    * @param {Array} userFilms - List of user's films with basic info (slug, userRating).
    * @param {Map} metadataMap - Map of slug -> full metadata from DB.
