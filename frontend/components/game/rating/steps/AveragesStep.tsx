@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Star } from 'lucide-react';
 import { type UserStats } from '@/store/rating/ratingStore';
 import { Button } from '@/components/ui/button';
 
@@ -22,23 +22,22 @@ export const AveragesStep: React.FC<AveragesStepProps> = ({ userStats, onNext })
         animate={{ y: 0, opacity: 1 }}
         className="w-full max-w-4xl space-y-8 md:space-y-12 flex flex-col justify-center h-full"
       >
-        <h2 className="text-2xl md:text-3xl font-medium text-muted-foreground uppercase tracking-widest">
-          The Big Picture
-        </h2>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
           {/* User Stat */}
           <div className="space-y-2 md:space-y-4">
             <div className="text-xs md:text-sm font-bold text-primary uppercase tracking-widest">
-              Your Average
+              Your Rating Average
             </div>
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: 'spring', delay: 0.2 }}
-              className="text-7xl md:text-9xl font-serif font-bold text-foreground"
+              className="flex items-center justify-center gap-2"
             >
-              {userStats.averageRating.toFixed(1)}
+              <div className="text-7xl md:text-9xl font-serif font-bold text-foreground">
+                {userStats.averageRating.toFixed(1)}
+              </div>
+              <Star className="w-8 h-8 md:w-12 md:h-12 fill-current text-primary" />
             </motion.div>
           </div>
 
@@ -48,15 +47,18 @@ export const AveragesStep: React.FC<AveragesStepProps> = ({ userStats, onNext })
           {/* Community Stat */}
           <div className="space-y-2 md:space-y-4 opacity-70">
             <div className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-widest">
-              Community Average
+              Community Rating Average
             </div>
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: 'spring', delay: 0.4 }}
-              className="text-6xl md:text-8xl font-serif font-bold text-muted-foreground"
+              className="flex items-center justify-center gap-2"
             >
-              {userStats.communityComparison.averageCommunityRating.toFixed(1)}
+              <div className="text-6xl md:text-8xl font-serif font-bold text-muted-foreground">
+                {userStats.communityComparison.averageCommunityRating.toFixed(1)}
+              </div>
+              <Star className="w-6 h-6 md:w-10 md:h-10 fill-current text-muted-foreground" />
             </motion.div>
           </div>
         </div>

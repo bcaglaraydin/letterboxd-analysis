@@ -155,6 +155,7 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
                 value={currentRating}
                 onChange={setCurrentRating}
                 readOnly={showFeedback}
+                starSize="w-14 h-14"
               />
             </div>
 

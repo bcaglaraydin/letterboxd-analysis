@@ -14,6 +14,7 @@ import { GameBackground } from '@/components/game/shared/GameBackground';
 import { GameLayout } from '@/components/game/shared/GameLayout';
 import { RATING_GAME_CONFIG } from '@/components/game/rating/constants';
 import { GENRE_RANKING_CONFIG } from '@/components/game/genre/ranking/constants';
+import { getScoreColor } from '@/lib/scoreUtils';
 
 export const GameHub = () => {
   // Use granular selectors to prevent unnecessary re-renders
@@ -73,13 +74,13 @@ export const GameHub = () => {
 
                   <div>
                     <h3 className="text-xl font-bold">Rating Intuition</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {allGamesCompleted ? 'Click to Replay' : 'Completed'}
-                    </p>
                   </div>
 
                   <div className="flex items-end gap-1">
-                    <span className="text-4xl font-serif font-bold text-foreground">
+                    <span
+                      className="text-4xl font-serif font-bold transition-colors"
+                      style={getScoreColor((scores.rating / RATING_GAME_CONFIG.MAX_SCORE) * 100)}
+                    >
                       {Math.round(scores.rating)}
                     </span>
                     <span className="text-sm text-muted-foreground mb-1.5 opacity-60">
@@ -128,20 +129,14 @@ export const GameHub = () => {
                           ? 'Next Chapter'
                           : 'Locked'}
                     </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {isGenreCompleted
-                        ? allGamesCompleted
-                          ? 'Click to Replay'
-                          : 'Completed'
-                        : isGenreUnlocked
-                          ? 'Continue your journey'
-                          : 'Complete previous game to unlock'}
-                    </p>
                   </div>
 
                   {isGenreCompleted ? (
                     <div className="flex items-end gap-1">
-                      <span className="text-4xl font-serif font-bold text-foreground">
+                      <span
+                        className="text-4xl font-serif font-bold transition-colors"
+                        style={getScoreColor((scores.genre / GENRE_RANKING_CONFIG.MAX_SCORE) * 100)}
+                      >
                         {Math.round(scores.genre)}
                       </span>
                       <span className="text-sm text-muted-foreground mb-1.5 opacity-60">
