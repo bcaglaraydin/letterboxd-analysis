@@ -53,10 +53,21 @@ export function PersonalGenreBubbles({ data, insights }: PersonalGenreBubblesPro
 
     // Size Scale
     const isMobile = dimensions.width > 0 && dimensions.width < 768;
-    // Tighter radius range to ensure fitting on small screens
-    // Desktop: Increased from [50, 120] to [70, 160] for bigger impact
-    // Mobile: Tuned to [28, 75] to fill space without being "too big"
-    const radiusRange: [number, number] = isMobile ? [28, 75] : [70, 160];
+
+    // Dynamic sizing based on count to prevent overcrowding
+    const nodeCount = validData.length;
+    // Base ranges
+    let mobileRange: [number, number] = [25, 65];
+    let desktopRange: [number, number] = [70, 160];
+
+    // If we have many items, scale down slightly
+    if (isMobile && nodeCount > 8) {
+      mobileRange = [20, 55]; // Smaller bubbles if crowded
+    } else if (!isMobile && nodeCount > 15) {
+      desktopRange = [60, 130];
+    }
+
+    const radiusRange: [number, number] = isMobile ? mobileRange : desktopRange;
     const radiusScale = d3.scaleSqrt().domain([minCount, maxCount]).range(radiusRange);
 
     // Sort data by rating descending
@@ -112,8 +123,8 @@ export function PersonalGenreBubbles({ data, insights }: PersonalGenreBubblesPro
     const packedRadius = Math.sqrt(totalArea / Math.PI);
 
     // Ensure the target orbit fits within the screen
-    // Note: radiusRange is [28, 75] for mobile, [70, 160] for desktop
-    const maxBubbleR = isMobile ? 75 : 160;
+    // Note: radiusRange is checked dynamically above
+    const maxBubbleR = isMobile ? 65 : 160;
     const minDimensionHalf = Math.min(width, height) / 2;
 
     // Add extra padding for mobile to prevent edge touching
@@ -125,7 +136,6 @@ export function PersonalGenreBubbles({ data, insights }: PersonalGenreBubblesPro
     const safeOrbitRadius = Math.max(0, minDimensionHalf - maxBubbleR - screenPadding - 10);
 
     // Use the smaller of the ideal packed size or the safe screen limit
-    // Use the smaller of the ideal packed size or the safe screen limit
     const maxOrbitRadius = Math.min(packedRadius * 1.1, safeOrbitRadius);
 
     const simulation = d3
@@ -135,9 +145,9 @@ export function PersonalGenreBubbles({ data, insights }: PersonalGenreBubblesPro
         'collide',
         d3
           .forceCollide<BubbleNode>()
-          .radius((d) => d.r + 1) // Tighter collision radius
-          .strength(1) // Stiffer collision to prevent overlap
-          .iterations(3),
+          .radius((d) => d.r + 2) // Increased padding (+2)
+          .strength(1) // Max stiffness
+          .iterations(4), // More iterations for accuracy
       );
 
     // Responsive Force Logic:
