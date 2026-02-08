@@ -85,17 +85,8 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
   const prevPointsRef = useRef(pointsEarned);
 
   // Calculate dynamic color based on performance (supports negative scores)
-  const getScoreColorStyle = () => {
-    if (displayScore >= 0) {
-      const ratio = maxScore > 0 ? displayScore / maxScore : 0;
-      const hue = Math.min(120, Math.max(0, ratio * 120)); // 0 (Red) -> 120 (Green)
-      return { color: `hsl(${hue}, 70%, 35%)` };
-    } else {
-      // Negative score: red shade
-      return { color: `hsl(0, 70%, 45%)` };
-    }
-  };
-  const scoreColorStyle = getScoreColorStyle();
+  // Calculate dynamic color based on performance (supports negative scores)
+  const scoreColorStyle = getScoreColor(displayScore, maxScore, maxNegativePoint);
 
   // Trigger flying animation when pointsEarned changes (supports negative values)
   useEffect(() => {
