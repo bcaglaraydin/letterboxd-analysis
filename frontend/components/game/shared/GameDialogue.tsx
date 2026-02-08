@@ -37,7 +37,7 @@ export const GameDialogue: React.FC<GameDialogueProps> = ({
   if (isCompleting && completionMessage) {
     return (
       <GameBackground className={className}>
-        <div className="absolute inset-0 flex items-center justify-center z-50">
+        <div className="absolute inset-0 flex items-center justify-center z-50 overflow-hidden">
           <motion.div
             initial={{ opacity: 0, scale: 0.5, y: 50 }}
             animate={{ 
@@ -46,7 +46,12 @@ export const GameDialogue: React.FC<GameDialogueProps> = ({
               y: 0,
               transition: { type: "spring", stiffness: 200, damping: 20 } 
             }}
-            exit={{ opacity: 0, scale: 1.1, filter: "blur(10px)" }}
+            exit={{ 
+              opacity: 0, 
+              scale: 4, 
+              filter: "blur(20px)",
+              transition: { duration: 0.4, ease: "easeIn" }
+            }}
             className="text-5xl md:text-7xl font-serif font-black text-transparent bg-clip-text bg-gradient-to-br from-primary via-primary/80 to-primary/50 tracking-tighter drop-shadow-2xl"
           >
             {completionMessage}
