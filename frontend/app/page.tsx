@@ -7,15 +7,40 @@ import { Loader2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { useGameInitialization } from '@/hooks/useGameInitialization';
+import { PreAnalysisFlow } from '@/components/game/pre-analysis/PreAnalysisFlow';
+
 export default function LandingPage() {
   const [username, setUsername] = useState('');
-  const { initializeGame, isLoading, error } = useGameInitialization();
+  const [showPreAnalysis, setShowPreAnalysis] = useState(false);
+  const { initializeGame, isLoading, error, isReady, transitionToGame } = useGameInitialization({
+    autoRedirect: false,
+  });
 
   const handleStart = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username.trim()) return;
-    await initializeGame(username);
+
+    // Start the game initialization (backend analysis)
+    // We don't await this to block IO, but we do want to trigger the UI change
+    initializeGame(username);
+    setShowPreAnalysis(true);
   };
+
+  const handlePreAnalysisComplete = () => {
+    if (isReady) {
+      transitionToGame();
+    }
+  };
+
+  if (showPreAnalysis) {
+    return (
+      <GameBackground>
+        <div className="relative z-10 flex flex-col items-center justify-center h-[100dvh] w-full overflow-hidden">
+          <PreAnalysisFlow onComplete={handlePreAnalysisComplete} isBackendReady={isReady} />
+        </div>
+      </GameBackground>
+    );
+  }
 
   return (
     <GameBackground>

@@ -13,11 +13,19 @@ interface UseGameInitializationOptions {
    * (Used for background polling in Orchestrator)
    */
   backgroundMode?: boolean;
+  /**
+   * If true, automatically redirects to /game when ready.
+   * If false, sets isReady state but waits for manual transition.
+   * @default true
+   */
+  autoRedirect?: boolean;
 }
 
 export function useGameInitialization(options: UseGameInitializationOptions = {}) {
+  const { backgroundMode = false, autoRedirect = true } = options;
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isReady, setIsReady] = useState(false);
   const router = useRouter();
 
   // Store actions
@@ -36,16 +44,24 @@ export function useGameInitialization(options: UseGameInitializationOptions = {}
     (data: Awaited<ReturnType<typeof pollMetricsStatus>>) => {
       hydrateStores(data);
 
-      if (!options.backgroundMode) {
-        router.push('/game');
+      if (!backgroundMode) {
+        if (autoRedirect) {
+          router.push('/game');
+        } else {
+          setIsReady(true);
+        }
       }
     },
-    [hydrateStores, router, options.backgroundMode],
+    [hydrateStores, router, backgroundMode, autoRedirect],
   );
+
+  const transitionToGame = useCallback(() => {
+    router.push('/game');
+  }, [router]);
 
   // Poller Hook
   const { startPolling, stopPolling } = useGamePoller({
-    backgroundMode: options.backgroundMode,
+    backgroundMode,
     onGameReady: handleGameReady,
     onError: (err) => {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
@@ -70,6 +86,7 @@ export function useGameInitialization(options: UseGameInitializationOptions = {}
 
     setIsLoading(true);
     setError(null);
+    setIsReady(false);
     const startTime = Date.now();
 
     try {
@@ -114,7 +131,7 @@ export function useGameInitialization(options: UseGameInitializationOptions = {}
 
   // Background Polling Effect (Orchestrator)
   useEffect(() => {
-    if (!options.backgroundMode) return;
+    if (!backgroundMode) return;
 
     if (backgroundStatus === 'partial_ready' && ratingMoviesLength > 0 && experienceUsername) {
       startPolling(experienceUsername);
@@ -124,7 +141,7 @@ export function useGameInitialization(options: UseGameInitializationOptions = {}
       stopPolling();
     };
   }, [
-    options.backgroundMode,
+    backgroundMode,
     backgroundStatus,
     ratingMoviesLength,
     experienceUsername,
@@ -136,5 +153,7 @@ export function useGameInitialization(options: UseGameInitializationOptions = {}
     initializeGame,
     isLoading,
     error,
+    isReady,
+    transitionToGame,
   };
 }
