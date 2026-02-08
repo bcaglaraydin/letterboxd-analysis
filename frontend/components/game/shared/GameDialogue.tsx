@@ -40,17 +40,17 @@ export const GameDialogue: React.FC<GameDialogueProps> = ({
         <div className="absolute inset-0 flex items-center justify-center z-50 overflow-hidden">
           <motion.div
             initial={{ opacity: 0, scale: 0.5, y: 50 }}
-            animate={{ 
-              opacity: 1, 
-              scale: 1, 
+            animate={{
+              opacity: 1,
+              scale: 1,
               y: 0,
-              transition: { type: "spring", stiffness: 200, damping: 20 } 
+              transition: { type: 'spring', stiffness: 200, damping: 20 },
             }}
-            exit={{ 
-              opacity: 0, 
-              scale: 4, 
-              filter: "blur(20px)",
-              transition: { duration: 0.4, ease: "easeIn" }
+            exit={{
+              opacity: 0,
+              scale: 4,
+              filter: 'blur(20px)',
+              transition: { duration: 0.4, ease: 'easeIn' },
             }}
             className="text-5xl md:text-7xl font-serif font-black text-transparent bg-clip-text bg-gradient-to-br from-primary via-primary/80 to-primary/50 tracking-tighter drop-shadow-2xl"
           >
@@ -80,9 +80,9 @@ export const GameDialogue: React.FC<GameDialogueProps> = ({
   return (
     <GameBackground className={className}>
       <GameLayout
-        className="h-full w-full max-w-4xl mx-auto"
+        className="w-full max-w-4xl mx-auto"
         middle={
-          <div className="flex flex-col items-center justify-center h-full w-full px-6">
+          <div className="flex flex-col items-center justify-center w-full px-6">
             <motion.div
               variants={container}
               initial="hidden"
