@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRatingGameStore } from '@/store/rating/ratingStore';
 import { GameBackground } from '@/components/game/shared/GameBackground';
 import { GameLayout } from '@/components/game/shared/GameLayout';
@@ -12,6 +12,7 @@ import { FeedbackOverlay } from '@/components/game/rating/FeedbackOverlay';
 import { PostGameScreen } from '@/components/game/rating/PostGameScreen';
 import { Button } from '@/components/ui/button';
 import { getScoreFeedback } from './constants';
+import { GameDialogue } from '@/components/game/shared/GameDialogue';
 
 interface RatingGameProps {
   onGameComplete: (score: number) => void;
@@ -33,13 +34,14 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
 
   // Safeguard: If we somehow mount with isGameOver=true but no history, it's a bug/stale state.
   // This prevents the "PostGameScreen -> Analyzing..." flicker on fresh load.
-  React.useEffect(() => {
+  useEffect(() => {
     if (isGameOver && historyLength === 0) {
       console.warn('RatingGame mounted in invalid Game Over state (no history). Resetting.');
       resetGame();
     }
   }, [isGameOver, historyLength, resetGame]);
 
+  const [showIntro, setShowIntro] = useState(true);
   const [currentRating, setCurrentRating] = useState(0);
   const [showFeedback, setShowFeedback] = useState(false);
   const [flyFromPosition, setFlyFromPosition] = useState<{
@@ -63,6 +65,22 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
   // orchestration handles loading state usually.
 
   const currentMovie = movies[currentMovieIndex];
+
+  if (showIntro) {
+    return (
+      <GameDialogue
+        messages={[
+          <p key="msg1">To begin, you’ll see movies you’ve rated before. Your task is to guess the score you gave each one.</p>,
+          <p key="msg2">
+            If you score <span className="font-bold text-3xl mx-1" style={getScoreFeedback(75).color ? { color: getScoreFeedback(75).color } : {}}>75/100</span> or higher, we’ll unlock a deeper analysis of your rating behavior.
+          </p>,
+        ]}
+        buttonText="I understand"
+        completionMessage="Good"
+        onComplete={() => setShowIntro(false)}
+      />
+    );
+  }
 
   if (isGameOver) {
     return (
