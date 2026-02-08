@@ -66,7 +66,7 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
   flyingPointsClassName,
 }) => {
   // Calculate effective delay: if provided, use it. Otherwise, sync with flyDuration minus a small overlap for impact.
-  const effectiveAnimationDelay = animationDelay ?? (flyDuration * 1000 - 150);
+  const effectiveAnimationDelay = animationDelay ?? flyDuration * 1000 - 150;
 
   // Display score (animated counting)
   const [displayScore, setDisplayScore] = useState(score);

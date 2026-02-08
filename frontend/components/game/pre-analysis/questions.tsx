@@ -245,9 +245,9 @@ export const questions: Question[] = [
         Three inhabitants A, B, and C live on an island. Some always tell the truth, others always
         lie.
         <div className="my-4 p-4 border rounded-lg bg-card/50 text-base font-mono space-y-2 text-left w-full max-w-sm mx-auto">
-          <div>A: "B is not a liar."</div>
-          <div>B: "C tells the truth."</div>
-          <div>C: "A and B are of the same type."</div>
+          <div>A: &quot;B is not a liar.&quot;</div>
+          <div>B: &quot;C tells the truth.&quot;</div>
+          <div>C: &quot;A and B are of the same type.&quot;</div>
         </div>
         Assuming all statements are logically consistent, which must be true?
       </>

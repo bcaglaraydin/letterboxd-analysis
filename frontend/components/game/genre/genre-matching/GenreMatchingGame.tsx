@@ -105,7 +105,7 @@ export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
     // simpler: recalculate hue using same logic as shared utils to be 100% safe and clean, OR update shared utils to support alpha (better).
     // For now, I will manually replicate the hue logic here to ensure exact match with shared utils but with custom alpha,
     // as `getScoreColor` returns a string.
-    
+
     // Actually, distinct visual requirement here: "Background with 0.1 opacity".
     // I will use `getScoreColor` to get the base color, but since it returns a string, it is hard to modify opacity.
     // Let's just calculate hue using the same formula: (score/max)*120.
