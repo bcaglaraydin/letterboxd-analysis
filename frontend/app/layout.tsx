@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Playfair_Display, DM_Sans } from 'next/font/google';
 import './globals.css';
 import { cn } from '@/lib/utils';
+import { DebugControls } from '@/components/debug/DebugControls';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -38,6 +39,7 @@ export default function RootLayout({
         )}
       >
         {children}
+        <DebugControls />
       </body>
     </html>
   );

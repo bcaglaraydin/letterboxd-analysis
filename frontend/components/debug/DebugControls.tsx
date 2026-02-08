@@ -1,13 +1,26 @@
+'use client';
+
 import React, { useState } from 'react';
 import { useExperienceStore } from '@/store/core/experienceStore';
 import { useGenreOrchestrationStore, GenrePhase } from '@/store/genre/genreOrchestrationStore';
 import { GAME_PHASES } from '@/lib/gameTypes';
 import { Bug, ChevronDown } from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
 
 export const DebugControls = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(process.env.NODE_ENV === 'development');
   const { currentPhase, startRatingGame, startGenreGame, resetExperience } = useExperienceStore();
   const { phase: genrePhase, setPhase: setGenrePhase } = useGenreOrchestrationStore();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const handleAction = (action: () => void) => {
+    ensureDebugState();
+    action();
+    if (pathname !== '/game') {
+      router.push('/game');
+    }
+  };
 
   const ensureDebugState = () => {
     const state = useExperienceStore.getState();
@@ -44,26 +57,54 @@ export const DebugControls = () => {
                   onClick={() => {
                     useGenreOrchestrationStore.getState().resetGenreGame();
                     resetExperience();
+                    router.push('/');
                   }}
                   className="px-2 py-1 bg-red-900/50 hover:bg-red-900/80 rounded text-left"
                 >
                   Reset Experience
                 </button>
-                <button
-                  onClick={startRatingGame}
-                  className="px-2 py-1 bg-gray-800 hover:bg-gray-700 rounded text-left"
-                >
-                  Go to Rating Game
-                </button>
-                <button
-                  onClick={() => {
-                    useGenreOrchestrationStore.getState().resetGenreGame();
-                    startGenreGame();
-                  }}
-                  className="px-2 py-1 bg-gray-800 hover:bg-gray-700 rounded text-left"
-                >
-                  Go to Genre Game
-                </button>
+                <div className="grid grid-cols-2 gap-1">
+                  <button
+                    onClick={() => handleAction(startRatingGame)}
+                    className="px-2 py-1 bg-gray-800 hover:bg-gray-700 rounded text-left"
+                  >
+                    Start Rating
+                  </button>
+                  <button
+                    onClick={() =>
+                      handleAction(() => {
+                        useExperienceStore.getState().completeRatingGame(100);
+                      })
+                    }
+                    className="px-2 py-1 bg-blue-900/50 hover:bg-blue-900/80 rounded text-left"
+                  >
+                    Skip Rating
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-1">
+                  <button
+                    onClick={() =>
+                      handleAction(() => {
+                        useGenreOrchestrationStore.getState().resetGenreGame();
+                        startGenreGame();
+                      })
+                    }
+                    className="px-2 py-1 bg-gray-800 hover:bg-gray-700 rounded text-left"
+                  >
+                    Start Genre
+                  </button>
+                  <button
+                    onClick={() =>
+                      handleAction(() => {
+                        useExperienceStore.getState().completeGenreGame(100);
+                      })
+                    }
+                    className="px-2 py-1 bg-blue-900/50 hover:bg-blue-900/80 rounded text-left"
+                  >
+                    Skip Genre
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -76,8 +117,7 @@ export const DebugControls = () => {
                     <button
                       key={p}
                       onClick={() => {
-                        ensureDebugState();
-                        setGenrePhase(p);
+                        handleAction(() => setGenrePhase(p));
                       }}
                       className={`px-2 py-1 rounded text-left ${
                         genrePhase === p
@@ -94,8 +134,10 @@ export const DebugControls = () => {
                       <div className="text-[10px] text-gray-500">Post-Game View</div>
                       <button
                         onClick={() => {
-                          setGenrePhase('post-game');
-                          useGenreOrchestrationStore.getState().setPostGameStep(0);
+                          handleAction(() => {
+                            setGenrePhase('post-game');
+                            useGenreOrchestrationStore.getState().setPostGameStep(0);
+                          });
                         }}
                         className="w-full px-2 py-1 bg-blue-900/40 hover:bg-blue-900/60 rounded text-left text-xs"
                       >
@@ -103,8 +145,10 @@ export const DebugControls = () => {
                       </button>
                       <button
                         onClick={() => {
-                          setGenrePhase('post-game');
-                          useGenreOrchestrationStore.getState().setPostGameStep(1);
+                          handleAction(() => {
+                            setGenrePhase('post-game');
+                            useGenreOrchestrationStore.getState().setPostGameStep(1);
+                          });
                         }}
                         className="w-full px-2 py-1 bg-blue-900/40 hover:bg-blue-900/60 rounded text-left text-xs"
                       >

@@ -9,7 +9,7 @@ export interface Genre {
 
 interface GenreGameState {
   // Game flow
-  phase: 'intro' | 'ranking' | 'confirming' | 'reveal' | 'complete';
+  phase: 'ranking' | 'confirming' | 'reveal' | 'complete';
 
   // Genres
   genres: Genre[];
@@ -33,7 +33,7 @@ interface GenreGameState {
 export { genreToColor };
 
 export const useGenreRankingStore = create<GenreGameState>((set, get) => ({
-  phase: 'intro',
+  phase: 'ranking',
   genres: [],
   userRanking: [],
   actualRanking: [],
@@ -74,14 +74,14 @@ export const useGenreRankingStore = create<GenreGameState>((set, get) => ({
 
   nextPhase: () => {
     const { phase } = get();
-    if (phase === 'intro') set({ phase: 'ranking' });
-    else if (phase === 'ranking') set({ phase: 'confirming' });
+    if (phase === 'ranking') set({ phase: 'confirming' });
+    else if (phase === 'confirming') set({ phase: 'reveal' });
     else if (phase === 'reveal') set({ phase: 'complete' });
   },
 
   resetGame: () =>
     set({
-      phase: 'intro',
+      phase: 'ranking',
       genres: [],
       userRanking: [],
       actualRanking: [],

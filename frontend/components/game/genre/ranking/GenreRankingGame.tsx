@@ -10,7 +10,7 @@ import { GameRoundIndicator } from '@/components/game/shared/GameRoundIndicator'
 import { GameLayout } from '@/components/game/shared/GameLayout';
 import { useRankingScore } from '@/hooks/useDistanceScore';
 import { GENRE_RANKING_CONFIG } from './constants';
-import { GenreIntroPhase } from './GenreIntroPhase';
+
 import { DraggableRankingList } from './DraggableRankingList';
 import { ActualRankingColumn } from './ActualRankingColumn';
 import { useRevealAnimation } from './useRevealAnimation';
@@ -30,7 +30,6 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
     previousScore,
     setUserRanking,
     confirmRanking,
-    nextPhase,
   } = useGenreRankingStore();
 
   const itemCount = userRanking.length || GENRE_RANKING_CONFIG.ITEM_COUNT;
@@ -75,16 +74,9 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
     }
   }, [genres.length, phase, startGame]);
   */
-
-  // Get genre object by ID
+  // Ranking Phase OR Reveal Phase
   const getGenre = (id: string) => genres.find((g) => g.id === id);
 
-  // Intro Phase - Use extracted component
-  if (phase === 'intro') {
-    return <GenreIntroPhase onStart={nextPhase} />;
-  }
-
-  // Ranking Phase OR Reveal Phase
   if (phase === 'ranking' || phase === 'reveal' || phase === 'complete') {
     const isRevealing = phase === 'reveal' || phase === 'complete';
     const showTwoColumns = isRevealing && revealStage !== 'ranking';
