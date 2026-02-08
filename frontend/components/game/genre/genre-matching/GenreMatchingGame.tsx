@@ -92,12 +92,29 @@ export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
   const getDynamicStyle = () => {
     if (phase === 'selecting') return {};
 
+    // Extract hsl values from string like "hsl(120, 85%, 45%)" -> hue = 120
+    // But since getScoreColor returns a string, we might just want to use the color for background/border with opacity
+    // However, the original code used HSLA with specific opacity.
+
+    // Let's parse the hue roughly or just use the color directly if possible, OR
+    // actually, let's just stick to the shared logic pattern.
+    // The shared logic returns `hsl(h, s, l)`.
+    // We can use it directly for border, and use a valid CSS color manipulation or just opacity for BG?
+    // Current shared utils return `hsl(...)`.
+    // Let's rely on standard CSS parsing if we want valid alpha.
+    // simpler: recalculate hue using same logic as shared utils to be 100% safe and clean, OR update shared utils to support alpha (better).
+    // For now, I will manually replicate the hue logic here to ensure exact match with shared utils but with custom alpha,
+    // as `getScoreColor` returns a string.
+    
+    // Actually, distinct visual requirement here: "Background with 0.1 opacity".
+    // I will use `getScoreColor` to get the base color, but since it returns a string, it is hard to modify opacity.
+    // Let's just calculate hue using the same formula: (score/max)*120.
     const ratio = maxCardPoints > 0 ? currentCardPoints / maxCardPoints : 0;
-    const hue = Math.round(Math.min(120, Math.max(0, ratio * 120)));
+    const hue = Math.min(120, Math.max(0, ratio * 120));
 
     return {
-      backgroundColor: `hsla(${hue}, 70%, 50%, 0.1)`,
-      borderColor: `hsla(${hue}, 70%, 40%, 0.3)`,
+      backgroundColor: `hsla(${hue}, 85%, 45%, 0.1)`,
+      borderColor: `hsla(${hue}, 85%, 45%, 0.3)`,
     };
   };
 
