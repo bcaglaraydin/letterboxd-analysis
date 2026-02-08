@@ -6,6 +6,7 @@ import { useRatingGameStore } from '@/store/rating/ratingStore';
 import { MIN_LOADING_TIME_MS } from '@/lib/gameTypes';
 import { useStoreHydration } from './useStoreHydration';
 import { useGamePoller } from './useGamePoller';
+import { API_ERRORS, ERROR_MESSAGES } from '@/lib/content';
 
 interface UseGameInitializationOptions {
   /**
@@ -67,13 +68,13 @@ export function useGameInitialization(options: UseGameInitializationOptions = {}
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
 
       if (
-        errorMessage.includes('User not found') ||
-        errorMessage.includes('profile is private') ||
-        errorMessage.includes('Request failed with status code 404')
+        errorMessage.includes(API_ERRORS.USER_NOT_FOUND) ||
+        errorMessage.includes(API_ERRORS.PROFILE_PRIVATE) ||
+        errorMessage.includes(API_ERRORS.NOT_FOUND_404)
       ) {
-        setError('Who is that?');
+        setError(ERROR_MESSAGES.USER_NOT_FOUND);
       } else {
-        setError('Something went wrong. Please try again.');
+        setError(ERROR_MESSAGES.GENERIC);
       }
       setIsLoading(false);
       stopPolling();
@@ -117,13 +118,13 @@ export function useGameInitialization(options: UseGameInitializationOptions = {}
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
       if (
-        errorMessage.includes('User not found') ||
-        errorMessage.includes('profile is private') ||
-        errorMessage.includes('Request failed with status code 404')
+        errorMessage.includes(API_ERRORS.USER_NOT_FOUND) ||
+        errorMessage.includes(API_ERRORS.PROFILE_PRIVATE) ||
+        errorMessage.includes(API_ERRORS.NOT_FOUND_404)
       ) {
-        setError('Who is that?');
+        setError(ERROR_MESSAGES.USER_NOT_FOUND);
       } else {
-        setError('Something went wrong. Please try again.');
+        setError(ERROR_MESSAGES.GENERIC);
       }
       setIsLoading(false);
     }
