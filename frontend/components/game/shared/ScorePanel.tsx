@@ -54,7 +54,7 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
   flyFromPosition,
   maxScore = 100,
   label = 'Score',
-  animationDelay = 600,
+  animationDelay,
   countSpeed = 50,
   flyDuration = 0.6,
   className,
@@ -65,6 +65,9 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
   maxNegativePoint = -50,
   flyingPointsClassName,
 }) => {
+  // Calculate effective delay: if provided, use it. Otherwise, sync with flyDuration minus a small overlap for impact.
+  const effectiveAnimationDelay = animationDelay ?? (flyDuration * 1000 - 150);
+
   // Display score (animated counting)
   const [displayScore, setDisplayScore] = useState(score);
   // Flying animation state
@@ -133,7 +136,7 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
       }, countSpeed);
 
       return () => clearInterval(timer);
-    }, animationDelay);
+    }, effectiveAnimationDelay);
 
     return () => clearTimeout(startTimeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps

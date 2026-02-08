@@ -279,76 +279,52 @@ export function useGenreMatchingGame(): UseGenreMatchingGameReturn {
       }
     }
 
-    // Handle flow based on result
+    // Unified handling with layout delay
+    // 1. Trigger visual change (state update) immediately
     if (result === 'incorrect') {
       setHeldIncorrectIds((prev) => new Set(prev).add(genreId));
-      setEvaluatedGenres((prev) => new Map(prev).set(genreId, result));
+    }
+    setEvaluatedGenres((prev) => new Map(prev).set(genreId, result));
 
+    // 2. Wait for layout to settle (move to collected zone or stabilize)
+    setTimeout(() => {
+      // 3. Calculate position and update score
+      // Note: We check if element still exists/is valid
       const chipEl = chipRefsMap.current.get(genreId);
       if (chipEl) {
         const rect = chipEl.getBoundingClientRect();
         setFlyFromPosition({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
       }
 
+      setLastPointsEarned(points);
       if (points !== 0) {
         setTotalScore((prev) => prev + points);
-        setLastPointsEarned(points);
       }
 
-      revealTimeoutRef.current = setTimeout(() => {
-        setHeldIncorrectIds((prev) => {
-          const next = new Set(prev);
-          next.delete(genreId);
-          return next;
-        });
-
-        setTimeout(() => {
-          revealNext(queue, index + 1);
-        }, ANIMATION_TIMING.FLY_ANIMATION_MS);
-      }, ANIMATION_TIMING.INCORRECT_HOLD_MS);
-    } else if (result === 'missed') {
-      // 1. Trigger visual move (change state)
-      // This will cause re-render and move chip to 'Your Selections'
-      setEvaluatedGenres((prev) => new Map(prev).set(genreId, result));
-
-      // 2. Wait for layout move to complete, THEN fly points.
-      // 550ms covers frame updates + some layout transition time
-      setTimeout(() => {
-        const chipEl = chipRefsMap.current.get(genreId);
-        if (chipEl) {
-          const rect = chipEl.getBoundingClientRect();
-          setFlyFromPosition({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
-        }
-
-        if (points !== 0) {
-          setTotalScore((prev) => prev + points);
-          setLastPointsEarned(points);
-        }
-
-        // Wait a bit after point flies before next reveal
+      // 4. Schedule next step
+      if (result === 'incorrect') {
+        revealTimeoutRef.current = setTimeout(() => {
+          setHeldIncorrectIds((prev) => {
+            const next = new Set(prev);
+            next.delete(genreId);
+            return next;
+          });
+          // Short delay after hold before next
+          setTimeout(() => {
+            revealNext(queue, index + 1);
+          }, 100);
+        }, ANIMATION_TIMING.INCORRECT_HOLD_MS);
+      } else if (result === 'missed') {
         revealTimeoutRef.current = setTimeout(() => {
           revealNext(queue, index + 1);
-        }, ANIMATION_TIMING.REVEAL_STEP_MS);
-      }, 550);
-    } else {
-      // Correct Case
-      setEvaluatedGenres((prev) => new Map(prev).set(genreId, result));
-
-      const chipEl = chipRefsMap.current.get(genreId);
-      if (chipEl) {
-        const rect = chipEl.getBoundingClientRect();
-        setFlyFromPosition({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+        }, ANIMATION_TIMING.REVEAL_STEP_MISSED_MS);
+      } else {
+        // Correct
+        revealTimeoutRef.current = setTimeout(() => {
+          revealNext(queue, index + 1);
+        }, ANIMATION_TIMING.REVEAL_STEP_CORRECT_MS);
       }
-
-      if (points !== 0) {
-        setTotalScore((prev) => prev + points);
-        setLastPointsEarned(points);
-      }
-
-      revealTimeoutRef.current = setTimeout(() => {
-        revealNext(queue, index + 1);
-      }, ANIMATION_TIMING.REVEAL_STEP_MS);
-    }
+    }, ANIMATION_TIMING.LAYOUT_DELAY_MS);
   };
 
   // Lock selections and start reveal
