@@ -70,9 +70,15 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
     return (
       <GameDialogue
         messages={[
-          <p key="msg1">To begin, you’ll see movies you’ve rated before. Your task is to guess the score you gave each one.</p>,
+          <p key="msg1">
+            To begin, you’ll see movies you’ve rated before. Your task is to guess the score you
+            gave each one.
+          </p>,
           <p key="msg2">
-            If you score <span className="font-bold text-3xl mx-1" style={getScoreFeedback(75).color ? { color: getScoreFeedback(75).color } : {}}>75/100</span> or higher, we’ll unlock a deeper analysis of your rating behavior.
+            If you score{' '}
+            <span className={`font-bold text-3xl ml-1 ${getScoreFeedback(75).color}`}>75</span>
+            <span className="font-bold text-3xl mr-1">/100</span> or higher, we’ll unlock a deeper
+            analysis of your rating behavior.
           </p>,
         ]}
         buttonText="I understand"

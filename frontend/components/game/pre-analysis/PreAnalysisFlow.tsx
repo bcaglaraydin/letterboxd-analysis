@@ -4,6 +4,7 @@ import { EntryDialogue } from './EntryDialogue';
 import { QuestionView } from './QuestionView';
 import { questions } from './questions';
 import { Button } from '@/components/ui/button';
+import { GameDialogue } from '../shared/GameDialogue';
 
 interface PreAnalysisFlowProps {
   onComplete: () => void;
@@ -92,7 +93,7 @@ export const PreAnalysisFlow: React.FC<PreAnalysisFlowProps> = ({ onComplete, is
     // 1. Backend is ready
     // 2. User answered at least half of the questions
     const hasAnsweredHalf = currentQuestionIndex >= Math.floor(shuffledQuestions.length / 2);
-    
+
     if (step === 'questions' && isBackendReady && hasAnsweredHalf) {
       // Return a new object with the extra option
       return {
@@ -170,46 +171,28 @@ export const PreAnalysisFlow: React.FC<PreAnalysisFlowProps> = ({ onComplete, is
   // Unified Final "Ready to Start" UI
   if (step === 'ready-to-start') {
     return (
-      <div className="flex flex-col items-center justify-center h-full w-full">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="flex flex-col items-center max-w-xl text-center space-y-6 p-6"
-        >
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2, ease: 'easeOut' }}
-            className="space-y-4"
-          >
-            <h2 className="text-2xl md:text-3xl font-serif text-primary leading-tight">
-              Appreciate your answers.
-            </h2>
-            <p className="text-xl md:text-2xl font-serif text-primary/80 leading-snug">
-              While you were dealing with the questions, I went through your films.
-            </p>
-            <p className="text-2xl md:text-4xl font-serif text-primary font-bold pt-2">
-              We&apos;re ready to start.
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.8, ease: 'easeOut' }}
-            className="flex flex-col w-full items-center gap-4 pt-4"
-          >
-            <Button
-              size="lg"
-              onClick={() => onComplete()}
-              className="w-full max-w-xs md:w-auto md:px-16 md:min-w-[240px] py-4 md:py-6 h-auto rounded-xl md:rounded-2xl text-sm md:text-lg font-bold tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform duration-200"
+      <GameDialogue
+        messages={[
+          <p key="msg1">I appreciate your answers.</p>,
+          <p key="msg2">
+            You scored{' '}
+            <span
+              className="font-bold text-3xl ml-1"
+              style={score ? { color: score > 0 ? '#22c55e' : '#ef4444' } : {}}
             >
-              Let&apos;s start
-            </Button>
-          </motion.div>
-        </motion.div>
-      </div>
+              {score > 0 ? '+' : ''}
+              {score}
+            </span>
+            <span className="font-bold text-3xl mr-1">/100</span>.
+          </p>,
+          <p key="msg3">While you were dealing with the questions, I went through your films.</p>,
+          <p key="msg4" className="font-bold text-2xl md:text-4xl pt-2">
+            We&apos;re ready to start.
+          </p>,
+        ]}
+        buttonText="Let's start"
+        onComplete={() => onComplete()}
+      />
     );
   }
 
