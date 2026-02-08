@@ -11,7 +11,7 @@ import { GameRoundIndicator } from '@/components/game/shared/GameRoundIndicator'
 import { ScorePanel } from '@/components/game/shared/ScorePanel';
 import { Button } from '@/components/ui/button';
 
-import { FILMS_PER_GAME } from './constants';
+import { FILMS_PER_GAME, ANIMATION_TIMING } from './constants';
 import { GenreTier, TIER_INFO } from './types';
 import { GenreChipAnimated } from './GenreChipAnimated';
 import { useGenreMatchingGame } from './useGenreMatchingGame';
@@ -201,7 +201,8 @@ export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
               position="static"
               maxPositivePoint={maxPositivePoints}
               maxNegativePoint={maxNegativePoints}
-              flyDuration={1.0}
+              countSpeed={15}
+              flyDuration={ANIMATION_TIMING.FLY_ANIMATION_MS / 1000}
             />
           </div>
         }
