@@ -79,6 +79,14 @@ export function useGameInitialization(options: UseGameInitializationOptions = {}
       setIsLoading(false);
       stopPolling();
     },
+    onRestart: async (username) => {
+      try {
+        console.log(`[GameInit] Session missing for ${username}. Auto-restarting...`);
+        await triggerMetrics(username);
+      } catch (e) {
+        console.error('[GameInit] Auto-restart failed:', e);
+      }
+    },
   });
 
   // Initial Start Trigger (Landing Page)

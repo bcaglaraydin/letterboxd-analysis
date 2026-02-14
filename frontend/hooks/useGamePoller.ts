@@ -7,10 +7,12 @@ interface UseGamePollerOptions {
   backgroundMode?: boolean;
   onGameReady?: (data: Awaited<ReturnType<typeof pollMetricsStatus>>) => void;
   onError?: (err: unknown) => void;
+  onRestart?: (username: string) => Promise<void>;
 }
 
 export function useGamePoller(options: UseGamePollerOptions = {}) {
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isRequestPending = useRef(false);
   const { hydrateStores } = useStoreHydration();
 
   const stopPolling = useCallback(() => {
@@ -26,6 +28,9 @@ export function useGamePoller(options: UseGamePollerOptions = {}) {
       if (pollIntervalRef.current) return;
 
       pollIntervalRef.current = setInterval(async () => {
+        if (isRequestPending.current) return;
+        isRequestPending.current = true;
+
         try {
           const data = await pollMetricsStatus(username);
 
@@ -38,6 +43,7 @@ export function useGamePoller(options: UseGamePollerOptions = {}) {
             if (options.backgroundMode && data.status === 'ready') {
               stopPolling();
               hydrateStores(data);
+              isRequestPending.current = false;
               return;
             }
 
@@ -50,13 +56,22 @@ export function useGamePoller(options: UseGamePollerOptions = {}) {
             // If background mode and still partial, we keep polling (do nothing, just wait next tick)
           }
 
-          if (data.status === 'error') {
+          if (data.status === 'not_found') {
+            if (options.onRestart) {
+              await options.onRestart(username);
+              // Do not throw, just continue polling next tick
+            } else {
+              throw new Error(data.message || 'Analysis not found');
+            }
+          } else if (data.status === 'error') {
             throw new Error(data.message || 'Analysis failed');
           }
         } catch (err) {
           if (options.onError) options.onError(err);
           // Stop polling on error? usually yes
           // stopPolling();
+        } finally {
+          isRequestPending.current = false;
         }
       }, POLL_INTERVAL_MS);
     },
