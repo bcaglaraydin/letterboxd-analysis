@@ -7,7 +7,7 @@ import { GenreMatchingGame } from './genre-matching/GenreMatchingGame';
 import { PostGameScreen } from './PostGameScreen';
 
 import { useGenreOrchestrationStore } from '@/store/genre/genreOrchestrationStore';
-import { useExperienceStore } from '@/store/core/experienceStore';
+import { useUserStore } from '@/store/core/userStore';
 
 interface GenreOrchestrationProps {
   onGameComplete: (totalScore: number) => void;
@@ -16,7 +16,7 @@ interface GenreOrchestrationProps {
 export function GenreOrchestration({ onGameComplete }: GenreOrchestrationProps) {
   const { phase, setPhase, setRankingScore, setMatchingScore, rankingScore, matchingScore } =
     useGenreOrchestrationStore();
-  const { setReady, setProcessing, username } = useExperienceStore();
+  const { setReady, setProcessing, username } = useUserStore();
 
   const handleRankingComplete = (score: number) => {
     setRankingScore(score);
