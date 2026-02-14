@@ -83,7 +83,13 @@ export interface RatingGameData {
   movies: RatingGameMovie[];
 }
 
-export type MetricsStatus = 'accepted' | 'processing' | 'partial_ready' | 'ready' | 'error';
+export type MetricsStatus =
+  | 'accepted'
+  | 'processing'
+  | 'partial_ready'
+  | 'ready'
+  | 'error'
+  | 'not_found';
 
 export interface GenreMatchingRound {
   id: string;
