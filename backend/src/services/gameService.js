@@ -1,6 +1,7 @@
 import { generateGenreGame } from '../games/genreGame.js';
 import { generateRatingGame } from '../games/ratingGame.js';
 import { generateGenreMatchingGame } from '../games/genreMatchingGame.js';
+import { generateThemeGame } from '../games/themeGame.js';
 import {
   calculateRatingDistribution,
   calculateBasicStats,
@@ -47,6 +48,7 @@ export const GameService = {
         poster: meta.posterUrl || f.posterUrl,
         title: meta.title || f.title || f.slug,
         genres: meta.genres || [], // Ensure genres array exists
+        themes: meta.themes || [], // Ensure themes array exists
       };
     });
 
@@ -60,6 +62,9 @@ export const GameService = {
 
     // Generate Genre Matching Game
     const genreMatchingGameData = generateGenreMatchingGame(allFilmsWithMeta);
+
+    // Generate Theme Guessing Game
+    const themeGameData = generateThemeGame(allFilmsWithMeta);
 
     // Calculate User Stats
     const userRatings = userFilms.map((f) => f.userRating).filter((r) => r !== null);
@@ -105,6 +110,7 @@ export const GameService = {
       ratingGame: ratingGameData,
       genreGame: genreGameData,
       genreMatchingGame: genreMatchingGameData,
+      themeGame: themeGameData,
     };
   },
 };

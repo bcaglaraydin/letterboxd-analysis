@@ -4,6 +4,7 @@ import { useGenreRankingStore } from '@/store/genre/rankingStore';
 import { useGenreMatchingStore } from '@/store/genre/matchingStore';
 import { useExperienceStore } from '@/store/core/experienceStore';
 import { pollMetricsStatus } from '@/lib/api';
+import { useThemeStore } from '@/store/theme/themeStore';
 
 export function useStoreHydration() {
   const setExperienceReady = useExperienceStore((state) => state.setReady);
@@ -12,6 +13,7 @@ export function useStoreHydration() {
   const startRatingGame = useRatingGameStore((state) => state.startGame);
   const startGenreGame = useGenreRankingStore((state) => state.startGame);
   const initMatchingGame = useGenreMatchingStore((state) => state.initGame);
+  const initThemeGame = useThemeStore((state) => state.initThemeGame);
 
   const hydrateStores = useCallback(
     (data: Awaited<ReturnType<typeof pollMetricsStatus>>) => {
@@ -20,6 +22,7 @@ export function useStoreHydration() {
         hasRating: !!data.ratingGame,
         hasGenre: !!data.genreGame,
         hasMatching: !!data.genreMatchingGame,
+        hasTheme: !!data.themeGame,
       });
 
       // Update Experience Store Status
@@ -59,6 +62,16 @@ export function useStoreHydration() {
           initMatchingGame(data.genreMatchingGame);
         }
       }
+
+      // 4. Theme Guessing Game
+      if (data.themeGame) {
+        // Check if already initialized?
+        // For now, simpler to just init if we have data, as `rounds` default is empty.
+        const currentRounds = useThemeStore.getState().rounds;
+        if (currentRounds.length === 0) {
+          initThemeGame(data.themeGame.rounds);
+        }
+      }
     },
     [
       setExperienceReady,
@@ -66,6 +79,7 @@ export function useStoreHydration() {
       startRatingGame,
       startGenreGame,
       initMatchingGame,
+      initThemeGame,
     ],
   );
 

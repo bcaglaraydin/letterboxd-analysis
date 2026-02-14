@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useThemeStore } from '@/store/theme/themeStore';
 import { ThemeGuessingRound } from './ThemeGuessingRound';
-import { MOCK_THEME_ROUNDS } from '@/mocks/data';
 import { GameRoundIndicator } from '@/components/game/shared/GameRoundIndicator';
 import { ScorePanel } from '@/components/game/shared/ScorePanel';
 
@@ -13,15 +12,14 @@ interface ThemeExperienceProps {
 }
 
 export function ThemeExperience({ onComplete }: ThemeExperienceProps) {
-  const { currentRoundIndex, nextRound, resetThemeExperience, score, roundScore, phase } =
+  const { currentRoundIndex, nextRound, resetThemeExperience, score, roundScore, phase, rounds } =
     useThemeStore();
-  const rounds = MOCK_THEME_ROUNDS;
   const currentRound = rounds[currentRoundIndex];
   const [flyFromPosition, setFlyFromPosition] = useState<{ x: number; y: number }>();
 
   const handleRoundComplete = () => {
     setFlyFromPosition(undefined); // Reset for next round
-    const result = nextRound(rounds.length);
+    const result = nextRound();
     if (result === 'complete') {
       const finalScore = useThemeStore.getState().score;
       resetThemeExperience();
