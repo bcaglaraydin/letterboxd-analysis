@@ -13,6 +13,8 @@ export type ThemePhase = 'guessing' | 'revealed';
 export const MAX_HINT_LEVEL = 3;
 
 /** Points awarded based on how many hints were needed */
+import { ThemeRound } from '@/components/game/theme/types';
+
 export const HINT_SCORE_MAP: Record<number, number> = {
   0: 20, // Correct on first try (no hints)
   1: 15, // Correct after 1 hint (year)
@@ -21,6 +23,7 @@ export const HINT_SCORE_MAP: Record<number, number> = {
 };
 
 interface ThemeStoreState {
+  rounds: ThemeRound[];
   phase: ThemePhase;
   currentRoundIndex: number;
   userGuess: string;
@@ -30,15 +33,17 @@ interface ThemeStoreState {
   roundScore: number | null; // last round's score delta (null = not yet scored)
 
   // Actions
+  initThemeGame: (rounds: ThemeRound[]) => void;
   setUserGuess: (guess: string) => void;
   submitGuess: (correctTitle: string) => void;
-  nextRound: (totalRounds: number) => 'next' | 'complete';
+  nextRound: () => 'next' | 'complete';
   resetThemeExperience: () => void;
 }
 
 import { isFuzzyMatch } from '@/lib/fuzzyMatch';
 
 export const useThemeStore = create<ThemeStoreState>((set, get) => ({
+  rounds: [],
   phase: 'guessing',
   currentRoundIndex: 0,
   userGuess: '',
@@ -46,6 +51,8 @@ export const useThemeStore = create<ThemeStoreState>((set, get) => ({
   wrongGuessShake: false,
   score: 0,
   roundScore: null,
+
+  initThemeGame: (rounds) => set({ rounds, currentRoundIndex: 0, score: 0, phase: 'guessing' }),
 
   setUserGuess: (guess) => set({ userGuess: guess }),
 
@@ -83,9 +90,9 @@ export const useThemeStore = create<ThemeStoreState>((set, get) => ({
     }
   },
 
-  nextRound: (totalRounds) => {
-    const { currentRoundIndex } = get();
-    if (currentRoundIndex + 1 >= totalRounds) {
+  nextRound: () => {
+    const { currentRoundIndex, rounds } = get();
+    if (currentRoundIndex + 1 >= rounds.length) {
       return 'complete';
     }
     set({
