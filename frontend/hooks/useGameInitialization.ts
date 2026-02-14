@@ -90,8 +90,8 @@ export function useGameInitialization(options: UseGameInitializationOptions = {}
   });
 
   // Initial Start Trigger (Landing Page)
-  const initializeGame = async (username: string) => {
-    if (!username.trim()) return;
+  const initializeGame = async (username: string): Promise<boolean> => {
+    if (!username.trim()) return false;
 
     setIsLoading(true);
     setError(null);
@@ -115,14 +115,16 @@ export function useGameInitialization(options: UseGameInitializationOptions = {}
       if ((data.status === 'ready' || data.status === 'partial_ready') && data.ratingGame?.movies) {
         ratingGameReset(); // Ensure clean state before starting
         handleGameReady(data);
-        return;
+        return true;
       }
 
       // Start Polling
       if (data.status === 'processing' || data.status === 'accepted') {
         setExperienceProcessing(username.trim());
         startPolling(username.trim());
+        return true;
       }
+      return true;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
       if (
@@ -135,6 +137,7 @@ export function useGameInitialization(options: UseGameInitializationOptions = {}
         setError(ERROR_MESSAGES.GENERIC);
       }
       setIsLoading(false);
+      return false;
     }
   };
 
