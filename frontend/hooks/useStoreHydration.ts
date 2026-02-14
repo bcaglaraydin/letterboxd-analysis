@@ -68,9 +68,18 @@ export function useStoreHydration() {
         // Check if already initialized?
         // For now, simpler to just init if we have data, as `rounds` default is empty.
         const currentRounds = useThemeStore.getState().rounds;
+        console.log('[useStoreHydration] Theme Game Data:', {
+          hasData: !!data.themeGame,
+          roundsInData: data.themeGame.rounds?.length,
+          currentStoreRounds: currentRounds.length,
+        });
+
         if (currentRounds.length === 0) {
+          console.log('[useStoreHydration] Initializing Theme Game...');
           initThemeGame(data.themeGame.rounds);
         }
+      } else {
+        console.warn('[useStoreHydration] No Theme Game data in response');
       }
     },
     [
