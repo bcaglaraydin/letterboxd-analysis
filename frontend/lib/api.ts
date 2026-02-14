@@ -109,6 +109,23 @@ export interface GenreMatchingGameData {
   maxScorePerMovie: number;
 }
 
+export interface ThemeGameRound {
+  id: string;
+  themes: string[];
+  userRating: number | null;
+  genres: string[];
+  correctMovie: {
+    title: string;
+    year: number;
+    director: string;
+    posterUrl: string;
+  };
+}
+
+export interface ThemeGameData {
+  rounds: ThemeGameRound[];
+}
+
 export interface MetricsResponse {
   status: MetricsStatus;
   progress?: number;
@@ -116,6 +133,7 @@ export interface MetricsResponse {
   ratingGame?: RatingGameData;
   genreGame?: GenreGameData;
   genreMatchingGame?: GenreMatchingGameData;
+  themeGame?: ThemeGameData;
   userStats?: UserStats;
 }
 

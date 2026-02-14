@@ -2,12 +2,14 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Star, Film, Lock, ArrowRight, Play } from 'lucide-react';
+import { Star, Film, Lock, ArrowRight, Play, Lightbulb } from 'lucide-react';
 import {
   useExperienceStore,
   selectScores,
   selectIsGenreUnlocked,
   selectIsGenreCompleted,
+  selectIsThemeUnlocked,
+  selectIsThemeCompleted,
   selectAllGamesCompleted,
 } from '@/store/core/experienceStore';
 import { GameBackground } from '@/components/game/shared/GameBackground';
@@ -21,9 +23,12 @@ export const GameHub = () => {
   const scores = useExperienceStore(selectScores);
   const isGenreUnlocked = useExperienceStore(selectIsGenreUnlocked);
   const isGenreCompleted = useExperienceStore(selectIsGenreCompleted);
+  const isThemeUnlocked = useExperienceStore(selectIsThemeUnlocked);
+  const isThemeCompleted = useExperienceStore(selectIsThemeCompleted);
   const allGamesCompleted = useExperienceStore(selectAllGamesCompleted);
   const startGenreGame = useExperienceStore((state) => state.startGenreGame);
   const startRatingGame = useExperienceStore((state) => state.startRatingGame);
+  const startThemeExperience = useExperienceStore((state) => state.startThemeExperience);
 
   const container = {
     hidden: { opacity: 0 },
@@ -51,7 +56,7 @@ export const GameHub = () => {
             variants={container}
             initial="hidden"
             animate="show"
-            className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full"
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full"
           >
             {/* Rating Game Card */}
             <motion.div variants={item} className="w-full">
@@ -144,6 +149,62 @@ export const GameHub = () => {
                       </span>
                     </div>
                   ) : isGenreUnlocked ? (
+                    <div className="w-full h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center text-base font-bold shadow-lg shadow-accent/20 transition-all group">
+                      Continue
+                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                  ) : (
+                    <div className="h-12 w-full rounded-xl bg-muted/20" />
+                  )}
+                </div>
+              </button>
+            </motion.div>
+
+            {/* Theme Guessing Card */}
+            <motion.div variants={item} className="w-full h-full">
+              <button
+                className={`w-full text-left h-full bg-card border rounded-3xl p-6 md:p-8 relative overflow-hidden transition-all duration-300 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${
+                  isThemeUnlocked
+                    ? 'border-accent/50 bg-gradient-to-br from-accent/5 to-transparent hover:shadow-lg hover:shadow-accent/5 hover:scale-[1.02] cursor-pointer'
+                    : 'border-border/30 opacity-60 cursor-not-allowed'
+                }`}
+                onClick={isThemeUnlocked ? startThemeExperience : undefined}
+                disabled={!isThemeUnlocked}
+              >
+                {!isThemeUnlocked && (
+                  <div className="absolute inset-0 bg-background/50 backdrop-blur-[2px] z-10 flex items-center justify-center">
+                    <Lock className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                )}
+
+                <div className="space-y-4 h-full flex flex-col">
+                  <div className="flex justify-between items-start">
+                    <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center text-accent">
+                      {isThemeUnlocked && !isThemeCompleted ? (
+                        <Play className="w-6 h-6 fill-current" />
+                      ) : isThemeCompleted ? (
+                        <Lightbulb className="w-6 h-6" />
+                      ) : (
+                        <Lock className="w-6 h-6" />
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold">
+                      {isThemeCompleted
+                        ? 'Theme Guessing'
+                        : isThemeUnlocked
+                          ? 'Next Chapter'
+                          : 'Locked'}
+                    </h3>
+                  </div>
+
+                  {isThemeCompleted ? (
+                    <div className="flex items-end gap-1">
+                      <span className="text-sm text-muted-foreground">Completed</span>
+                    </div>
+                  ) : isThemeUnlocked ? (
                     <div className="w-full h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center text-base font-bold shadow-lg shadow-accent/20 transition-all group">
                       Continue
                       <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-0.5 transition-transform" />

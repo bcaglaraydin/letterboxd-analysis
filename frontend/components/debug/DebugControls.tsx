@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useExperienceStore } from '@/store/core/experienceStore';
 import { useGenreOrchestrationStore, GenrePhase } from '@/store/genre/genreOrchestrationStore';
+import { useThemeStore } from '@/store/theme/themeStore';
 import { GAME_PHASES } from '@/lib/gameTypes';
 import { Bug, ChevronDown } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
@@ -56,6 +57,7 @@ export const DebugControls = () => {
                 <button
                   onClick={() => {
                     useGenreOrchestrationStore.getState().resetGenreGame();
+                    useThemeStore.getState().resetThemeExperience();
                     resetExperience();
                     router.push('/');
                   }}
@@ -103,6 +105,30 @@ export const DebugControls = () => {
                     className="px-2 py-1 bg-blue-900/50 hover:bg-blue-900/80 rounded text-left"
                   >
                     Skip Genre
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-1">
+                  <button
+                    onClick={() =>
+                      handleAction(() => {
+                        useThemeStore.getState().resetThemeExperience();
+                        useExperienceStore.getState().startThemeExperience();
+                      })
+                    }
+                    className="px-2 py-1 bg-gray-800 hover:bg-gray-700 rounded text-left"
+                  >
+                    Start Theme
+                  </button>
+                  <button
+                    onClick={() =>
+                      handleAction(() => {
+                        useExperienceStore.getState().completeThemeExperience(0);
+                      })
+                    }
+                    className="px-2 py-1 bg-blue-900/50 hover:bg-blue-900/80 rounded text-left"
+                  >
+                    Skip Theme
                   </button>
                 </div>
               </div>

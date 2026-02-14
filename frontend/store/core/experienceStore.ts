@@ -11,6 +11,7 @@ interface ExperienceState {
   scores: {
     rating: number;
     genre: number;
+    theme: number;
   };
   unlockedGames: string[];
   completedGames: string[];
@@ -23,6 +24,8 @@ interface ExperienceState {
   startGenreGame: () => void;
   startRatingGame: () => void;
   completeGenreGame: (score: number) => void;
+  startThemeExperience: () => void;
+  completeThemeExperience: (score: number) => void;
   resetExperience: () => void;
   setProcessing: (username: string) => void;
   setPartialReady: () => void;
@@ -36,6 +39,7 @@ export const useExperienceStore = create<ExperienceState>((set, get) => ({
   scores: {
     rating: 0,
     genre: 0,
+    theme: 0,
   },
   unlockedGames: [GAME_PHASES.RATING],
   completedGames: [],
@@ -65,14 +69,27 @@ export const useExperienceStore = create<ExperienceState>((set, get) => ({
   completeGenreGame: (score) =>
     set((state) => ({
       scores: { ...state.scores, genre: score },
+      unlockedGames: [...new Set([...state.unlockedGames, GAME_PHASES.THEME])],
       completedGames: [...new Set([...state.completedGames, GAME_PHASES.GENRE])],
+      currentPhase: GAME_PHASES.HUB,
+    })),
+
+  startThemeExperience: () =>
+    set({
+      currentPhase: GAME_PHASES.THEME,
+    }),
+
+  completeThemeExperience: (score) =>
+    set((state) => ({
+      scores: { ...state.scores, theme: score },
+      completedGames: [...new Set([...state.completedGames, GAME_PHASES.THEME])],
       currentPhase: GAME_PHASES.HUB,
     })),
 
   resetExperience: () =>
     set({
       currentPhase: GAME_PHASES.RATING,
-      scores: { rating: 0, genre: 0 },
+      scores: { rating: 0, genre: 0, theme: 0 },
       unlockedGames: [GAME_PHASES.RATING],
       completedGames: [],
       backgroundStatus: 'idle',
@@ -150,6 +167,11 @@ export const selectIsGenreCompleted = (state: ExperienceState) =>
   state.completedGames.includes(GAME_PHASES.GENRE);
 export const selectIsGenreUnlocked = (state: ExperienceState) =>
   state.unlockedGames.includes(GAME_PHASES.GENRE);
+export const selectIsThemeCompleted = (state: ExperienceState) =>
+  state.completedGames.includes(GAME_PHASES.THEME);
+export const selectIsThemeUnlocked = (state: ExperienceState) =>
+  state.unlockedGames.includes(GAME_PHASES.THEME);
 export const selectAllGamesCompleted = (state: ExperienceState) =>
   state.completedGames.includes(GAME_PHASES.RATING) &&
-  state.completedGames.includes(GAME_PHASES.GENRE);
+  state.completedGames.includes(GAME_PHASES.GENRE) &&
+  state.completedGames.includes(GAME_PHASES.THEME);
