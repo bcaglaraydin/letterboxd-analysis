@@ -2,13 +2,13 @@ import { useCallback } from 'react';
 import { useRatingGameStore } from '@/store/rating/ratingStore';
 import { useGenreRankingStore } from '@/store/genre/rankingStore';
 import { useGenreMatchingStore } from '@/store/genre/matchingStore';
-import { useExperienceStore } from '@/store/core/experienceStore';
+import { useUserStore } from '@/store/core/userStore';
 import { pollMetricsStatus } from '@/lib/api';
 import { useThemeStore } from '@/store/theme/themeStore';
 
 export function useStoreHydration() {
-  const setExperienceReady = useExperienceStore((state) => state.setReady);
-  const setExperiencePartialReady = useExperienceStore((state) => state.setPartialReady);
+  const setExperienceReady = useUserStore((state) => state.setReady);
+  const setExperiencePartialReady = useUserStore((state) => state.setPartialReady);
 
   const startRatingGame = useRatingGameStore((state) => state.startGame);
   const startGenreGame = useGenreRankingStore((state) => state.startGame);

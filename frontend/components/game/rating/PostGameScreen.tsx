@@ -6,7 +6,7 @@ import { useRatingGameStore } from '@/store/rating/ratingStore';
 import { cn } from '@/lib/utils';
 import { IntroStep, AveragesStep, HistogramStep, GuiltyPleasuresStep } from './steps';
 
-import { useExperienceStore } from '@/store/core/experienceStore';
+import { useUserStore } from '@/store/core/userStore';
 import { useGenreRankingStore } from '@/store/genre/rankingStore';
 import { Loader2 } from 'lucide-react';
 
@@ -16,7 +16,7 @@ interface PostGameScreenProps {
 
 export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) => {
   const { userStats, setUserStats } = useRatingGameStore(); // Added setUserStats
-  const { backgroundStatus, fetchFullStats } = useExperienceStore();
+  const { backgroundStatus, fetchFullStats } = useUserStore();
   const startGenreGame = useGenreRankingStore((s) => s.startGame);
 
   // Step navigation and guilty pleasures state

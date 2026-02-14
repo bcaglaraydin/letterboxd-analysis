@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { triggerMetrics, pollMetricsStatus } from '@/lib/api';
-import { useExperienceStore } from '@/store/core/experienceStore';
+import { useUserStore } from '@/store/core/userStore';
 import { useRatingGameStore } from '@/store/rating/ratingStore';
 import { MIN_LOADING_TIME_MS } from '@/lib/gameTypes';
 import { useStoreHydration } from './useStoreHydration';
@@ -30,13 +30,13 @@ export function useGameInitialization(options: UseGameInitializationOptions = {}
   const router = useRouter();
 
   // Store actions
-  const setExperienceProcessing = useExperienceStore((state) => state.setProcessing);
+  const setExperienceProcessing = useUserStore((state) => state.setProcessing);
   const ratingGameReset = useRatingGameStore((state) => state.resetGame);
 
   // Store state for background polling checks
-  const backgroundStatus = useExperienceStore((state) => state.backgroundStatus);
+  const backgroundStatus = useUserStore((state) => state.backgroundStatus);
   const ratingMoviesLength = useRatingGameStore((state) => state.movies.length);
-  const experienceUsername = useExperienceStore((state) => state.username);
+  const experienceUsername = useUserStore((state) => state.username);
 
   const { hydrateStores } = useStoreHydration();
 
