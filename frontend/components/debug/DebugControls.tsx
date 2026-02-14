@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useExperienceStore } from '@/store/core/experienceStore';
+import { useUserStore } from '@/store/core/userStore';
 import { useGenreOrchestrationStore, GenrePhase } from '@/store/genre/genreOrchestrationStore';
 import { useThemeStore } from '@/store/theme/themeStore';
 import { GAME_PHASES } from '@/lib/gameTypes';
@@ -24,9 +25,9 @@ export const DebugControls = () => {
   };
 
   const ensureDebugState = () => {
-    const state = useExperienceStore.getState();
+    const state = useUserStore.getState();
     if (!state.username) {
-      useExperienceStore.setState({
+      useUserStore.setState({
         username: 'debug-user',
         backgroundStatus: 'ready',
       });
@@ -59,6 +60,7 @@ export const DebugControls = () => {
                     useGenreOrchestrationStore.getState().resetGenreGame();
                     useThemeStore.getState().resetThemeExperience();
                     resetExperience();
+                    useUserStore.getState().resetUser();
                     router.push('/');
                   }}
                   className="px-2 py-1 bg-red-900/50 hover:bg-red-900/80 rounded text-left"
