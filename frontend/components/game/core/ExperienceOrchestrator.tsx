@@ -6,11 +6,13 @@ import { useExperienceStore } from '@/store/core/experienceStore';
 import { RatingGame } from '../rating/RatingGame';
 import { GameHub } from './GameHub';
 import { GenreOrchestration } from '@/components/game/genre/GenreOrchestration';
+import { ThemeExperience } from '@/components/game/theme/ThemeExperience';
 import { useGameInitialization } from '@/hooks/useGameInitialization';
 import { GAME_PHASES } from '@/lib/gameTypes';
 
 export const ExperienceOrchestrator = () => {
-  const { currentPhase, completeRatingGame, completeGenreGame } = useExperienceStore();
+  const { currentPhase, completeRatingGame, completeGenreGame, completeThemeExperience } =
+    useExperienceStore();
 
   const completeRatingGameHandler = (score: number) => {
     completeRatingGame(score);
@@ -18,6 +20,10 @@ export const ExperienceOrchestrator = () => {
 
   const completeGenreGameHandler = (score: number) => {
     completeGenreGame(score);
+  };
+
+  const completeThemeHandler = (score: number) => {
+    completeThemeExperience(score);
   };
 
   // Background polling for additional game data
@@ -59,6 +65,18 @@ export const ExperienceOrchestrator = () => {
             className="w-full h-full"
           >
             <GenreOrchestration onGameComplete={completeGenreGameHandler} />
+          </motion.div>
+        )}
+
+        {currentPhase === GAME_PHASES.THEME && (
+          <motion.div
+            key="theme-guessing"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="w-full h-full"
+          >
+            <ThemeExperience onComplete={completeThemeHandler} />
           </motion.div>
         )}
       </AnimatePresence>

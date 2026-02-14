@@ -13,6 +13,13 @@ export const GAME_TEXT = {
       BUTTON_REVEAL: 'Reveal Rating',
     },
   },
+  THEME_EXPERIENCE: {
+    PROMPT: 'These themes describe a movie from your library.',
+    INPUT_PLACEHOLDER: 'Type the movie title…',
+    SUBMIT: 'Submit',
+    REVEAL_LABEL: 'The movie was',
+    CONTINUE: 'Continue',
+  },
 };
 
 export const ERROR_MESSAGES = {

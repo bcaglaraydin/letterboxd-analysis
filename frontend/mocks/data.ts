@@ -1,5 +1,119 @@
-import { MetricsResponse, GenreStat } from '../lib/api';
+import { MetricsResponse, GenreStat, ThemeGameRound } from '../lib/api';
 import { Genre, Film } from '../components/game/genre/genre-matching/types';
+
+// ============================================================================
+// THEME GUESSING GAME MOCK DATA
+// ============================================================================
+
+export const MOCK_THEME_ROUNDS: ThemeGameRound[] = [
+  {
+    id: 'theme-1',
+    themes: [
+      'Intense violence and sexual transgression',
+      'Humanity and the world around us',
+      'Twisted dark psychological thriller',
+      'Heartbreaking and moving family drama',
+      'Heartfelt and sentimental family stories',
+      'Enduring stories of family and marital drama',
+      'Intense political and terrorist thrillers',
+    ],
+    userRating: 4.5,
+    genres: ['Thriller', 'Comedy', 'Drama'],
+    correctMovie: {
+      title: 'Parasite',
+      year: 2019,
+      director: 'Bong Joon Ho',
+      posterUrl:
+        'https://a.ltrbxd.com/resized/film-poster/4/2/6/4/0/6/426406-parasite-0-230-0-345-crop.jpg?v=8f5653f710',
+    },
+  },
+  {
+    id: 'theme-2',
+    themes: [
+      'Moving relationship stories',
+      'Humanity and the world around us',
+      'Surreal and thought-provoking visions of life and death',
+      'Powerful stories of heartbreak and suffering',
+      'Emotional and captivating fantasy storytelling',
+      'Tragic sadness and captivating beauty',
+      'Captivating relationships and charming romance',
+    ],
+    userRating: null,
+    genres: ['Drama'],
+    correctMovie: {
+      title: 'Drive My Car',
+      year: 2021,
+      director: 'Ryusuke Hamaguchi',
+      posterUrl:
+        'https://a.ltrbxd.com/resized/film-poster/6/7/9/2/9/1/679291-drive-my-car-0-230-0-345-crop.jpg?v=9e1f7c9f35',
+    },
+  },
+  {
+    id: 'theme-3',
+    themes: [
+      'Thrillers and murder mysteries',
+      'Crime, drugs and gangsters',
+      'Gripping, intense violent crime',
+      'Suspenseful crime thrillers',
+      'Racism and the powerful fight for justice',
+      'Intense political and terrorist thrillers',
+      'Violent crime and drugs',
+    ],
+    userRating: 4,
+    genres: ['Crime', 'History', 'Drama'],
+    correctMovie: {
+      title: 'Killers of the Flower Moon',
+      year: 2023,
+      director: 'Martin Scorsese',
+      posterUrl:
+        'https://a.ltrbxd.com/resized/film-poster/3/9/8/0/0/9/398009-killers-of-the-flower-moon-0-230-0-345-crop.jpg?v=49b577149d',
+    },
+  },
+  {
+    id: 'theme-4',
+    themes: [
+      'Crude humor and satire',
+      'Intense violence and sexual transgression',
+      'Humanity and the world around us',
+      'Epic history and literature',
+      'Lavish dramas and sumptuous royalty',
+      'Challenging or sexual themes & twists',
+      'Funny jokes and crude humor',
+      'Captivating vision and Shakespearean drama',
+      'Dreamlike, quirky, and surreal storytelling',
+    ],
+    userRating: 4,
+    genres: ['Drama', 'Comedy', 'History'],
+    correctMovie: {
+      title: 'The Favourite',
+      year: 2018,
+      director: 'Yorgos Lanthimos',
+      posterUrl:
+        'https://a.ltrbxd.com/resized/film-poster/3/1/0/7/0/5/310705-the-favourite-0-230-0-345-crop.jpg?v=c5488e37ef',
+    },
+  },
+  {
+    id: 'theme-5',
+    themes: [
+      'Humanity and the world around us',
+      'Intense violence and sexual transgression',
+      'Challenging or sexual themes & twists',
+      'Surreal and thought-provoking visions of life and death',
+      'Dreamlike, quirky, and surreal storytelling',
+      'Erotic relationships and desire',
+      'Emotional and captivating fantasy storytelling',
+    ],
+    userRating: 4.5,
+    genres: ['Romance', 'Science Fiction', 'Comedy'],
+    correctMovie: {
+      title: 'Poor Things',
+      year: 2023,
+      director: 'Yorgos Lanthimos',
+      posterUrl:
+        'https://a.ltrbxd.com/resized/film-poster/7/1/0/3/5/2/710352-poor-things-0-230-0-345-crop.jpg?v=a0f2ee9a0e',
+    },
+  },
+];
 
 // ============================================================================
 // GENRE MATCHING GAME MOCK DATA
@@ -684,6 +798,9 @@ export const MOCK_METRICS_RESPONSE: MetricsResponse = {
       PENALTY_FACTOR: 0.5,
     },
     maxScorePerMovie: 20,
+  },
+  themeGame: {
+    rounds: MOCK_THEME_ROUNDS,
   },
   userStats: {
     totalMovies: 1250,

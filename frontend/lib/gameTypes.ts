@@ -6,6 +6,7 @@ export const GAME_PHASES = {
   RATING: 'rating-game',
   HUB: 'hub',
   GENRE: 'genre-game',
+  THEME: 'theme-guessing',
 } as const;
 
 export type GamePhase = (typeof GAME_PHASES)[keyof typeof GAME_PHASES];
