@@ -21,9 +21,10 @@ export default function LandingPage() {
     if (!username.trim()) return;
 
     // Start the game initialization (backend analysis)
-    // We don't await this to block IO, but we do want to trigger the UI change
-    initializeGame(username);
-    setShowPreAnalysis(true);
+    const success = await initializeGame(username);
+    if (success) {
+      setShowPreAnalysis(true);
+    }
   };
 
   const handlePreAnalysisComplete = () => {

@@ -1,5 +1,6 @@
 import { sendMessage } from '../services/sqsQueueService.js';
 import { putUserJob, getUserJob } from '../services/userJobService.js';
+import { fetchWithRetry } from '../utils/http.js';
 
 export const handler = async (event) => {
   console.log('StartAnalysis event:', JSON.stringify(event));
@@ -19,6 +20,24 @@ export const handler = async (event) => {
     }
 
     console.log(`Starting analysis for user: ${username}`);
+
+    // 0. Quick Existence Check
+    try {
+      await fetchWithRetry(`https://letterboxd.com/${username}/`, {}, 1); // 1 attempt (0 retries) for speed
+    } catch (err) {
+      if (err.response?.status === 404) {
+        console.warn(`[StartAnalysis] User not found: ${username}`);
+        return {
+          statusCode: 404,
+          body: JSON.stringify({ error: `User not found: ${username}` }),
+        };
+      }
+      // Ignore other errors (e.g. 500, timeout) and let the scraper retry later?
+      // Or fail fast? Let's log and proceed if it's not a clear 404.
+      console.warn(
+        `[StartAnalysis] Existence check failed (non-404) for ${username}: ${err.message}`
+      );
+    }
 
     // 1. Check if fresh job exists
     const cachedJob = await getUserJob(username);
