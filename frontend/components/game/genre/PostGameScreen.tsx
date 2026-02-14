@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useExperienceStore } from '@/store/core/experienceStore';
+import { useUserStore } from '@/store/core/userStore';
 import { useGenreOrchestrationStore } from '@/store/genre/genreOrchestrationStore';
 import { Loader2, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -15,12 +15,7 @@ interface PostGameScreenProps {
 }
 
 export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) => {
-  const {
-    fetchFullStats,
-    backgroundStatus,
-    username,
-    userStats: storedUserStats,
-  } = useExperienceStore();
+  const { fetchFullStats, backgroundStatus, username, userStats: storedUserStats } = useUserStore();
   const { postGameStep, setPostGameStep } = useGenreOrchestrationStore();
 
   // Use stored stats if available, otherwise default to null (will trigger fetch)
