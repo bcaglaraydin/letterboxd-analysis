@@ -17,6 +17,12 @@ export function ThemeExperience({ onComplete }: ThemeExperienceProps) {
   const currentRound = rounds[currentRoundIndex];
   const [flyFromPosition, setFlyFromPosition] = useState<{ x: number; y: number }>();
 
+  console.log('[ThemeExperience] Render', {
+    roundsLength: rounds.length,
+    currentRoundIndex,
+    currentRound,
+  });
+
   const handleRoundComplete = () => {
     setFlyFromPosition(undefined); // Reset for next round
     const result = nextRound();
