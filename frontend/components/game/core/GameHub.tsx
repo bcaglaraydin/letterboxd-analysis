@@ -50,55 +50,73 @@ export const GameHub = () => {
             animate="show"
             className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full"
           >
-            {/* Rating Game Card */}
-            <GameHubCard
-              title="Rating Intuition"
-              status={ratingGameStatus}
-              score={scores.rating}
-              maxScore={RATING_GAME_CONFIG.MAX_SCORE}
-              icon={<Star className="w-6 h-6 fill-current" />}
-              onClick={startRatingGame}
-              actionLabel="Start Game"
-              onHoverBorderColor="focus-visible:ring-primary"
-            />
+            {/* Rating Game Card - Always visible (or check unlocked status if needed, but usually entry point) */}
+            {ratingGameStatus !== 'LOCKED' && (
+              <GameHubCard
+                title="Rating Intuition"
+                status={ratingGameStatus}
+                score={scores.rating}
+                maxScore={RATING_GAME_CONFIG.MAX_SCORE}
+                icon={<Star className="w-6 h-6 fill-current" />}
+                onClick={startRatingGame}
+                actionLabel="Continue"
+                onHoverBorderColor="focus-visible:ring-primary"
+              />
+            )}
 
             {/* Genre Ranking Game Card */}
-            <GameHubCard
-              title="Genre Ranking"
-              status={genreGameStatus}
-              score={scores.genre}
-              maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
-              icon={
-                genreGameStatus === 'UNLOCKED' ? (
-                  <Play className="w-6 h-6 fill-current" />
-                ) : (
-                  <Film className="w-6 h-6" />
-                )
-              }
-              onClick={startGenreGame}
-              actionLabel="Next Chapter"
-              onHoverBorderColor="focus-visible:ring-accent"
-              gradientColor="from-accent/5"
-            />
+            {genreGameStatus === 'UNLOCKED' ? (
+              <div className="w-full h-full flex items-center justify-center">
+                <button
+                  onClick={startGenreGame}
+                  className="w-full h-full min-h-[200px] rounded-3xl border border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 transition-all duration-300 flex flex-col items-center justify-center gap-4 group"
+                >
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
+                    <Play className="w-8 h-8 fill-current ml-1" />
+                  </div>
+                  <span className="text-xl font-bold text-primary">Continue</span>
+                </button>
+              </div>
+            ) : genreGameStatus === 'COMPLETED' ? (
+              <GameHubCard
+                title="Genre Ranking"
+                status={genreGameStatus}
+                score={scores.genre}
+                maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
+                icon={<Film className="w-6 h-6" />}
+                onClick={startGenreGame}
+                actionLabel="Continue"
+                onHoverBorderColor="focus-visible:ring-accent"
+                gradientColor="from-accent/5"
+              />
+            ) : null}
 
             {/* Theme Guessing Card */}
-            <GameHubCard
-              title="Theme Guessing"
-              status={themeGameStatus}
-              score={scores.theme}
-              maxScore={100} // Assuming 100 for now, logic might vary
-              icon={
-                themeGameStatus === 'UNLOCKED' ? (
-                  <Play className="w-6 h-6 fill-current" />
-                ) : (
-                  <Lightbulb className="w-6 h-6" />
-                )
-              }
-              onClick={startThemeExperience}
-              actionLabel="Next Chapter"
-              onHoverBorderColor="focus-visible:ring-accent"
-              gradientColor="from-accent/5"
-            />
+            {themeGameStatus === 'UNLOCKED' ? (
+              <div className="w-full h-full flex items-center justify-center">
+                <button
+                  onClick={startThemeExperience}
+                  className="w-full h-full min-h-[200px] rounded-3xl border border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 transition-all duration-300 flex flex-col items-center justify-center gap-4 group"
+                >
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
+                    <Play className="w-8 h-8 fill-current ml-1" />
+                  </div>
+                  <span className="text-xl font-bold text-primary">Continue</span>
+                </button>
+              </div>
+            ) : themeGameStatus === 'COMPLETED' ? (
+              <GameHubCard
+                title="Theme Guessing"
+                status={themeGameStatus}
+                score={scores.theme}
+                maxScore={100}
+                icon={<Lightbulb className="w-6 h-6" />}
+                onClick={startThemeExperience}
+                actionLabel="Continue"
+                onHoverBorderColor="focus-visible:ring-accent"
+                gradientColor="from-accent/5"
+              />
+            ) : null}
           </motion.div>
         }
         bottom={null}
