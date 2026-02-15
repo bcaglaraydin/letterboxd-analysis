@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Lock, Check } from 'lucide-react';
+import { ArrowRight, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getScoreColor } from '@/lib/scoreUtils';
 import type { GameStatus } from '@/store/core/experienceStore';
@@ -71,24 +71,14 @@ export const GameHubCard: React.FC<GameHubCardProps> = ({
             <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center text-accent">
               {isLocked ? <Lock className="w-6 h-6" /> : icon}
             </div>
-            {isCompleted && (
-              <div className="bg-green-500/10 text-green-500 rounded-full p-1">
-                <Check className="w-4 h-4" />
-              </div>
-            )}
+            {/* Green check icon removed as requested */}
           </div>
 
           <div className="flex-1">
             <h3 className="text-xl font-bold">
               {isCompleted ? title : isUnlocked ? actionLabel : 'Locked'}
             </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              {isCompleted
-                ? 'Analysis Complete'
-                : isUnlocked
-                  ? `Ready to play ${title}`
-                  : 'Complete previous games to unlock'}
-            </p>
+            {/* Status description removed as requested */}
           </div>
 
           {isCompleted ? (
@@ -103,7 +93,7 @@ export const GameHubCard: React.FC<GameHubCardProps> = ({
             </div>
           ) : isUnlocked ? (
             <div className="w-full h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center text-base font-bold shadow-lg shadow-accent/20 transition-all group">
-              Start Game
+              {actionLabel}
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-0.5 transition-transform" />
             </div>
           ) : (

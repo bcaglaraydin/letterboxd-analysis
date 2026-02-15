@@ -36,6 +36,7 @@ export const QuestionView: React.FC<QuestionViewProps> = ({ question, currentSco
           flyFromPosition={flyFrom}
           size="md"
           position="static"
+          flyDuration={0.4}
         />
       </div>
 

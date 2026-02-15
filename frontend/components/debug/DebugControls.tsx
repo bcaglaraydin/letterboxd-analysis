@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useExperienceStore } from '@/store/core/experienceStore';
+import { useRatingGameStore } from '@/store/rating/ratingStore';
 import { useUserStore } from '@/store/core/userStore';
 import { useGenreOrchestrationStore, GenrePhase } from '@/store/genre/genreOrchestrationStore';
 import { useThemeStore } from '@/store/theme/themeStore';
@@ -67,12 +68,63 @@ export const DebugControls = () => {
                 >
                   Reset Experience
                 </button>
-                <div className="grid grid-cols-2 gap-1">
+                <div className="grid grid-cols-1 gap-1">
                   <button
-                    onClick={() => handleAction(startRatingGame)}
-                    className="px-2 py-1 bg-gray-800 hover:bg-gray-700 rounded text-left"
+                    onClick={() =>
+                      handleAction(() => {
+                        const ratingStore = useRatingGameStore.getState();
+                        if (ratingStore.movies.length === 0) {
+                          // Seed with mock data if empty
+                          ratingStore.setMovies([
+                            {
+                              movieId: 'mock-1',
+                              title: 'The Godfather',
+                              director: 'Francis Ford Coppola',
+                              poster:
+                                'https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsRolD1fZdja1.jpg',
+                              userRating: 10,
+                              communityRating: 9.2,
+                              releaseYear: '1972',
+                              runtimeMinutes: 175,
+                            },
+                            {
+                              movieId: 'mock-2',
+                              title: 'Spirited Away',
+                              director: 'Hayao Miyazaki',
+                              poster:
+                                'https://image.tmdb.org/t/p/w500/39wmItIWsg5sZMyRUKGxwbuFf76.jpg',
+                              userRating: 9,
+                              communityRating: 8.5,
+                              releaseYear: '2001',
+                              runtimeMinutes: 125,
+                            },
+                            {
+                              movieId: 'mock-3',
+                              title: 'Parasite',
+                              director: 'Bong Joon-ho',
+                              poster:
+                                'https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg',
+                              userRating: 8,
+                              communityRating: 8.5,
+                              releaseYear: '2019',
+                              runtimeMinutes: 132,
+                            },
+                          ]);
+                        }
+                        // Reset game state
+                        ratingStore.resetGame();
+
+                        // Force Unmount/Remount cycle to reset local state (showIntro)
+                        // This prevents the game from staying on the "Game Board" view if we are already in RATING phase
+                        useExperienceStore.setState({ currentPhase: null });
+                        setTimeout(() => {
+                          startRatingGame();
+                        }, 10);
+                      })
+                    }
+                    className="px-2 py-1 bg-green-900/50 hover:bg-green-900/80 rounded text-left text-xs"
                   >
-                    Start Rating
+                    Skip to Rating Game (Mock Data)
                   </button>
                   <button
                     onClick={() =>
@@ -82,7 +134,7 @@ export const DebugControls = () => {
                     }
                     className="px-2 py-1 bg-blue-900/50 hover:bg-blue-900/80 rounded text-left"
                   >
-                    Skip Rating
+                    Complete Rating (Skip)
                   </button>
                 </div>
 

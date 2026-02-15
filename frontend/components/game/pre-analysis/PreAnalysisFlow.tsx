@@ -81,7 +81,7 @@ export const PreAnalysisFlow: React.FC<PreAnalysisFlowProps> = ({ onComplete, is
           setStep('waiting');
         }
       }
-    }, 1500); // 1.5s delay to see score flying and landing
+    }, 900); // 0.9s delay to see score flying and landing
   };
 
   // Prepare current question with potentially added "Exit" option

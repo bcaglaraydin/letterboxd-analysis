@@ -116,9 +116,9 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
           <>
             <motion.p
               variants={itemVariants}
-              className="text-xl md:text-2xl font-serif text-primary mb-8 text-center italic"
+              className="text-xl md:text-2xl font-serif text-primary mb-8 text-center"
             >
-              &quot;Fair enough.&quot;
+              Fair enough.
             </motion.p>
             <motion.div variants={itemVariants} className="w-full max-w-xs">
               <Button size="lg" onClick={onStart} className="w-full text-xl py-6">

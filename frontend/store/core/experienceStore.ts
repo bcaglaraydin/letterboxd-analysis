@@ -8,7 +8,7 @@ export type { UserStats, Genre, GenreGameData };
 export type GameStatus = 'LOCKED' | 'UNLOCKED' | 'COMPLETED';
 
 interface ExperienceState {
-  currentPhase: GamePhase;
+  currentPhase: GamePhase | null;
   scores: {
     rating: number;
     genre: number;
