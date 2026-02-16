@@ -35,6 +35,15 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
     }),
   };
 
+  const fastSequentialSlide = {
+    hidden: { opacity: 0, y: 20 },
+    visible: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.2, duration: 0.5 },
+    }),
+  };
+
   const renderContent = () => {
     switch (dialogueKey) {
       case 'start':
@@ -43,19 +52,27 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
             <div className="text-xl md:text-3xl font-serif text-primary mb-8 text-center space-y-4">
               <p>
                 <motion.span variants={sequentialFade} custom={0} className="mr-2">
-                  Before we start...
+                  You’ve successfully entered a valid username.
                 </motion.span>
                 <motion.span variants={sequentialFade} custom={1} className="font-bold">
+                  Good!
+                </motion.span>
+              </p>
+              <p>
+                <motion.span variants={sequentialFade} custom={2} className="mr-2">
+                  Before we start...
+                </motion.span>
+                <motion.span variants={sequentialFade} custom={3} className="font-bold">
                   I need to ask you a few questions.
                 </motion.span>
               </p>
-              <motion.p variants={sequentialFade} custom={2}>
+              <motion.p variants={sequentialFade} custom={4}>
                 Please answer them <span className="font-bold">calmly and honestly</span>. Your
                 responses will not be stored or shared.
               </motion.p>
             </div>
             <div className="flex flex-col gap-4 w-full max-w-sm">
-              <motion.div variants={sequentialSlide} custom={3}>
+              <motion.div variants={sequentialSlide} custom={5}>
                 <Button
                   variant="outline"
                   onClick={() => setDialogueKey('what')}
@@ -64,7 +81,7 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
                   What are we doing exactly?
                 </Button>
               </motion.div>
-              <motion.div variants={sequentialSlide} custom={3.2}>
+              <motion.div variants={sequentialSlide} custom={5.2}>
                 <Button
                   variant="outline"
                   onClick={() => setDialogueKey('mockery')}
@@ -80,20 +97,30 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
       case 'what':
         return (
           <>
-            <motion.div
-              variants={sequentialSlide}
-              custom={0}
-              className="space-y-4 text-center mb-8 max-w-md"
-            >
-              <p className="text-lg md:text-xl font-serif text-primary">
+            <div className="space-y-4 text-center mb-8 max-w-md">
+              <motion.p
+                variants={sequentialFade}
+                custom={0}
+                className="text-xl md:text-3xl font-serif text-primary"
+              >
                 We’re going to look into your film taste in detail.
-              </p>
-              <p className="text-lg md:text-xl font-serif text-primary">It will be fun.</p>
-              <p className="text-lg md:text-xl font-serif text-primary font-bold">
+              </motion.p>
+              <motion.p
+                variants={sequentialFade}
+                custom={1}
+                className="text-xl md:text-3xl font-serif text-primary"
+              >
+                It will be fun.
+              </motion.p>
+              <motion.p
+                variants={sequentialFade}
+                custom={2}
+                className="text-xl md:text-3xl font-serif text-primary font-bold"
+              >
                 But first, you need to answer a few questions correctly.
-              </p>
-            </motion.div>
-            <motion.div variants={sequentialSlide} custom={1} className="w-full max-w-xs">
+              </motion.p>
+            </div>
+            <motion.div variants={sequentialSlide} custom={3} className="w-full max-w-xs">
               <Button size="lg" onClick={onStart} className="w-full text-xl py-6">
                 Let&apos;s start
               </Button>
@@ -107,12 +134,12 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
             <motion.p
               variants={sequentialSlide}
               custom={0}
-              className="text-xl md:text-2xl font-serif text-primary mb-8 text-center"
+              className="text-xl md:text-3xl font-serif text-primary mb-8 text-center"
             >
               You don’t even know what we’re doing.
             </motion.p>
             <div className="flex flex-col gap-4 w-full max-w-sm">
-              <motion.div variants={sequentialSlide} custom={1}>
+              <motion.div variants={fastSequentialSlide} custom={2}>
                 <Button
                   variant="outline"
                   onClick={() => setDialogueKey('what')}
@@ -121,7 +148,7 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
                   What are we doing exactly?
                 </Button>
               </motion.div>
-              <motion.div variants={sequentialSlide} custom={2}>
+              <motion.div variants={fastSequentialSlide} custom={3}>
                 <Button
                   variant="outline"
                   onClick={() => setDialogueKey('dontcare')}
@@ -140,7 +167,7 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
             <motion.p
               variants={sequentialSlide}
               custom={0}
-              className="text-xl md:text-2xl font-serif text-primary mb-8 text-center"
+              className="text-xl md:text-3xl font-serif text-primary mb-8 text-center"
             >
               Fair enough.
             </motion.p>
@@ -163,7 +190,7 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
           initial="hidden"
           animate="visible"
           exit="exit"
-          className="flex flex-col items-center w-full max-w-md"
+          className="flex flex-col items-center w-full max-w-4xl"
         >
           {renderContent()}
         </motion.div>

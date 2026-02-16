@@ -94,7 +94,7 @@ export const GameDialogue: React.FC<GameDialogueProps> = ({
                   <motion.div
                     key={index}
                     variants={item}
-                    className="text-xl md:text-2xl font-serif text-primary leading-relaxed"
+                    className="text-xl md:text-3xl font-serif text-primary leading-relaxed"
                   >
                     {msg}
                   </motion.div>
