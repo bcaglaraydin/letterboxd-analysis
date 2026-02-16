@@ -95,7 +95,7 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
       <GameBackground>
         <GameLayout
           className="w-full max-w-7xl mx-auto"
-          middle={<PostGameScreen onComplete={() => onGameComplete(score)} />}
+          middle={<PostGameScreen score={score} onComplete={() => onGameComplete(score)} />}
         />
       </GameBackground>
     );
