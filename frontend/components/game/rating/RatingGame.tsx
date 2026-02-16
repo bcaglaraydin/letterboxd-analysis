@@ -115,10 +115,10 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
             >
               <div className="max-w-2xl mx-auto space-y-8 my-auto pt-10 pb-10 px-8">
                 <div className="space-y-6">
-                  <p className="text-xl md:text-2xl font-serif text-primary leading-relaxed">
+                  <p className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
                     {GAME_TEXT.RATING_GAME.INTRO.PART_1}
                   </p>
-                  <p className="text-xl md:text-2xl font-serif text-primary leading-relaxed">
+                  <p className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
                     {GAME_TEXT.RATING_GAME.INTRO.PART_2_PREFIX}{' '}
                     <span className={`font-bold text-3xl ml-1 ${getScoreFeedback(75).color}`}>
                       75
