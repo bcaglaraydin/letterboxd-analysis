@@ -138,6 +138,31 @@ export const DebugControls = () => {
                   </button>
                 </div>
 
+                <div className="grid grid-cols-2 gap-1 mt-1">
+                  <button
+                    onClick={() =>
+                      handleAction(() => {
+                        useExperienceStore.setState({ currentPhase: GAME_PHASES.RATING });
+                        useRatingGameStore.setState({ isGameOver: true, score: 85 });
+                      })
+                    }
+                    className="px-2 py-1 bg-purple-900/50 hover:bg-purple-900/80 rounded text-left text-[10px]"
+                  >
+                    Results (High)
+                  </button>
+                  <button
+                    onClick={() =>
+                      handleAction(() => {
+                        useExperienceStore.setState({ currentPhase: GAME_PHASES.RATING });
+                        useRatingGameStore.setState({ isGameOver: true, score: 40 });
+                      })
+                    }
+                    className="px-2 py-1 bg-purple-900/50 hover:bg-purple-900/80 rounded text-left text-[10px]"
+                  >
+                    Results (Low)
+                  </button>
+                </div>
+
                 <div className="grid grid-cols-2 gap-1">
                   <button
                     onClick={() =>
