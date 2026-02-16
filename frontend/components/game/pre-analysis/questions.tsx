@@ -244,10 +244,10 @@ export const questions: Question[] = [
       <>
         Three inhabitants A, B, and C live on an island. Some always tell the truth, others always
         lie.
-        <div className="my-4 p-4 border rounded-lg bg-card/50 text-base font-mono space-y-2 text-left w-full max-w-sm mx-auto">
+        <div className="my-2 p-2 md:my-4 md:p-4 border rounded-lg bg-card/50 text-sm md:text-base font-mono space-y-1 md:space-y-2 text-left w-full max-w-sm mx-auto">
           <div>A: &quot;B is not a liar.&quot;</div>
           <div>B: &quot;C tells the truth.&quot;</div>
-          <div>C: &quot;A and B are of the same type.&quot;</div>
+          <div>C: &quot;A and B are same type.&quot;</div>
         </div>
         Assuming all statements are logically consistent, which must be true?
       </>
@@ -257,8 +257,8 @@ export const questions: Question[] = [
       { id: 'a', text: 'A tells the truth', scoreEffect: TECHNICAL_WRONG_SCORE },
       { id: 'b', text: 'B is a liar', scoreEffect: TECHNICAL_WRONG_SCORE },
       { id: 'c', text: 'C tells the truth', scoreEffect: TECHNICAL_CORRECT_SCORE }, // Logic puzzle solution
-      { id: 'd', text: 'A and B are the same type', scoreEffect: TECHNICAL_WRONG_SCORE },
-      { id: 'e', text: 'The statements are inconsistent', scoreEffect: TECHNICAL_WRONG_SCORE },
+      { id: 'd', text: 'A and B are same type', scoreEffect: TECHNICAL_WRONG_SCORE },
+      { id: 'e', text: 'Inconsistent', scoreEffect: TECHNICAL_WRONG_SCORE },
     ],
   },
 
