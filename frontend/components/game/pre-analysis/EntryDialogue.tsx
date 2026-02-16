@@ -10,6 +10,12 @@ type DialogueKey = 'start' | 'what' | 'dontcare' | 'mockery';
 
 export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
   const [dialogueKey, setDialogueKey] = useState<DialogueKey>('start');
+  const [isAnimationComplete, setIsAnimationComplete] = useState(false);
+
+  // Reset animation state when key changes
+  React.useEffect(() => {
+    setIsAnimationComplete(false);
+  }, [dialogueKey]);
 
   // No staggered container needed, we control delays explicitly
   const containerVariants = {
@@ -76,16 +82,30 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
                 <Button
                   variant="outline"
                   onClick={() => setDialogueKey('what')}
-                  className="w-full text-lg py-6 border-primary/20 bg-background/50 hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all duration-300"
+                  disabled={!isAnimationComplete}
+                  className={`w-full text-lg py-6 border-primary/20 bg-background/50 transition-all duration-300 ${
+                    !isAnimationComplete
+                      ? 'opacity-50 cursor-not-allowed'
+                      : 'hover:bg-primary/10 hover:text-primary hover:border-primary/50'
+                  }`}
                 >
                   What are we doing exactly?
                 </Button>
               </motion.div>
-              <motion.div variants={sequentialSlide} custom={5.2}>
+              <motion.div
+                variants={sequentialSlide}
+                custom={5.2}
+                onAnimationComplete={() => setIsAnimationComplete(true)}
+              >
                 <Button
                   variant="outline"
                   onClick={() => setDialogueKey('mockery')}
-                  className="w-full text-lg py-6 border-primary/20 bg-background/50 hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all duration-300"
+                  disabled={!isAnimationComplete}
+                  className={`w-full text-lg py-6 border-primary/20 bg-background/50 transition-all duration-300 ${
+                    !isAnimationComplete
+                      ? 'opacity-50 cursor-not-allowed'
+                      : 'hover:bg-primary/10 hover:text-primary hover:border-primary/50'
+                  }`}
                 >
                   Okay.
                 </Button>
@@ -120,8 +140,18 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
                 But first, you need to answer a few questions correctly.
               </motion.p>
             </div>
-            <motion.div variants={sequentialSlide} custom={3} className="w-full max-w-xs">
-              <Button size="lg" onClick={onStart} className="w-full text-xl py-6">
+            <motion.div
+              variants={sequentialSlide}
+              custom={3}
+              className="w-full max-w-xs"
+              onAnimationComplete={() => setIsAnimationComplete(true)}
+            >
+              <Button
+                size="lg"
+                onClick={onStart}
+                disabled={!isAnimationComplete}
+                className={`w-full text-xl py-6 ${!isAnimationComplete ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
                 Let&apos;s start
               </Button>
             </motion.div>
@@ -143,16 +173,30 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
                 <Button
                   variant="outline"
                   onClick={() => setDialogueKey('what')}
-                  className="w-full text-lg py-6 border-primary/20 bg-background/50 hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all duration-300"
+                  disabled={!isAnimationComplete}
+                  className={`w-full text-lg py-6 border-primary/20 bg-background/50 transition-all duration-300 ${
+                    !isAnimationComplete
+                      ? 'opacity-50 cursor-not-allowed'
+                      : 'hover:bg-primary/10 hover:text-primary hover:border-primary/50'
+                  }`}
                 >
                   What are we doing exactly?
                 </Button>
               </motion.div>
-              <motion.div variants={fastSequentialSlide} custom={3}>
+              <motion.div
+                variants={fastSequentialSlide}
+                custom={3}
+                onAnimationComplete={() => setIsAnimationComplete(true)}
+              >
                 <Button
                   variant="outline"
                   onClick={() => setDialogueKey('dontcare')}
-                  className="w-full text-lg py-6 border-primary/20 bg-background/50 hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all duration-300"
+                  disabled={!isAnimationComplete}
+                  className={`w-full text-lg py-6 border-primary/20 bg-background/50 transition-all duration-300 ${
+                    !isAnimationComplete
+                      ? 'opacity-50 cursor-not-allowed'
+                      : 'hover:bg-primary/10 hover:text-primary hover:border-primary/50'
+                  }`}
                 >
                   I don&apos;t really care.
                 </Button>
@@ -171,8 +215,18 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
             >
               Fair enough.
             </motion.p>
-            <motion.div variants={sequentialSlide} custom={1} className="w-full max-w-xs">
-              <Button size="lg" onClick={onStart} className="w-full text-xl py-6">
+            <motion.div
+              variants={sequentialSlide}
+              custom={1}
+              className="w-full max-w-xs"
+              onAnimationComplete={() => setIsAnimationComplete(true)}
+            >
+              <Button
+                size="lg"
+                onClick={onStart}
+                disabled={!isAnimationComplete}
+                className={`w-full text-xl py-6 ${!isAnimationComplete ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
                 Let&apos;s start
               </Button>
             </motion.div>
