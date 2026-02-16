@@ -63,18 +63,24 @@ export const GameDialogue: React.FC<GameDialogueProps> = ({
 
   const container = {
     hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.3,
-        delayChildren: 0.2,
-      },
-    },
+    show: { opacity: 1 },
   };
 
-  const item = {
+  const sequentialFade = {
+    hidden: { opacity: 0 },
+    show: (i: number) => ({
+      opacity: 1,
+      transition: { delay: i * 1.2, duration: 0.8 },
+    }),
+  };
+
+  const sequentialSlide = {
     hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' as const } },
+    show: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 1.2, duration: 0.8 },
+    }),
   };
 
   return (
@@ -87,13 +93,14 @@ export const GameDialogue: React.FC<GameDialogueProps> = ({
               variants={container}
               initial="hidden"
               animate="show"
-              className="flex flex-col items-center max-w-xl text-center space-y-8"
+              className="flex flex-col items-center max-w-4xl text-center space-y-8"
             >
               <div className="space-y-6">
                 {messages.map((msg, index) => (
                   <motion.div
                     key={index}
-                    variants={item}
+                    variants={sequentialFade}
+                    custom={index}
                     className="text-xl md:text-3xl font-serif text-primary leading-relaxed"
                   >
                     {msg}
@@ -101,7 +108,11 @@ export const GameDialogue: React.FC<GameDialogueProps> = ({
                 ))}
               </div>
 
-              <motion.div variants={item} className="pt-4 w-full flex justify-center">
+              <motion.div
+                variants={sequentialSlide}
+                custom={messages.length}
+                className="pt-4 w-full flex justify-center"
+              >
                 <Button
                   size="lg"
                   onClick={handleComplete}

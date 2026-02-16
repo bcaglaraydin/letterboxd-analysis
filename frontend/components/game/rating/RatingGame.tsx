@@ -123,8 +123,10 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
                     <span className={`font-bold text-3xl ml-1 ${getScoreFeedback(75).color}`}>
                       75
                     </span>
-                    <span className="font-bold text-3xl mr-1">/100</span> or higher, we&rsquo;ll{' '}
-                    unlock a deeper analysis of your rating behavior.
+                    <span className="font-bold text-3xl mr-1">/100</span> or higher,{' '}
+                    <span className="font-bold">
+                      we&rsquo;ll unlock a deeper analysis of your rating behavior.
+                    </span>
                   </p>
                 </div>
 
