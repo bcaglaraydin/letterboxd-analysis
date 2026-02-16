@@ -55,21 +55,21 @@ export const QuestionView: React.FC<QuestionViewProps> = ({ question, currentSco
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-4 shrink-0 w-full max-w-4xl md:pb-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3 pb-2 shrink-0 w-full max-w-4xl md:pb-0">
             {question.options.map((option, index) => (
               <motion.div
                 key={option.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 + 0.3 }}
-                className="w-full h-14 md:h-24"
+                className="w-full h-10 md:h-24"
               >
                 <Button
                   variant="outline"
                   onClick={(e) => handleOptionClick(option, e)}
                   disabled={selectedOptionId !== null}
                   className={cn(
-                    'w-full h-full text-sm md:text-xl whitespace-normal text-center justify-center border-primary/20 bg-background/50',
+                    'w-full h-full text-xs md:text-xl whitespace-normal text-center justify-center border-primary/20 bg-background/50 leading-tight px-1',
                     'hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all duration-300',
                     selectedOptionId === option.id &&
                       option.scoreEffect > 0 &&
