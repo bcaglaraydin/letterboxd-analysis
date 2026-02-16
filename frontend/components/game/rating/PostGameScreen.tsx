@@ -11,10 +11,11 @@ import { useGenreRankingStore } from '@/store/genre/rankingStore';
 import { Loader2 } from 'lucide-react';
 
 interface PostGameScreenProps {
+  score: number;
   onComplete: () => void;
 }
 
-export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) => {
+export const PostGameScreen: React.FC<PostGameScreenProps> = ({ score, onComplete }) => {
   const { userStats, setUserStats } = useRatingGameStore(); // Added setUserStats
   const { backgroundStatus, fetchFullStats } = useUserStore();
   const startGenreGame = useGenreRankingStore((s) => s.startGame);
@@ -106,7 +107,7 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) =>
   // Build steps array dynamically
   const steps = [
     // Step 0: Intro
-    <IntroStep key="intro" onNext={handleStepCompletion} />,
+    <IntroStep key="intro" score={score} onNext={handleStepCompletion} />,
 
     // Step 1: Averages
     <AveragesStep key="averages" userStats={userStats} onNext={handleStepCompletion} />,
