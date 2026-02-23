@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useThemeStore } from '@/store/theme/themeStore';
 import { ThemeGuessingRound } from './ThemeGuessingRound';
+import { ThemeSortingMinigame } from './sorting/ThemeSortingMinigame';
+import { ThemeResultsScreen } from './results/ThemeResultsScreen';
 import { GameRoundIndicator } from '@/components/game/shared/GameRoundIndicator';
 import { ScorePanel } from '@/components/game/shared/ScorePanel';
 
@@ -32,6 +34,41 @@ export function ThemeExperience({ onComplete }: ThemeExperienceProps) {
       onComplete(finalScore);
     }
   };
+
+  if (phase === 'sorting') {
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          key="sorting"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="w-full h-full"
+        >
+          <ThemeSortingMinigame />
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
+
+  if (phase === 'results') {
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          key="results"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="w-full h-full"
+        >
+          {/* Note: The final results screen should just show the total score now. We can repurpose ThemeResultsScreen or create a simple new one. Let's pass the total combined score. */}
+          <ThemeResultsScreen
+            onComplete={() => onComplete(score + useThemeStore.getState().sortingScore)}
+          />
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
 
   if (!currentRound) return null;
 

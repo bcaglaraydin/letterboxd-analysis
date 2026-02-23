@@ -9,6 +9,7 @@ import { useThemeStore } from '@/store/theme/themeStore';
 import { GAME_PHASES } from '@/lib/gameTypes';
 import { Bug, ChevronDown } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
+import { MOCK_METRICS_RESPONSE } from '@/mocks/data';
 
 export const DebugControls = () => {
   const [isOpen, setIsOpen] = useState(process.env.NODE_ENV === 'development');
@@ -208,6 +209,24 @@ export const DebugControls = () => {
                     className="px-2 py-1 bg-blue-900/50 hover:bg-blue-900/80 rounded text-left"
                   >
                     Skip Theme
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 gap-1">
+                  <button
+                    onClick={() =>
+                      handleAction(() => {
+                        const { initThemeGame, sortingRounds } = useThemeStore.getState();
+                        if (sortingRounds.length === 0) {
+                          initThemeGame([], MOCK_METRICS_RESPONSE.themeGame?.sortingRounds || []);
+                        }
+                        useThemeStore.setState({ phase: 'sorting' });
+                        useExperienceStore.setState({ currentPhase: GAME_PHASES.THEME });
+                      })
+                    }
+                    className="px-2 py-1 bg-purple-900/50 hover:bg-purple-900/80 rounded text-left"
+                  >
+                    Jump to Theme Sorting
                   </button>
                 </div>
               </div>

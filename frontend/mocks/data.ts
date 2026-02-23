@@ -801,6 +801,68 @@ export const MOCK_METRICS_RESPONSE: MetricsResponse = {
   },
   themeGame: {
     rounds: MOCK_THEME_ROUNDS,
+    sortingRounds: [
+      {
+        id: 't1',
+        theme: 'Dreamlike, quirky, and surreal storytelling',
+        averageRating: 4.8,
+        type: 'favorite',
+      },
+      {
+        id: 't2',
+        theme: 'Surreal and thought-provoking visions of life and death',
+        averageRating: 4.6,
+        type: 'favorite',
+      },
+      {
+        id: 't3',
+        theme: 'Epic history and literature',
+        averageRating: 4.5,
+        type: 'favorite',
+      },
+      {
+        id: 't4',
+        theme: 'Thrillers and murder mysteries',
+        averageRating: 4.9,
+        type: 'favorite',
+      },
+      {
+        id: 't5',
+        theme: 'Visually stunning and emotional science fiction',
+        averageRating: 4.7,
+        type: 'favorite',
+      },
+      {
+        id: 't6',
+        theme: 'Crude humor and satire',
+        averageRating: 1.1,
+        type: 'least_favorite',
+      },
+      {
+        id: 't7',
+        theme: 'Intense violence and sexual transgression',
+        averageRating: 1.7,
+        type: 'least_favorite',
+      },
+      {
+        id: 't8',
+        theme: 'Heartbreaking and moving family drama',
+        averageRating: 2.4,
+        type: 'least_favorite',
+      },
+      {
+        id: 't9',
+        theme: 'Slasher horror and jump scares',
+        averageRating: 1.2,
+        type: 'least_favorite',
+      },
+      {
+        id: 't10',
+        theme: 'Boring corporate documentaries',
+        averageRating: 1.8,
+        type: 'least_favorite',
+      },
+    ],
   },
   userStats: {
     totalMovies: 1250,

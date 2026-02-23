@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type ThemePhase = 'guessing' | 'revealed';
+export type ThemePhase = 'guessing' | 'revealed' | 'sorting' | 'results';
 
 /**
  * Progressive hint levels (driven by wrong guesses):
@@ -14,7 +14,6 @@ export const MAX_HINT_LEVEL = 3;
 
 /** Points awarded based on how many hints were needed */
 import { ThemeRound } from '@/components/game/theme/types';
-
 export const HINT_SCORE_MAP: Record<number, number> = {
   0: 20, // Correct on first try (no hints)
   1: 15, // Correct after 1 hint (year)
@@ -22,21 +21,33 @@ export const HINT_SCORE_MAP: Record<number, number> = {
   3: 5, // Correct after 3 hints (year + rating + director)
 };
 
+import { ThemeSortingRound } from '@/lib/api';
+
+export const SORTING_POINTS = {
+  CORRECT: 10,
+  INCORRECT: 0,
+};
+
 interface ThemeStoreState {
   rounds: ThemeRound[];
+  sortingRounds: ThemeSortingRound[];
   phase: ThemePhase;
   currentRoundIndex: number;
+  currentSortingIndex: number;
   userGuess: string;
   hintLevel: number; // 0–3
   wrongGuessShake: boolean;
   score: number;
+  sortingScore: number;
   roundScore: number | null; // last round's score delta (null = not yet scored)
+  sortingLastPoints: number | null;
 
   // Actions
-  initThemeGame: (rounds: ThemeRound[]) => void;
+  initThemeGame: (rounds: ThemeRound[], sortingRounds: ThemeSortingRound[]) => void;
   setUserGuess: (guess: string) => void;
   submitGuess: (correctTitle: string) => void;
   nextRound: () => 'next' | 'complete';
+  handleThemeSwipe: (type: 'favorite' | 'least_favorite') => void;
   resetThemeExperience: () => void;
 }
 
@@ -44,15 +55,28 @@ import { isFuzzyMatch } from '@/lib/fuzzyMatch';
 
 export const useThemeStore = create<ThemeStoreState>((set, get) => ({
   rounds: [],
+  sortingRounds: [],
   phase: 'guessing',
   currentRoundIndex: 0,
+  currentSortingIndex: 0,
   userGuess: '',
   hintLevel: 0,
   wrongGuessShake: false,
   score: 0,
+  sortingScore: 0,
   roundScore: null,
+  sortingLastPoints: null,
 
-  initThemeGame: (rounds) => set({ rounds, currentRoundIndex: 0, score: 0, phase: 'guessing' }),
+  initThemeGame: (rounds, sortingRounds) =>
+    set({
+      rounds,
+      sortingRounds,
+      currentRoundIndex: 0,
+      currentSortingIndex: 0,
+      score: 0,
+      sortingScore: 0,
+      phase: 'guessing',
+    }),
 
   setUserGuess: (guess) => set({ userGuess: guess }),
 
@@ -93,6 +117,7 @@ export const useThemeStore = create<ThemeStoreState>((set, get) => ({
   nextRound: () => {
     const { currentRoundIndex, rounds } = get();
     if (currentRoundIndex + 1 >= rounds.length) {
+      set({ phase: 'results' });
       return 'complete';
     }
     set({
@@ -106,14 +131,40 @@ export const useThemeStore = create<ThemeStoreState>((set, get) => ({
     return 'next';
   },
 
+  handleThemeSwipe: (guessType) => {
+    const { sortingRounds, currentSortingIndex, sortingScore } = get();
+    const currentRound = sortingRounds[currentSortingIndex];
+    if (!currentRound) return;
+
+    const isCorrect = currentRound.type === guessType;
+    const points = isCorrect ? SORTING_POINTS.CORRECT : SORTING_POINTS.INCORRECT;
+
+    set({
+      sortingScore: Math.max(0, sortingScore + points),
+      sortingLastPoints: points,
+    });
+
+    // Move to next sorting round after a tiny delay for animation, or immediately
+    // Wait for the UI component to actually call next after animation,
+    // or we can increment it here. We'll increment here to keep state simple.
+    if (currentSortingIndex + 1 >= sortingRounds.length) {
+      setTimeout(() => set({ phase: 'results' }), 1000); // Wait 1s for last animation before complete
+    } else {
+      set({ currentSortingIndex: currentSortingIndex + 1 });
+    }
+  },
+
   resetThemeExperience: () =>
     set({
       phase: 'guessing',
       currentRoundIndex: 0,
+      currentSortingIndex: 0,
       userGuess: '',
       hintLevel: 0,
       wrongGuessShake: false,
       score: 0,
+      sortingScore: 0,
       roundScore: null,
+      sortingLastPoints: null,
     }),
 }));

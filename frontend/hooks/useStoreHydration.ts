@@ -76,7 +76,7 @@ export function useStoreHydration() {
 
         if (currentRounds.length === 0) {
           console.log('[useStoreHydration] Initializing Theme Game...');
-          initThemeGame(data.themeGame.rounds);
+          initThemeGame(data.themeGame.rounds, data.themeGame.sortingRounds || []);
         }
       } else {
         console.warn('[useStoreHydration] No Theme Game data in response');
