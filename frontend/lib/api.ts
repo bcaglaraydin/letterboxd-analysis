@@ -127,9 +127,18 @@ export interface ThemeGameRound {
     posterUrl: string;
   };
 }
+export type ThemeSortingType = 'favorite' | 'least_favorite';
+
+export interface ThemeSortingRound {
+  id: string;
+  theme: string;
+  averageRating: number;
+  type: ThemeSortingType;
+}
 
 export interface ThemeGameData {
   rounds: ThemeGameRound[];
+  sortingRounds: ThemeSortingRound[];
 }
 
 export interface MetricsResponse {
