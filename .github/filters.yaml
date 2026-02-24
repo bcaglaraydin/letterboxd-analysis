@@ -44,6 +44,7 @@ status:
   - 'backend/src/services/userJobService.js'
   - 'backend/src/services/gameService.js'
   - 'backend/src/services/statsService.js'
+  - 'backend/src/games/**'
   - 'backend/src/utils/**'
   - 'backend/docker/lambdas/status/**'
   - 'infra/envs/dev/lambda-container/status/**'
