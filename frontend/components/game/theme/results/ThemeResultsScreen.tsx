@@ -86,7 +86,7 @@ export function ThemeResultsScreen({ onComplete }: ThemeResultsScreenProps) {
                   <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center text-destructive shrink-0">
                     <ThumbsDown className="w-6 h-6 fill-current" />
                   </div>
-                  <h3 className="text-3xl sm:text-4xl font-serif text-foreground">Not For You</h3>
+                  <h3 className="text-3xl sm:text-4xl font-serif text-foreground">Your Bottom 5</h3>
                 </div>
 
                 <div className="grid auto-rows-[1fr] gap-4">
