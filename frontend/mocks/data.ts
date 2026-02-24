@@ -5,6 +5,39 @@ import { Genre, Film } from '../components/game/genre/genre-matching/types';
 // THEME GUESSING GAME MOCK DATA
 // ============================================================================
 
+export const MOCK_RATING_MOVIES = [
+  {
+    movieId: 'mock-1',
+    title: 'The Godfather',
+    director: 'Francis Ford Coppola',
+    poster: 'https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsRolD1fZdja1.jpg',
+    userRating: 10,
+    communityRating: 9.2,
+    releaseYear: '1972',
+    runtimeMinutes: 175,
+  },
+  {
+    movieId: 'mock-2',
+    title: 'Spirited Away',
+    director: 'Hayao Miyazaki',
+    poster: 'https://image.tmdb.org/t/p/w500/39wmItIWsg5sZMyRUKGxwbuFf76.jpg',
+    userRating: 9,
+    communityRating: 8.5,
+    releaseYear: '2001',
+    runtimeMinutes: 125,
+  },
+  {
+    movieId: 'mock-3',
+    title: 'Parasite',
+    director: 'Bong Joon-ho',
+    poster: 'https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg',
+    userRating: 8,
+    communityRating: 8.5,
+    releaseYear: '2019',
+    runtimeMinutes: 132,
+  },
+];
+
 export const MOCK_THEME_ROUNDS: ThemeGameRound[] = [
   {
     id: 'theme-1',
@@ -807,60 +840,168 @@ export const MOCK_METRICS_RESPONSE: MetricsResponse = {
         theme: 'Dreamlike, quirky, and surreal storytelling',
         averageRating: 4.8,
         type: 'favorite',
+        topMovies: [
+          {
+            title: 'Mulholland Drive',
+            posterUrl: 'https://image.tmdb.org/t/p/w500/z09QAf8WbZncbitewNk6lKYMZjm.jpg',
+          },
+          {
+            title: 'Blue Velvet',
+            posterUrl: 'https://image.tmdb.org/t/p/w500/7aZ3zW66W9P5RzX2YV1ZfC1UaZc.jpg',
+          },
+          {
+            title: 'Eraserhead',
+            posterUrl: 'https://image.tmdb.org/t/p/w500/2L2zY0qZw1QZmYlWcR2aYI1X7r2.jpg',
+          },
+        ],
       },
       {
         id: 't2',
         theme: 'Surreal and thought-provoking visions of life and death',
         averageRating: 4.6,
         type: 'favorite',
+        topMovies: [
+          {
+            title: 'The Seventh Seal',
+            posterUrl: 'https://image.tmdb.org/t/p/w500/5Osbx75g1R2tYpM0zW6X2B9cZw5.jpg',
+          },
+          {
+            title: 'Persona',
+            posterUrl: 'https://image.tmdb.org/t/p/w500/2cMzL9fXyZ5Qj1s6aP4c6U3Y6k7.jpg',
+          },
+        ],
       },
       {
         id: 't3',
         theme: 'Epic history and literature',
         averageRating: 4.5,
         type: 'favorite',
+        topMovies: [
+          {
+            title: 'Lawrence of Arabia',
+            posterUrl: 'https://image.tmdb.org/t/p/w500/wA1Bf5A3q1v1c0b3N5v8r1u9x4z.jpg',
+          },
+          {
+            title: 'The Lord of the Rings',
+            posterUrl: 'https://image.tmdb.org/t/p/w500/6oom5QYQ2yQTMJIbnvbkBL9cHo6.jpg',
+          },
+        ],
       },
       {
         id: 't4',
         theme: 'Thrillers and murder mysteries',
         averageRating: 4.9,
         type: 'favorite',
+        topMovies: [
+          {
+            title: 'Se7en',
+            posterUrl: 'https://image.tmdb.org/t/p/w500/6yoghtyTpznpAsOUflz2Q1I0P9F.jpg',
+          },
+          {
+            title: 'Zodiac',
+            posterUrl: 'https://image.tmdb.org/t/p/w500/rYTOkHk9P0L9fL9P6uXfG1D7d4g.jpg',
+          },
+          {
+            title: 'Prisoners',
+            posterUrl: 'https://image.tmdb.org/t/p/w500/sP5r8eH1e7F8TzX7eJ9f3dG1I2e.jpg',
+          },
+        ],
       },
       {
         id: 't5',
         theme: 'Visually stunning and emotional science fiction',
         averageRating: 4.7,
         type: 'favorite',
+        topMovies: [
+          {
+            title: 'Interstellar',
+            posterUrl: 'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MvrIdYjC.jpg',
+          },
+          {
+            title: 'Blade Runner 2049',
+            posterUrl: 'https://image.tmdb.org/t/p/w500/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg',
+          },
+        ],
       },
       {
         id: 't6',
         theme: 'Crude humor and satire',
         averageRating: 1.1,
         type: 'least_favorite',
+        topMovies: [
+          {
+            title: 'Movie 43',
+            posterUrl: 'https://image.tmdb.org/t/p/w500/2G0Z1Y0kI2pXzX5YQ3G1kR5N8d1.jpg',
+          },
+          {
+            title: 'Sausage Party',
+            posterUrl: 'https://image.tmdb.org/t/p/w500/x7fX5vX8B3G0N4a9fB9C2C1Q7p4.jpg',
+          },
+        ],
       },
       {
         id: 't7',
         theme: 'Intense violence and sexual transgression',
         averageRating: 1.7,
         type: 'least_favorite',
+        topMovies: [
+          {
+            title: 'A Serbian Film',
+            posterUrl: 'https://image.tmdb.org/t/p/w500/5A6C2Kx6B1u3fL7t8V9R2Q8x1I0.jpg',
+          },
+          {
+            title: 'Salò',
+            posterUrl: 'https://image.tmdb.org/t/p/w500/1X9C2I7V4W0G4m5t7L3Q2Z1X0J9.jpg',
+          },
+        ],
       },
       {
         id: 't8',
         theme: 'Heartbreaking and moving family drama',
         averageRating: 2.4,
         type: 'least_favorite',
+        topMovies: [
+          {
+            title: 'The Son',
+            posterUrl: 'https://image.tmdb.org/t/p/w500/8X5J2V9P6R5X9x4P8K3V6I1L9Q.jpg',
+          },
+          {
+            title: 'Manchester by the Sea',
+            posterUrl: 'https://image.tmdb.org/t/p/w500/1I9R0N1X3Q7X8G4E2W6B0Y9Z7K.jpg',
+          },
+        ],
       },
       {
         id: 't9',
         theme: 'Slasher horror and jump scares',
         averageRating: 1.2,
         type: 'least_favorite',
+        topMovies: [
+          {
+            title: 'Friday the 13th',
+            posterUrl: 'https://image.tmdb.org/t/p/w500/5TCH8h4I2V1V1fC9H3r2W5qX1K8.jpg',
+          },
+          {
+            title: 'Halloween Kills',
+            posterUrl: 'https://image.tmdb.org/t/p/w500/1V1K2Y5f3B3K7Q6I9T4V5Z1W5V.jpg',
+          },
+        ],
       },
       {
         id: 't10',
         theme: 'Boring corporate documentaries',
         averageRating: 1.8,
         type: 'least_favorite',
+        topMovies: [
+          {
+            title: 'Corporate',
+            posterUrl: 'https://image.tmdb.org/t/p/w500/2L2zY0qZw1QZmYlWcR2aYI1X7r2.jpg',
+          },
+          {
+            title: 'Startup.com',
+            posterUrl: 'https://image.tmdb.org/t/p/w500/7aZ3zW66W9P5RzX2YV1ZfC1UaZc.jpg',
+          },
+        ],
       },
     ],
   },

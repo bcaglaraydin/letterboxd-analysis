@@ -134,6 +134,10 @@ export interface ThemeSortingRound {
   theme: string;
   averageRating: number;
   type: ThemeSortingType;
+  topMovies?: {
+    title: string;
+    posterUrl: string;
+  }[];
 }
 
 export interface ThemeGameData {

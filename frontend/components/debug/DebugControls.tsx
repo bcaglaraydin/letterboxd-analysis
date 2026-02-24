@@ -9,7 +9,7 @@ import { useThemeStore } from '@/store/theme/themeStore';
 import { GAME_PHASES } from '@/lib/gameTypes';
 import { Bug, ChevronDown } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
-import { MOCK_METRICS_RESPONSE } from '@/mocks/data';
+import { MOCK_METRICS_RESPONSE, MOCK_RATING_MOVIES } from '@/mocks/data';
 
 export const DebugControls = () => {
   const [isOpen, setIsOpen] = useState(process.env.NODE_ENV === 'development');
@@ -76,41 +76,7 @@ export const DebugControls = () => {
                         const ratingStore = useRatingGameStore.getState();
                         if (ratingStore.movies.length === 0) {
                           // Seed with mock data if empty
-                          ratingStore.setMovies([
-                            {
-                              movieId: 'mock-1',
-                              title: 'The Godfather',
-                              director: 'Francis Ford Coppola',
-                              poster:
-                                'https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsRolD1fZdja1.jpg',
-                              userRating: 10,
-                              communityRating: 9.2,
-                              releaseYear: '1972',
-                              runtimeMinutes: 175,
-                            },
-                            {
-                              movieId: 'mock-2',
-                              title: 'Spirited Away',
-                              director: 'Hayao Miyazaki',
-                              poster:
-                                'https://image.tmdb.org/t/p/w500/39wmItIWsg5sZMyRUKGxwbuFf76.jpg',
-                              userRating: 9,
-                              communityRating: 8.5,
-                              releaseYear: '2001',
-                              runtimeMinutes: 125,
-                            },
-                            {
-                              movieId: 'mock-3',
-                              title: 'Parasite',
-                              director: 'Bong Joon-ho',
-                              poster:
-                                'https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg',
-                              userRating: 8,
-                              communityRating: 8.5,
-                              releaseYear: '2019',
-                              runtimeMinutes: 132,
-                            },
-                          ]);
+                          ratingStore.setMovies(MOCK_RATING_MOVIES);
                         }
                         // Reset game state
                         ratingStore.resetGame();

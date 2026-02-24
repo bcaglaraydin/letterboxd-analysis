@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useThemeStore } from '@/store/theme/themeStore';
 import { Heart, ThumbsDown } from 'lucide-react';
 import { GAME_TEXT } from '@/lib/content';
+import { ThemeResultItem } from './ThemeResultItem';
 
 interface ThemeResultsScreenProps {
   onComplete: () => void;
@@ -36,9 +37,9 @@ export function ThemeResultsScreen({ onComplete }: ThemeResultsScreenProps) {
   };
 
   return (
-    <div className="flex flex-col h-[100dvh] w-full max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 relative overflow-hidden bg-background text-foreground">
+    <div className="flex flex-col h-[100dvh] w-full max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 relative bg-background text-foreground">
       {/* Main Content: Two Columns */}
-      <div className="flex-1 w-full min-h-0 relative overflow-hidden flex flex-col items-center justify-center">
+      <div className="flex-1 w-full min-h-0 relative flex flex-col items-center justify-center">
         <div className="absolute inset-0 overflow-y-auto overflow-x-hidden pb-32 pt-8 sm:pt-16 custom-scrollbar flex flex-col">
           <div className="flex-1 flex flex-col justify-center">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 w-full max-w-5xl mx-auto px-4 sm:px-8">
@@ -56,19 +57,19 @@ export function ThemeResultsScreen({ onComplete }: ThemeResultsScreenProps) {
                   <h3 className="text-3xl sm:text-4xl font-serif text-foreground">Your Top 5</h3>
                 </div>
 
-                <div className="flex flex-col gap-4">
+                <div className="grid auto-rows-[1fr] gap-4">
                   {favorites.map((theme, idx) => (
                     <motion.div
                       key={`fav-${theme.id}`}
                       variants={itemVariants}
-                      className="bg-card border border-border/50 rounded-2xl p-5 sm:p-6 shadow-sm flex items-center gap-5"
+                      className="w-full h-full"
                     >
-                      <div className="w-10 h-10 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center font-bold font-serif text-lg shrink-0">
-                        {idx + 1}
-                      </div>
-                      <p className="font-serif text-foreground/90 text-lg sm:text-xl leading-snug">
-                        {theme.theme}
-                      </p>
+                      <ThemeResultItem
+                        theme={theme}
+                        index={idx}
+                        isFavorite={true}
+                        showHint={idx === 0}
+                      />
                     </motion.div>
                   ))}
                 </div>
@@ -88,19 +89,14 @@ export function ThemeResultsScreen({ onComplete }: ThemeResultsScreenProps) {
                   <h3 className="text-3xl sm:text-4xl font-serif text-foreground">Not For You</h3>
                 </div>
 
-                <div className="flex flex-col gap-4">
+                <div className="grid auto-rows-[1fr] gap-4">
                   {leastFavorites.map((theme, idx) => (
                     <motion.div
                       key={`least-${theme.id}`}
                       variants={itemVariants}
-                      className="bg-card border border-border/50 rounded-2xl p-5 sm:p-6 shadow-sm flex items-center gap-5 opacity-90"
+                      className="w-full h-full"
                     >
-                      <div className="w-10 h-10 rounded-full bg-destructive/10 text-destructive flex items-center justify-center font-bold font-serif text-lg shrink-0">
-                        {idx + 1}
-                      </div>
-                      <p className="font-serif text-foreground/90 text-lg sm:text-xl leading-snug">
-                        {theme.theme}
-                      </p>
+                      <ThemeResultItem theme={theme} index={idx} isFavorite={false} />
                     </motion.div>
                   ))}
                 </div>
