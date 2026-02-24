@@ -3,6 +3,7 @@ import { GameService } from '../gameService.js';
 import { generateRatingGame } from '../../games/ratingGame.js';
 import { generateGenreGame } from '../../games/genreGame.js';
 import { generateGenreMatchingGame } from '../../games/genreMatchingGame.js';
+import { generateThemeGame } from '../../games/themeGame.js';
 import {
   calculateRatingDistribution,
   calculateBasicStats,
@@ -15,6 +16,7 @@ import {
 vi.mock('../../games/ratingGame.js');
 vi.mock('../../games/genreGame.js');
 vi.mock('../../games/genreMatchingGame.js');
+vi.mock('../../games/themeGame.js');
 vi.mock('../statsService.js');
 
 describe('GameService', () => {
@@ -32,6 +34,7 @@ describe('GameService', () => {
       mockResolved(generateRatingGame, { movies: ['rating'] });
       mockReturnValue(generateGenreGame, { genres: ['genre'] });
       mockReturnValue(generateGenreMatchingGame, { rounds: ['matching'] });
+      mockReturnValue(generateThemeGame, { rounds: ['themeRounds'], sortingRounds: ['sorting'] });
 
       // Mock stats functions
       mockReturnValue(calculateRatingDistribution, { 5: 1 }); // used for both user and community
@@ -68,6 +71,7 @@ describe('GameService', () => {
         ratingGame: { movies: ['rating'] },
         genreGame: { genres: ['genre'] },
         genreMatchingGame: { rounds: ['matching'] },
+        themeGame: { rounds: ['themeRounds'], sortingRounds: ['sorting'] },
         userStats: expect.objectContaining({
           totalMovies: 1,
           averageRating: 4.5,
