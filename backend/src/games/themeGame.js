@@ -64,5 +64,76 @@ export function generateThemeGame(allFilms, options = {}) {
     };
   });
 
-  return { rounds };
+  // 4. Generate Sorting Rounds based on statistical averages
+  const themeStats = {}; // { [themeName]: { totalRating: 0, count: 0, movies: [] } }
+
+  allFilms.forEach((film) => {
+    // We only care about themes attached to rated files
+    if (film.userRating && film.themes && film.themes.length > 0 && film.posterUrl && film.title) {
+      // Use standardized userRating assuming max 10. (If it's already /10 or /100)
+      // Note: userRating is generally out of 10 or 100 depending on metric parse.
+      // Let's assume it's up to 10 or 100 consistently.
+
+      const rating = film.userRating;
+
+      film.themes.forEach((theme) => {
+        if (!themeStats[theme]) {
+          themeStats[theme] = { totalRating: 0, count: 0, movies: [] };
+        }
+        themeStats[theme].totalRating += rating;
+        themeStats[theme].count += 1;
+        themeStats[theme].movies.push({
+          title: film.title,
+          posterUrl: film.posterUrl,
+          userRating: rating,
+        });
+      });
+    }
+  });
+
+  const validThemes = Object.keys(themeStats)
+    .map((theme) => {
+      const stats = themeStats[theme];
+      const avg = stats.totalRating / stats.count;
+      // Sort movies descending by rating for the "Top Movies" strip
+      const topMovies = stats.movies
+        .sort((a, b) => b.userRating - a.userRating)
+        .slice(0, 3)
+        .map((m) => ({ title: m.title, posterUrl: m.posterUrl }));
+
+      return {
+        theme,
+        averageRating: Number(avg.toFixed(1)),
+        count: stats.count,
+        topMovies,
+      };
+    })
+    // Only include themes with enough data points to be somewhat interesting
+    .filter((t) => t.count >= 2);
+
+  validThemes.sort((a, b) => b.averageRating - a.averageRating); // highest to lowest
+
+  // Top 5 and Bottom 5 (ensuring no overlap if very few themes exist)
+  const topCut = Math.min(5, validThemes.length);
+  const favorites = validThemes.slice(0, topCut).map((t, i) => ({
+    id: `fav-${i}`,
+    theme: t.theme,
+    averageRating: t.averageRating,
+    type: 'favorite',
+    topMovies: t.topMovies,
+  }));
+
+  // Take from bottom, invert to standard order (lowest to highest? Or keep Descending order?)
+  // Let's keep descending order, so the absolute worst is at the very bottom
+  const leastFavorites = validThemes.slice(-5).map((t, i) => ({
+    id: `least-${i}`,
+    theme: t.theme,
+    averageRating: t.averageRating,
+    type: 'least_favorite',
+    topMovies: t.topMovies,
+  }));
+
+  const sortingRounds = [...favorites, ...leastFavorites];
+
+  return { rounds, sortingRounds };
 }
