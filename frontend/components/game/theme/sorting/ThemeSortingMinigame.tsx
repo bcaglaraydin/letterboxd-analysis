@@ -154,7 +154,7 @@ export function ThemeSortingMinigame() {
               <div className="w-12 h-12 rounded-full border-2 border-destructive flex items-center justify-center mb-2">
                 <X className="w-6 h-6" />
               </div>
-              <span className="text-xs uppercase tracking-widest font-bold">Not For Me</span>
+              <span className="text-sm uppercase tracking-widest font-bold">NO</span>
             </div>
             <div className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-full pl-8 opacity-50 flex-col items-center text-green-500">
               <div className="w-12 h-12 rounded-full border-2 border-green-500 flex items-center justify-center mb-2">
