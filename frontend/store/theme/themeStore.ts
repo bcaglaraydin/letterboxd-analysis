@@ -115,9 +115,13 @@ export const useThemeStore = create<ThemeStoreState>((set, get) => ({
   },
 
   nextRound: () => {
-    const { currentRoundIndex, rounds } = get();
+    const { currentRoundIndex, rounds, sortingRounds } = get();
     if (currentRoundIndex + 1 >= rounds.length) {
-      set({ phase: 'results' });
+      if (sortingRounds && sortingRounds.length > 0) {
+        set({ phase: 'sorting' });
+      } else {
+        set({ phase: 'results' });
+      }
       return 'complete';
     }
     set({

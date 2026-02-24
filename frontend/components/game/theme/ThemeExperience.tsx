@@ -14,8 +14,7 @@ interface ThemeExperienceProps {
 }
 
 export function ThemeExperience({ onComplete }: ThemeExperienceProps) {
-  const { currentRoundIndex, nextRound, resetThemeExperience, score, roundScore, phase, rounds } =
-    useThemeStore();
+  const { currentRoundIndex, nextRound, score, roundScore, phase, rounds } = useThemeStore();
   const currentRound = rounds[currentRoundIndex];
   const [flyFromPosition, setFlyFromPosition] = useState<{ x: number; y: number }>();
 
@@ -27,12 +26,7 @@ export function ThemeExperience({ onComplete }: ThemeExperienceProps) {
 
   const handleRoundComplete = () => {
     setFlyFromPosition(undefined); // Reset for next round
-    const result = nextRound();
-    if (result === 'complete') {
-      const finalScore = useThemeStore.getState().score;
-      resetThemeExperience();
-      onComplete(finalScore);
-    }
+    nextRound();
   };
 
   if (phase === 'sorting') {
