@@ -31,7 +31,7 @@ inputs = {
   image_uri     = "${dependency.ecr.outputs.repository_url}:${get_env("IMAGE_TAG", "latest")}"
   environment   = "dev"
   memory_size   = 2048
-  timeout       = 300
+  timeout       = 30
 
   environment_variables = {
     NODE_ENV           = "development"

@@ -7,12 +7,14 @@ import { RatingGame } from '../rating/RatingGame';
 import { GameHub } from './GameHub';
 import { GenreOrchestration } from '@/components/game/genre/GenreOrchestration';
 import { ThemeExperience } from '@/components/game/theme/ThemeExperience';
-import { useGameInitialization } from '@/hooks/useGameInitialization';
+import { useUserStore } from '@/store/core/userStore';
+import { Loader2 } from 'lucide-react';
 import { GAME_PHASES } from '@/lib/gameTypes';
 
 export const ExperienceOrchestrator = () => {
   const { currentPhase, completeRatingGame, completeGenreGame, completeThemeExperience } =
     useExperienceStore();
+  const backgroundStatus = useUserStore((state) => state.backgroundStatus);
 
   const completeRatingGameHandler = (score: number) => {
     completeRatingGame(score);
@@ -25,9 +27,6 @@ export const ExperienceOrchestrator = () => {
   const completeThemeHandler = (score: number) => {
     completeThemeExperience(score);
   };
-
-  // Background polling for additional game data
-  useGameInitialization({ backgroundMode: true });
 
   return (
     <div className="w-full h-full min-h-screen bg-background overflow-hidden relative">
@@ -52,7 +51,16 @@ export const ExperienceOrchestrator = () => {
             exit={{ opacity: 0 }}
             className="w-full h-full"
           >
-            <GameHub />
+            {backgroundStatus !== 'ready' ? (
+              <div className="w-full h-[100dvh] flex flex-col items-center justify-center space-y-4">
+                <Loader2 className="w-12 h-12 animate-spin text-primary" />
+                <p className="text-xl font-serif text-primary">
+                  Analyzing the rest of your movies...
+                </p>
+              </div>
+            ) : (
+              <GameHub />
+            )}
           </motion.div>
         )}
 

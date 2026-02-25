@@ -49,7 +49,8 @@ inputs = {
       {
         Action = [
           "dynamodb:GetItem",
-          "dynamodb:DeleteItem"
+          "dynamodb:DeleteItem",
+          "dynamodb:UpdateItem"
         ]
         Effect   = "Allow"
         Resource = dependency.user_jobs.outputs.table_arn

@@ -9,6 +9,7 @@ import { useThemeStore } from '@/store/theme/themeStore';
 export function useStoreHydration() {
   const setExperienceReady = useUserStore((state) => state.setReady);
   const setExperiencePartialReady = useUserStore((state) => state.setPartialReady);
+  const setUserStats = useUserStore((state) => state.setUserStats);
 
   const startRatingGame = useRatingGameStore((state) => state.startGame);
   const startGenreGame = useGenreRankingStore((state) => state.startGame);
@@ -23,11 +24,15 @@ export function useStoreHydration() {
         hasGenre: !!data.genreGame,
         hasMatching: !!data.genreMatchingGame,
         hasTheme: !!data.themeGame,
+        hasUserStats: !!data.userStats,
       });
 
       // Update Experience Store Status
       if (data.status === 'ready') {
         setExperienceReady();
+        if (data.userStats) {
+          setUserStats(data.userStats);
+        }
       } else {
         setExperiencePartialReady();
       }
@@ -85,6 +90,7 @@ export function useStoreHydration() {
     [
       setExperienceReady,
       setExperiencePartialReady,
+      setUserStats,
       startRatingGame,
       startGenreGame,
       initMatchingGame,

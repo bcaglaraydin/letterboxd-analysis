@@ -14,7 +14,7 @@ export const handler = async (event) => {
     event.Records.map(async (record) => {
       try {
         const body = JSON.parse(record.body);
-        const { action, username, jobId } = body;
+        const { action, username } = body;
 
         if (action === 'test_browser') {
           console.log('[ListScraper] Running browser test...');
@@ -34,12 +34,10 @@ export const handler = async (event) => {
           return;
         }
 
-        console.log(`[ListScraper] Starting list scrape for: ${username} (Job: ${jobId})`);
+        console.log(`[ListScraper] Starting list scrape for: ${username}`);
 
         // 1. Update Job Status -> Processing
-        if (jobId) {
-          await updateUserJob(username, { status: 'processing' });
-        }
+        await updateUserJob(username, { status: 'processing' });
 
         // 2. Scrape List
         let userFilms;
@@ -48,22 +46,18 @@ export const handler = async (event) => {
           console.log(`[ListScraper] Found ${userFilms.length} films for ${username}`);
         } catch (err) {
           console.error(`[ListScraper] Scraping failed for ${username}:`, err);
-          if (jobId) {
-            await updateUserJob(username, {
-              status: 'failed',
-              error: err.message || 'Failed to scrape user list',
-            });
-          }
-          throw err; // Retry via SQS DLQ handling if configured, or fail
+          await updateUserJob(username, {
+            status: 'failed',
+            error: err.message || 'Failed to scrape user list',
+          });
+          throw err; // Retry via SQS DLQ handling
         }
 
         if (userFilms.length === 0) {
-          if (jobId) {
-            await updateUserJob(username, {
-              status: 'failed',
-              error: 'No films found for user',
-            });
-          }
+          await updateUserJob(username, {
+            status: 'failed',
+            error: 'No films found for user',
+          });
           return;
         }
 
@@ -104,14 +98,11 @@ export const handler = async (event) => {
         // Actually, statusHandler checks counts. We can just save the list now.)
         // Note: The original logic didn't mark "completed" here, it relied on caching.
         // But we should store the list of films in the job so status handler knows what to check.
-        if (jobId) {
-          await updateUserJob(username, {
-            films: userFilms,
-            totalFilms: userFilms.length,
-            // We don't mark as 'ready' yet, the status handler derives readiness from DB presence
-            updatedAt: Math.floor(Date.now() / 1000),
-          });
-        }
+        await updateUserJob(username, {
+          films: userFilms,
+          totalFilms: userFilms.length,
+          updatedAt: Math.floor(Date.now() / 1000),
+        });
 
         console.log(`[ListScraper] Completed for ${username}`);
       } catch (error) {

@@ -1,19 +1,21 @@
 import { create } from 'zustand';
-import { pollMetricsStatus, fetchFullStats as apiFetchFullStats } from '@/lib/api';
-import type { UserStats, GenreGameData, MetricsResponse } from '@/lib/api';
+import { fetchFullStats as apiFetchFullStats } from '@/lib/api';
+import type { UserStats, GenreGameData } from '@/lib/api';
 
 interface UserState {
   username: string | null;
   userStats: UserStats | null;
   backgroundStatus: 'idle' | 'processing' | 'partial_ready' | 'ready';
+  hasStartedGame: boolean;
 
   // Actions
   setUsername: (username: string) => void;
+  setUserStats: (stats: UserStats) => void;
   setProcessing: (username: string) => void;
   setPartialReady: () => void;
   setReady: () => void;
+  setStartedGame: (started: boolean) => void;
   resetUser: () => void;
-  pollBackgroundStatus: () => Promise<(MetricsResponse & { isPartial?: boolean }) | null>;
   fetchFullStats: () => Promise<{ userStats: UserStats; genreGame: GenreGameData }>;
 }
 
@@ -21,49 +23,23 @@ export const useUserStore = create<UserState>((set, get) => ({
   username: null,
   userStats: null,
   backgroundStatus: 'idle',
+  hasStartedGame: false,
 
   setUsername: (username) => set({ username }),
+  setUserStats: (userStats) => set({ userStats }),
 
   setProcessing: (username) => set({ backgroundStatus: 'processing', username }),
   setPartialReady: () => set({ backgroundStatus: 'partial_ready' }),
   setReady: () => set({ backgroundStatus: 'ready' }),
+  setStartedGame: (started) => set({ hasStartedGame: started }),
 
   resetUser: () =>
     set({
       username: null,
       userStats: null,
       backgroundStatus: 'idle',
+      hasStartedGame: false,
     }),
-
-  pollBackgroundStatus: async () => {
-    const { username, backgroundStatus } = get();
-    // Continue polling during 'processing' and 'partial_ready' until we get 'ready'
-    if (!username || (backgroundStatus !== 'processing' && backgroundStatus !== 'partial_ready'))
-      return null;
-
-    try {
-      const data = await pollMetricsStatus(username);
-
-      // PROGRESSIVE LOADING HANDLING
-      if (data.status === 'partial_ready' && data.ratingGame) {
-        set({ backgroundStatus: 'partial_ready' });
-        return {
-          ...data,
-          isPartial: true,
-        };
-      }
-
-      // If ready, cache the stats
-      if (data.status === 'ready' && data.userStats) {
-        set({ userStats: data.userStats });
-      }
-
-      return data;
-    } catch (err) {
-      console.error('Failed to check status:', err);
-      return null;
-    }
-  },
 
   fetchFullStats: async () => {
     const { username, userStats } = get();

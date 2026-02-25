@@ -32,3 +32,9 @@ variable "receive_wait_time_seconds" {
   type        = number
   default     = 0
 }
+
+variable "max_receive_count" {
+  description = "The number of times a message is received before being sent to the DLQ"
+  type        = number
+  default     = 3
+}

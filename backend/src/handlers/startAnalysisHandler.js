@@ -1,5 +1,7 @@
 import { sendMessage } from '../services/sqsQueueService.js';
 import { putUserJob, getUserJob } from '../services/userJobService.js';
+import { batchGet } from '../services/dynamoDbService.js';
+import { GameService } from '../services/gameService.js';
 import { fetchWithRetry } from '../utils/http.js';
 
 export const handler = async (event) => {
@@ -21,9 +23,38 @@ export const handler = async (event) => {
 
     console.log(`Starting analysis for user: ${username}`);
 
-    // 0. Quick Existence Check
+    // 1. Check if valid job exists (TTL handles 24h expiry)
+    const cachedJob = await getUserJob(username);
+
+    if (cachedJob) {
+      // READY: Return full game data immediately — no polling needed
+      if (cachedJob.status === 'ready') {
+        console.log(`[StartAnalysis] Job is READY for ${username}. Returning full data.`);
+        return await buildReadyResponse(cachedJob);
+      }
+
+      // PROCESSING/PENDING: Already being worked on — tell frontend to poll
+      if (cachedJob.status === 'pending' || cachedJob.status === 'processing') {
+        console.log(
+          `[StartAnalysis] Job is ${cachedJob.status} for ${username}. Frontend should poll.`
+        );
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            status: 'processing',
+            username,
+            message: 'Analysis is in progress. Poll /analysis/status for updates.',
+          }),
+        };
+      }
+
+      // FAILED: Fall through to create a new job
+      console.log(`[StartAnalysis] Previous job failed for ${username}. Restarting.`);
+    }
+
+    // 2. Quick Existence Check (fire-and-forget style — proceed on non-404)
     try {
-      await fetchWithRetry(`https://letterboxd.com/${username}/`, {}, 1); // 1 attempt (0 retries) for speed
+      await fetchWithRetry(`https://letterboxd.com/${username}/`, {}, 1);
     } catch (err) {
       if (err.response?.status === 404) {
         console.warn(`[StartAnalysis] User not found: ${username}`);
@@ -32,52 +63,51 @@ export const handler = async (event) => {
           body: JSON.stringify({ error: `User not found: ${username}` }),
         };
       }
-      // Ignore other errors (e.g. 500, timeout) and let the scraper retry later?
-      // Or fail fast? Let's log and proceed if it's not a clear 404.
       console.warn(
         `[StartAnalysis] Existence check failed (non-404) for ${username}: ${err.message}`
       );
     }
 
-    // 1. Check if fresh job exists
-    const cachedJob = await getUserJob(username);
-    let jobId;
+    // 3. Create new job state (PENDING) with conditional write
+    const created = await putUserJob(username, [], { status: 'pending' });
 
-    // Reuse if recent (< 1 hour) AND not failed
-    if (
-      cachedJob &&
-      cachedJob.status !== 'failed' &&
-      Math.floor(Date.now() / 1000) - cachedJob.createdAt < 3600
-    ) {
-      console.log(
-        `[StartAnalysis] Reuse existing valid job for ${username} (Status: ${cachedJob.status}, Films: ${cachedJob.films?.length})`
-      );
-      jobId = cachedJob.jobId;
-    } else {
-      // Create new job state (PENDING)
-      jobId = await putUserJob(username, [], { status: 'pending' }); // Empty films list initially
-
-      // 2. Dispatch to List Scrape Queue
-      if (process.env.SQS_LIST_QUEUE_URL) {
-        console.log(`[StartAnalysis] Dispatching list scrape task for ${username}`);
-        await sendMessage(process.env.SQS_LIST_QUEUE_URL, {
-          action: 'scrape_user_list',
-          username,
-          jobId,
-        });
-      } else {
-        console.error('[StartAnalysis] SQS_LIST_QUEUE_URL not set!');
-        return { statusCode: 500, body: JSON.stringify({ error: 'Configuration error' }) };
+    if (!created) {
+      // Race condition: another request already created the job
+      // Re-read and return current status
+      const existingJob = await getUserJob(username);
+      if (existingJob) {
+        if (existingJob.status === 'ready') {
+          return await buildReadyResponse(existingJob);
+        }
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            status: 'processing',
+            username,
+            message: 'Analysis is in progress. Poll /analysis/status for updates.',
+          }),
+        };
       }
     }
 
-    // 3. Return Accepted (202)
+    // 4. Dispatch to List Scrape Queue
+    if (process.env.SQS_LIST_QUEUE_URL) {
+      console.log(`[StartAnalysis] Dispatching list scrape task for ${username}`);
+      await sendMessage(process.env.SQS_LIST_QUEUE_URL, {
+        action: 'scrape_user_list',
+        username,
+      });
+    } else {
+      console.error('[StartAnalysis] SQS_LIST_QUEUE_URL not set!');
+      return { statusCode: 500, body: JSON.stringify({ error: 'Configuration error' }) };
+    }
+
+    // 5. Return Accepted (202) — frontend should start polling
     return {
       statusCode: 202,
       body: JSON.stringify({
         status: 'accepted',
         message: 'Analysis queued',
-        jobId,
         username,
       }),
     };
@@ -89,3 +119,39 @@ export const handler = async (event) => {
     };
   }
 };
+
+/**
+ * Builds a full "ready" response by fetching film metadata and generating all game data.
+ * Used when the cached job is already in "ready" state.
+ */
+async function buildReadyResponse(job) {
+  const FILMS_TABLE = process.env.FILMS_TABLE;
+  const userFilms = job.films || [];
+
+  if (!FILMS_TABLE || userFilms.length === 0) {
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ status: 'ready', progress: 1, userStats: {} }),
+    };
+  }
+
+  // Fetch film metadata from DynamoDB
+  const filmSlugStrings = userFilms.map((f) => f.slug);
+  const uniqueSlugs = [...new Set(filmSlugStrings)].map((slug) => ({ slug }));
+  const dbItems = await batchGet(FILMS_TABLE, uniqueSlugs);
+  const metadataMap = new Map();
+  dbItems.forEach((item) => metadataMap.set(item.slug, item));
+
+  // Generate all game data
+  const minFilms = 5;
+  const gameData = await GameService.generateAll(userFilms, metadataMap, minFilms);
+
+  return {
+    statusCode: 200,
+    body: JSON.stringify({
+      status: 'ready',
+      progress: 1,
+      ...gameData,
+    }),
+  };
+}
