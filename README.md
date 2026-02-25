@@ -1,0 +1,294 @@
+# Letterboxd Analysis 🍿
+
+A serverless web application that analyzes a user's Letterboxd profile, scrapes their film data, and generates interactive mini-games and statistics about their cinematic tastes.
+
+Built with **Next.js** for the frontend and **AWS Serverless** (API Gateway, Lambda, SQS, DynamoDB) for the backend, deployed completely via **Terraform** and **GitHub Actions**.
+
+---
+
+## 🏗️ Architecture Overview
+
+The backend uses a smart, event-driven serverless architecture designed to handle slow scraping tasks asynchronously while providing instant feedback to the user.
+
+![AWS Architecture](docs/architecture.png)
+
+### Key Technologies
+
+- **Frontend**: Next.js (React), Tailwind CSS, Framer Motion, Zustand
+- **Compute**: AWS Lambda (Container Image / ARM64), Puppeteer (Chromium) for scraping
+- **Messaging**: Amazon SQS + Dead Letter Queues (DLQs)
+- **Database**: Amazon DynamoDB (PAY_PER_REQUEST, TTL-enabled)
+- **Infrastructure as Code**: Terraform / Terragrunt
+- **CI/CD**: GitHub Actions (OIDC, matrix deployments)
+
+---
+
+## 🚦 Application Logic Flow
+
+The system employs a "Smart Start" and "Polling" design pattern. Because scraping a user's entire Letterboxd history can take several minutes, the backend instantly returns a `202 Accepted` or `200 Processing` state, instructing the frontend to poll for partial and complete results.
+
+### Full System Flow
+
+```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "primaryColor": "#1a1a2e",
+    "primaryTextColor": "#fff",
+    "primaryBorderColor": "#16213e",
+    "lineColor": "#457b9d",
+    "secondaryColor": "#0f3460",
+    "tertiaryColor": "#e2e8f0",
+    "fontSize": "13px",
+    "fontFamily": "Inter, Helvetica, sans-serif"
+  },
+  "flowchart": {
+    "htmlLabels": true,
+    "curve": "basis",
+    "nodeSpacing": 50,
+    "rankSpacing": 55,
+    "padding": 18
+  }
+}}%%
+
+flowchart TD
+    %% ═══════════════════════════════════════════
+    %% CLIENT LAYER
+    %% ═══════════════════════════════════════════
+    subgraph CLIENT["Client Layer"]
+        direction TB
+        USER_INPUT["User enters username"]
+        POST_REQ["POST /analysis<br/><b>Body:</b> {username}"]
+        USER_INPUT --> POST_REQ
+    end
+
+    APIGW{{"API Gateway<br/>HTTP API v2 | 30s timeout"}}
+    POST_REQ --> APIGW
+
+    %% ═══════════════════════════════════════════
+    %% START LAMBDA — Decision Tree
+    %% ═══════════════════════════════════════════
+    subgraph START["Start Lambda — 2048 MB | 30s timeout"]
+        direction TB
+        S1["getUserJob(username)<br/>from UserJobs table"]
+        S_DEC{Job exists<br/>in DynamoDB?}
+        S1 --> S_DEC
+
+        %% Ready Path
+        S_DEC -->|"status = ready<br/>(TTL still valid)"| S_READY
+        S_READY["batchGet all Films<br/>generateAllGames()"]
+        S_READY --> S_READY_R["200 OK<br/>{status: ready,<br/>ratingGame, genreGame,<br/>genreMatchingGame,<br/>themeGame, userStats}"]
+
+        %% In-Progress Path
+        S_DEC -->|"status = pending<br/>or processing"| S_PROC_R
+        S_PROC_R["200 OK<br/>{status: processing}<br/><i>No SQS dispatch</i>"]
+
+        %% New Job Path
+        S_DEC -->|"No job found<br/>or status = failed"| S_VALIDATE
+        S_VALIDATE["HEAD letterboxd.com/username"]
+        S_VALIDATE --> S_EXISTS{User exists<br/>on Letterboxd?}
+        S_EXISTS -->|"No (404)"| S_404["404 Not Found<br/>{error: User not found}"]
+        S_EXISTS -->|"Yes"| S_PUT
+        S_PUT["putUserJob(username, pending)<br/><b>Condition:</b> attribute_not_exists(username)"]
+        S_PUT --> S_COND{Write<br/>succeeded?}
+        S_COND -->|"Yes"| S_SQS["sendMessage to<br/>list-scrape-queue"]
+        S_SQS --> S_202["202 Accepted<br/>{status: accepted}"]
+        S_COND -->|"ConditionalCheckFailed<br/>(race condition)"| S_RACE["Re-read job<br/>return current status"]
+    end
+
+    APIGW -->|"POST /analysis"| S1
+
+    %% ═══════════════════════════════════════════
+    %% FRONTEND — Response Handler
+    %% ═══════════════════════════════════════════
+    subgraph FE_RESP["Frontend — Response Handler (page.tsx)"]
+        direction TB
+        FE_DEC{HTTP Status<br/>+ body.status?}
+        FE_INSTANT["Hydrate ALL stores<br/>instantly (skip polling)<br/>Show PreAnalysis"]
+        FE_POLL_A["Start polling<br/>GET /analysis/status<br/>every 3 seconds"]
+        FE_POLL_B["Start polling<br/>GET /analysis/status<br/>every 3 seconds"]
+        FE_ERR_404["Show: Who is that?"]
+        FE_ERR_400["Show: Username required"]
+
+        FE_DEC -->|"200 + ready<br/>+ ratingGame data"| FE_INSTANT
+        FE_DEC -->|"200 + processing"| FE_POLL_A
+        FE_DEC -->|"202 + accepted"| FE_POLL_B
+        FE_DEC -->|"404"| FE_ERR_404
+        FE_DEC -->|"400"| FE_ERR_400
+    end
+
+    S_READY_R --> FE_DEC
+    S_PROC_R --> FE_DEC
+    S_202 --> FE_DEC
+    S_404 --> FE_DEC
+
+    %% ═══════════════════════════════════════════
+    %% POLLING — Status Lambda
+    %% ═══════════════════════════════════════════
+    FE_POLL_A --> POLL_REQ
+    FE_POLL_B --> POLL_REQ
+
+    subgraph POLL["Polling Loop"]
+        POLL_REQ["GET /analysis/status<br/>?username=X&minFilms=5"]
+    end
+
+    POLL_REQ --> APIGW
+
+    subgraph STATUS["Status Lambda — 1024 MB | 30s timeout"]
+        direction TB
+        ST1["getUserJob(username)"]
+        ST_DEC{Job exists?}
+        ST1 --> ST_DEC
+        ST_DEC -->|"No"| ST_NF["200 OK<br/>{status: not_found}"]
+
+        ST_DEC -->|"Yes"| ST_PROC{status =<br/>processing?}
+
+        %% Stuck Detection
+        ST_PROC -->|"Yes"| ST_STUCK{updatedAt ><br/>3 min ago?}
+        ST_STUCK -->|"Yes — STUCK"| ST_HEAL["deleteUserJob()<br/>Self-healing"]
+        ST_HEAL --> ST_NF2["200 OK<br/>{status: not_found}"]
+        ST_STUCK -->|"No — Still working"| ST_FILMS
+
+        ST_PROC -->|"ready / other"| ST_FILMS
+
+        %% Film Metadata Count
+        ST_FILMS["batchGet Films<br/>count metadata"]
+        ST_FILMS --> ST_COUNT{Films with<br/>metadata?}
+
+        ST_COUNT -->|"ALL films<br/>have metadata"| ST_GEN
+        ST_GEN["generateAllGames()<br/>updateUserJob(ready)"]
+        ST_GEN --> ST_READY_R["200 OK<br/>{status: ready,<br/>ratingGame, genreGame,<br/>genreMatchingGame,<br/>themeGame, userStats}"]
+
+        ST_COUNT -->|"&ge; minFilms (5)<br/>but not all"| ST_PART
+        ST_PART["generatePartialRatingGame()"]
+        ST_PART --> ST_PART_R["200 OK<br/>{status: partial_ready,<br/>ratingGame, progress}"]
+
+        ST_COUNT -->|"&lt; minFilms"| ST_WAIT
+        ST_WAIT["200 OK<br/>{status: processing,<br/>progress: 0.XX}"]
+    end
+
+    APIGW -->|"GET /analysis/status"| ST1
+
+    %% ═══════════════════════════════════════════
+    %% FRONTEND — Polling Store
+    %% ═══════════════════════════════════════════
+    subgraph FE_STORE["Frontend — Polling Store (pollingStore.ts)"]
+        direction TB
+        PS_DEC{status in<br/>response?}
+        PS_READY["Stop polling<br/>Hydrate ALL game stores<br/>setReady()"]
+        PS_PARTIAL["Hydrate ratingGame only<br/>(user can start playing)<br/>Continue polling"]
+        PS_PROC["Continue polling<br/>No action"]
+        PS_ERR["Stop polling<br/>resetUser()"]
+
+        PS_DEC -->|"ready"| PS_READY
+        PS_DEC -->|"partial_ready"| PS_PARTIAL
+        PS_DEC -->|"processing"| PS_PROC
+        PS_DEC -->|"not_found<br/>or error"| PS_ERR
+    end
+
+    ST_READY_R --> PS_DEC
+    ST_PART_R --> PS_DEC
+    ST_WAIT --> PS_DEC
+    ST_NF --> PS_DEC
+    ST_NF2 --> PS_DEC
+
+    PS_PROC -.->|"Next tick<br/>(3s)"| POLL_REQ
+
+    %% ═══════════════════════════════════════════
+    %% ASYNC SCRAPING PIPELINE
+    %% ═══════════════════════════════════════════
+    subgraph PIPELINE["Async Scraping Pipeline"]
+        direction LR
+
+        subgraph LSQ["SQS: list-scrape-queue<br/>visibility: 900s | retention: 24h"]
+            LQ_MSG["Message: {username}"]
+        end
+
+        subgraph LS["List Scraper Lambda<br/>Chromium | 2048 MB | 900s"]
+            LS1["Launch headless Chromium"]
+            LS2["Scrape letterboxd.com/<br/>username/films"]
+            LS3["Extract film slugs<br/>+ user ratings"]
+            LS4["updateUserJob:<br/>films = [...], status = processing"]
+            LS5["Fan-out: sendMessageBatch<br/>to film-scrape-queue<br/>(batches of 10)"]
+            LS1 --> LS2 --> LS3 --> LS4 --> LS5
+        end
+
+        subgraph FSQ["SQS: film-scrape-queue<br/>visibility: 360s | retention: 24h"]
+            FQ_MSG["Message: [slug1, slug2, ...]"]
+        end
+
+        subgraph WK["Film Worker Lambda<br/>Chromium | 2048 MB | 360s"]
+            W1["For each slug in batch"]
+            W2{Film exists<br/>in Films table?}
+            W3["SKIP — already scraped<br/>(idempotent)"]
+            W4["Scrape letterboxd.com<br/>/film/slug"]
+            W5["Extract: title, year, poster,<br/>genres, themes,<br/>communityRating"]
+            W6["putItem to Films table"]
+            W1 --> W2
+            W2 -->|"Yes"| W3
+            W2 -->|"No"| W4
+            W4 --> W5 --> W6
+        end
+
+        LQ_MSG --> LS1
+        LS5 --> FQ_MSG
+        FQ_MSG --> W1
+    end
+
+    S_SQS --> LQ_MSG
+
+    %% ═══════════════════════════════════════════
+    %% DYNAMODB TABLES
+    %% ═══════════════════════════════════════════
+    subgraph DB["DynamoDB — PAY_PER_REQUEST | SSE Enabled"]
+        direction LR
+        subgraph UJ_TBL["UserJobs"]
+            UJ_S["PK: username<br/>status | films[] | createdAt<br/>updatedAt | ttl (24h)"]
+        end
+        subgraph FI_TBL["Films"]
+            FI_S["PK: slug<br/>title | year | poster<br/>genres | themes<br/>communityRating | ttl (24h)"]
+        end
+    end
+
+    LS4 -->|"Update"| UJ_S
+    W6 -->|"Put"| FI_S
+
+    %% ═══════════════════════════════════════════
+    %% DEAD LETTER QUEUES
+    %% ═══════════════════════════════════════════
+    subgraph DLQ["Dead Letter Queues — 14 day retention"]
+        direction LR
+        DLQ_LIST["list-scrape-queue-dlq"]
+        DLQ_FILM["film-scrape-queue-dlq"]
+    end
+
+    LQ_MSG -->|"After 3 failures"| DLQ_LIST
+    FQ_MSG -->|"After 3 failures"| DLQ_FILM
+
+    %% ═══════════════════════════════════════════
+    %% STYLING
+    %% ═══════════════════════════════════════════
+    classDef ready fill:#2d6a4f,color:#fff,stroke:#1b4332,stroke-width:2px
+    classDef processing fill:#1d3557,color:#fff,stroke:#0d1b2a,stroke-width:2px
+    classDef partial fill:#e76f51,color:#fff,stroke:#c4533a,stroke-width:2px
+    classDef error fill:#c1121f,color:#fff,stroke:#780000,stroke-width:2px
+    classDef instant fill:#7209b7,color:#fff,stroke:#560bad,stroke-width:2px
+    classDef dlq fill:#6c757d,color:#fff,stroke:#495057,stroke-width:2px
+    classDef accepted fill:#e9c46a,color:#1a1a2e,stroke:#d4a030,stroke-width:2px
+
+    class S_READY_R,ST_READY_R,PS_READY ready
+    class S_PROC_R,FE_POLL_A,FE_POLL_B,PS_PROC processing
+    class ST_PART_R,PS_PARTIAL partial
+    class S_404,FE_ERR_404,FE_ERR_400,ST_NF,ST_NF2,PS_ERR error
+    class FE_INSTANT instant
+    class DLQ_LIST,DLQ_FILM dlq
+    class S_202 accepted
+```
+
+## 🛠️ Infrastructure & CI/CD
+
+- **Infrastructure as Code**: Everything under AWS is managed via `/infra` using **Terragrunt/Terraform**.
+- **CI/CD Pipelines**: Managed via GitHub Actions `.github/workflows`.
+  - Validates formatting (`make format`, `make lint`) and runs 50+ backend E2E/Unit tests using Vitest (`npm run test`).
+  - Uses `dorny/paths-filter` to trigger selective matrix builds to only compile Lambdas whose dependencies change.
+  - Automatically pushes ARM64 Docker images to Amazon ECR and deploys via Terragrunt `apply`.
