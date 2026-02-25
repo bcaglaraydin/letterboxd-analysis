@@ -30,7 +30,7 @@ inputs = {
   function_name = "letterboxd-analysis-start-dev"
   image_uri     = "${dependency.ecr.outputs.repository_url}:${get_env("IMAGE_TAG", "latest")}"
   environment   = "dev"
-  memory_size   = 2048
+  memory_size   = 256
   timeout       = 30
 
   environment_variables = {
