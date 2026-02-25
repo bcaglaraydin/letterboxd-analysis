@@ -7,10 +7,11 @@ const sqsClient = new SQSClient({ region: process.env.AWS_REGION || 'us-east-1' 
  * @param {string} queueUrl - The URL of the SQS queue.
  * @param {Object} message - The message body object (will be JSON stringified).
  */
-export async function sendMessage(queueUrl, message) {
+export async function sendMessage(queueUrl, message, attributes = {}) {
   const command = new SendMessageCommand({
     QueueUrl: queueUrl,
     MessageBody: JSON.stringify(message),
+    MessageAttributes: attributes,
   });
 
   try {
@@ -28,7 +29,7 @@ export async function sendMessage(queueUrl, message) {
  * @param {string} queueUrl - The URL of the SQS queue.
  * @param {Array} messages - Array of message objects (must be JSON serializable).
  */
-export async function sendMessageBatch(queueUrl, messages) {
+export async function sendMessageBatch(queueUrl, messages, attributes = {}) {
   if (!messages || messages.length === 0) return;
 
   // SQS Batch limit is 10
@@ -38,6 +39,7 @@ export async function sendMessageBatch(queueUrl, messages) {
     const entries = batch.map((msg, index) => ({
       Id: `${i + index}`,
       MessageBody: JSON.stringify(msg),
+      MessageAttributes: attributes,
     }));
 
     const command = new SendMessageBatchCommand({

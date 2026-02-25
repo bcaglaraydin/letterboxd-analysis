@@ -2,11 +2,13 @@ import { scrapeUserFilmsList } from '../services/letterboxdScrapingService.js';
 import { sendMessageBatch } from '../services/sqsQueueService.js';
 import { updateUserJob } from '../services/userJobService.js';
 import { batchGet } from '../services/dynamoDbService.js';
+import { Logger } from '../utils/logger.js';
 
 const FILMS_TABLE = process.env.FILMS_TABLE;
 
-export const handler = async (event) => {
-  console.log(`[ListScraper] Received ${event.Records.length} messages`);
+export const handler = async (event, context) => {
+  Logger.init(event, context);
+  Logger.info(`Received ${event.Records.length} messages`);
 
   const batchItemFailures = [];
 
@@ -17,24 +19,24 @@ export const handler = async (event) => {
         const { action, username } = body;
 
         if (action === 'test_browser') {
-          console.log('[ListScraper] Running browser test...');
+          Logger.info('Running browser test...');
           try {
             const { fetchHtmlWithBrowser } = await import('../utils/browser.js');
             const html = await fetchHtmlWithBrowser('https://example.com');
-            console.log(`[ListScraper] Browser Test Success. HTML Length: ${html.length}`);
+            Logger.info(`Browser Test Success. HTML Length: ${html.length}`);
           } catch (e) {
-            console.error('[ListScraper] Browser Test Failed:', e);
+            Logger.error('Browser Test Failed', e);
             throw e;
           }
           return;
         }
 
         if (action !== 'scrape_user_list' || !username) {
-          console.warn('[ListScraper] Invalid message:', body);
+          Logger.warn('Invalid message', { body });
           return;
         }
 
-        console.log(`[ListScraper] Starting list scrape for: ${username}`);
+        Logger.info(`Starting list scrape`, { username });
 
         // 1. Update Job Status -> Processing
         await updateUserJob(username, { status: 'processing' });
@@ -43,9 +45,9 @@ export const handler = async (event) => {
         let userFilms;
         try {
           userFilms = await scrapeUserFilmsList(username);
-          console.log(`[ListScraper] Found ${userFilms.length} films for ${username}`);
+          Logger.info(`Found ${userFilms.length} films for user`, { username });
         } catch (err) {
-          console.error(`[ListScraper] Scraping failed for ${username}:`, err);
+          Logger.error(`Scraping failed for user`, err, { username });
           await updateUserJob(username, {
             status: 'failed',
             error: err.message || 'Failed to scrape user list',
@@ -70,7 +72,7 @@ export const handler = async (event) => {
           try {
             dbItems = await batchGet(FILMS_TABLE, uniqueSlugs);
           } catch (err) {
-            console.error('[ListScraper] DynamoDB BatchGet failed:', err);
+            Logger.error('DynamoDB BatchGet failed', err, { username });
           }
         }
 
@@ -80,9 +82,9 @@ export const handler = async (event) => {
         const missingFilms = userFilms.filter((f) => !validSlugs.has(f.slug));
 
         if (process.env.SQS_QUEUE_URL && missingFilms.length > 0) {
-          console.log(
-            `[ListScraper] Dispatching ${missingFilms.length} missing films to worker queue...`
-          );
+          Logger.info(`Dispatching ${missingFilms.length} missing films to worker queue...`, {
+            username,
+          });
           const BATCH_SIZE = 10;
           const messages = [];
           for (let i = 0; i < missingFilms.length; i += BATCH_SIZE) {
@@ -91,7 +93,7 @@ export const handler = async (event) => {
           }
           await sendMessageBatch(process.env.SQS_QUEUE_URL, messages);
         } else {
-          console.log(`[ListScraper] All ${userFilms.length} films already cached in DB.`);
+          Logger.info(`All ${userFilms.length} films already cached in DB.`, { username });
         }
 
         // 4. Update Job with Film Data (and keep status processing/pending until films are scraped?
@@ -104,9 +106,9 @@ export const handler = async (event) => {
           updatedAt: Math.floor(Date.now() / 1000),
         });
 
-        console.log(`[ListScraper] Completed for ${username}`);
+        Logger.info(`Completed for user`, { username });
       } catch (error) {
-        console.error(`[ListScraper] Error processing message ${record.messageId}:`, error);
+        Logger.error(`Error processing message ${record.messageId}`, error);
         batchItemFailures.push({ itemIdentifier: record.messageId });
       }
     })

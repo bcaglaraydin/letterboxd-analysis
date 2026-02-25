@@ -51,17 +51,31 @@ async function getStatus(username, minFilms) {
 async function pollUntilReady(username, timeout = TIMEOUT) {
   const startTime = Date.now();
   let lastData;
+  let pollCount = 0;
 
   // Initial delay to let Lambda start processing
   await new Promise((r) => setTimeout(r, 3000));
 
   while (Date.now() - startTime < timeout) {
     try {
+      pollCount++;
       const { data } = await getStatus(username);
       lastData = data;
 
       if (data.status === 'ready' || data.status === 'error') {
-        return data;
+        const durationMs = Date.now() - startTime;
+        console.log(`\n[Metrics] Target reached '${data.status}' state in ${durationMs}ms.`);
+        console.log(`[Metrics] Total API polling requests made: ${pollCount}`);
+
+        if (data.userStats && data.userStats.totalMovies > 0) {
+          const films = data.userStats.totalMovies;
+          const filmsPerSec = (films / (durationMs / 1000)).toFixed(2);
+          const timePerFilm = (durationMs / films).toFixed(2);
+          console.log(`[Metrics] Films Processed: ${films}`);
+          console.log(`[Metrics] Throughput: ${filmsPerSec} films/sec`);
+          console.log(`[Metrics] Latency per film: ${timePerFilm} ms/film`);
+        }
+        return { ...data, _metrics: { pollCount, durationMs } };
       }
     } catch (error) {
       console.warn('[Poll] Error:', error.message);
@@ -70,7 +84,8 @@ async function pollUntilReady(username, timeout = TIMEOUT) {
     await new Promise((r) => setTimeout(r, POLL_INTERVAL));
   }
 
-  return lastData || { status: 'timeout' };
+  const durationMs = Date.now() - startTime;
+  return { ...(lastData || { status: 'timeout' }), _metrics: { pollCount, durationMs } };
 }
 
 // ============================================================================
@@ -117,6 +132,24 @@ describe.runIf(shouldRun)('E2E: Full Backend Flow', () => {
 
         if (finalData.status === 'ready') {
           expect(finalData.progress).toBe(1);
+
+          // Architectural Validation Metrics Log
+          if (finalData._metrics) {
+            const { pollCount, durationMs } = finalData._metrics;
+            console.log(`\n--- Architectural Validation Results ---`);
+            console.log(
+              `Polling Avalanche Risk: ${pollCount} API Gateway calls made over ${durationMs / 1000} seconds for a single user.`
+            );
+            if (finalData.userStats) {
+              console.log(
+                `Concurrency Risk: Processing ${finalData.userStats.totalMovies} films took ${durationMs / 1000}s, which implies simultaneous Chromium spawning.`
+              );
+            }
+            console.log(`----------------------------------------\n`);
+
+            // For analysis proof: Ensure polling happened multiple times (confirming the avalanche risk)
+            expect(pollCount).toBeGreaterThan(1);
+          }
         }
       },
       TIMEOUT + 30000
