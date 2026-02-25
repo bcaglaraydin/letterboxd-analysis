@@ -44,9 +44,9 @@ yarn-error.log*
 .vscode/
 .idea/
 
-docs/
-
 # Debug Artifacts
 **/debug_artifacts/
 
-*.md
+.agent/
+
+frontend/DESIGN_SYSTEM.md
