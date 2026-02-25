@@ -12,11 +12,17 @@ import {
 const client = new DynamoDBClient();
 const docClient = DynamoDBDocumentClient.from(client);
 
-export async function putItem(tableName, item) {
-  const command = new PutCommand({
+export async function putItem(tableName, item, options = {}) {
+  const commandInput = {
     TableName: tableName,
     Item: item,
-  });
+  };
+
+  if (options.conditionExpression) {
+    commandInput.ConditionExpression = options.conditionExpression;
+  }
+
+  const command = new PutCommand(commandInput);
   return docClient.send(command);
 }
 

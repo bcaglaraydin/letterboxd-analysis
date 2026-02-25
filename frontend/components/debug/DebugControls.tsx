@@ -8,7 +8,7 @@ import { useGenreOrchestrationStore, GenrePhase } from '@/store/genre/genreOrche
 import { useThemeStore } from '@/store/theme/themeStore';
 import { GAME_PHASES } from '@/lib/gameTypes';
 import { Bug, ChevronDown } from 'lucide-react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { MOCK_METRICS_RESPONSE, MOCK_RATING_MOVIES } from '@/mocks/data';
 
 export const DebugControls = () => {
@@ -16,14 +16,13 @@ export const DebugControls = () => {
   const { currentPhase, startRatingGame, startGenreGame, resetExperience } = useExperienceStore();
   const { phase: genrePhase, setPhase: setGenrePhase } = useGenreOrchestrationStore();
   const router = useRouter();
-  const pathname = usePathname();
 
   const handleAction = (action: () => void) => {
     ensureDebugState();
     action();
-    if (pathname !== '/game') {
-      router.push('/game');
-    }
+
+    // SPA mechanism: force the orchestrator to render
+    useUserStore.getState().setStartedGame(true);
   };
 
   const ensureDebugState = () => {

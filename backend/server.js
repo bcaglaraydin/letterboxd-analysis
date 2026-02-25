@@ -48,17 +48,17 @@ if (DEV_MODE) {
   // Direct list-scraper invocation (simulates SQS trigger)
   app.post('/dev/list-scraper', async (req, res) => {
     console.log('[DEV] Direct list-scraper call:', req.body);
-    const { username, jobId } = req.body;
+    const { username } = req.body;
 
-    if (!username || !jobId) {
-      return res.status(400).json({ error: 'username and jobId required' });
+    if (!username) {
+      return res.status(400).json({ error: 'username required' });
     }
 
     // Simulate SQS event format
     const sqsEvent = {
       Records: [
         {
-          body: JSON.stringify({ username, jobId }),
+          body: JSON.stringify({ action: 'scrape_user_list', username }),
         },
       ],
     };
@@ -75,7 +75,7 @@ if (DEV_MODE) {
   // Direct worker invocation (simulates SQS trigger)
   app.post('/dev/worker', async (req, res) => {
     console.log('[DEV] Direct worker call:', req.body);
-    const { filmSlugs, username, jobId } = req.body;
+    const { filmSlugs } = req.body;
 
     if (!filmSlugs || !Array.isArray(filmSlugs)) {
       return res.status(400).json({ error: 'filmSlugs array required' });
@@ -84,7 +84,7 @@ if (DEV_MODE) {
     // Simulate SQS batch event format
     const sqsEvent = {
       Records: filmSlugs.map((slug) => ({
-        body: JSON.stringify({ slug, username, jobId }),
+        body: JSON.stringify({ slug }),
       })),
     };
 
@@ -117,13 +117,12 @@ if (DEV_MODE) {
         return res.status(startResult.statusCode).json(startBody);
       }
 
-      const { jobId } = startBody;
-      console.log(`[DEV] Job created: ${jobId}`);
+      console.log(`[DEV] Job started for: ${username}`);
 
       // Step 2: Directly call list-scraper (bypass SQS)
       console.log('[DEV] Step 2: Calling list-scraper directly...');
       const listEvent = {
-        Records: [{ body: JSON.stringify({ username, jobId }) }],
+        Records: [{ body: JSON.stringify({ action: 'scrape_user_list', username }) }],
       };
       await listScraperHandler(listEvent);
 
@@ -131,7 +130,7 @@ if (DEV_MODE) {
       res.json({
         success: true,
         message: 'Full flow executed. Check /analysis/status for results.',
-        jobId,
+        username,
       });
     } catch (error) {
       console.error('[DEV] Full flow error:', error);

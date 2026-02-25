@@ -1,23 +1,21 @@
 import { putItem, getItem, updateItem, deleteItem } from './dynamoDbService.js';
-import { v4 as uuidv4 } from 'uuid';
 
 const TABLE_NAME = process.env.USER_JOBS_TABLE;
-const JOB_TTL_HOURS = 1;
+const JOB_TTL_HOURS = 24;
 
 /**
- * Creates or updates a user job.
+ * Creates a new user job. Uses conditional write to prevent race conditions.
  * @param {string} username - The user's Letterboxd username
  * @param {Array<Object>} films - List of film objects { slug, title, posterUrl, userRating }
  * @param {Object} options - Optional overrides (status, etc.)
- * @returns {Promise<string>} - The Job ID
+ * @returns {Promise<boolean>} - true if created, false if job already exists
  */
 export async function putUserJob(username, films = [], options = {}) {
   if (!TABLE_NAME) {
     console.warn('[UserJobService] USER_JOBS_TABLE not set.');
-    return null;
+    return false;
   }
 
-  const jobId = uuidv4();
   const now = Math.floor(Date.now() / 1000);
   const ttl = now + JOB_TTL_HOURS * 3600;
 
@@ -29,7 +27,6 @@ export async function putUserJob(username, films = [], options = {}) {
 
   const item = {
     username,
-    jobId,
     status: options.status || 'ready',
     totalFilms: films.length,
     films: optimizedFilms,
@@ -43,10 +40,15 @@ export async function putUserJob(username, films = [], options = {}) {
   item.totalFilms = films.length;
 
   try {
-    await putItem(TABLE_NAME, item);
-    console.log(`[UserJobService] Created job ${jobId} for ${username} (Status: ${item.status})`);
-    return jobId;
+    await putItem(TABLE_NAME, item, { conditionExpression: 'attribute_not_exists(username)' });
+    console.log(`[UserJobService] Created job for ${username} (Status: ${item.status})`);
+    return true;
   } catch (error) {
+    // ConditionalCheckFailedException means job already exists — not an error
+    if (error.name === 'ConditionalCheckFailedException') {
+      console.log(`[UserJobService] Job already exists for ${username}, skipping creation.`);
+      return false;
+    }
     console.error(`[UserJobService] Failed to put job for ${username}:`, error);
     throw error;
   }

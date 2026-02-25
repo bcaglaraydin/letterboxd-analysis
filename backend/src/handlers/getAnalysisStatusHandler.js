@@ -38,7 +38,7 @@ export const handler = async (event) => {
       }
 
       userFilms = job.films; // [{ slug, userRating }]
-      console.log(`[Status] Loaded ${userFilms.length} films from cache (Job: ${job.jobId})`);
+      console.log(`[Status] Loaded ${userFilms.length} films from cache (User: ${username})`);
 
       // SELF-HEALING: Check for Stuck Jobs (Processing > 3 mins)
       if (job.status === 'processing') {
@@ -48,7 +48,7 @@ export const handler = async (event) => {
 
         if (now - lastUpdated > MAX_PROCESSING_TIME) {
           console.warn(
-            `[Status] Job ${job.jobId} is STUCK (last update: ${now - lastUpdated}s ago). Auto-deleting.`
+            `[Status] Job for ${username} is STUCK (last update: ${now - lastUpdated}s ago). Auto-deleting.`
           );
           await deleteUserJob(username);
           return {

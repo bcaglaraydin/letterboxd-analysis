@@ -27,3 +27,8 @@ output "role_name" {
   description = "Name of the Lambda execution role"
   value       = aws_iam_role.iam_for_lambda.name
 }
+
+output "timeout" {
+  description = "Timeout of the Lambda function in seconds"
+  value       = aws_lambda_function.this.timeout
+}

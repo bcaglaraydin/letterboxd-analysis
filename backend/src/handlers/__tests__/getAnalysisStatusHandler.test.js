@@ -31,7 +31,7 @@ describe('getAnalysisStatusHandler', () => {
       { slug: 'film5', userRating: 1 },
       { slug: 'film6', userRating: 5 }, // 6th pending metadata
     ];
-    getUserJob.mockResolvedValue({ films: mockUserFilms, jobId: 'job-123' });
+    getUserJob.mockResolvedValue({ films: mockUserFilms });
 
     // Mock Metadata: 5 ready, 1 missing
     const mockDbItems = [
@@ -64,7 +64,7 @@ describe('getAnalysisStatusHandler', () => {
       { slug: 'film1', userRating: 5 },
       { slug: 'film2', userRating: 4 },
     ];
-    getUserJob.mockResolvedValue({ films: mockUserFilms, jobId: 'job-123' });
+    getUserJob.mockResolvedValue({ films: mockUserFilms });
 
     // Mock Metadata: All ready
     const mockDbItems = [
@@ -102,7 +102,7 @@ describe('getAnalysisStatusHandler', () => {
       { slug: 'film2', userRating: 5 },
       { slug: 'film3', userRating: 5 },
     ];
-    getUserJob.mockResolvedValue({ films: mockUserFilms, jobId: 'job-456' });
+    getUserJob.mockResolvedValue({ films: mockUserFilms });
 
     // Only 1 has metadata
     batchGet.mockResolvedValue([{ slug: 'film1', year: '2020' }]);
