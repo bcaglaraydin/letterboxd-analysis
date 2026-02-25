@@ -3,9 +3,11 @@ import { putUserJob, getUserJob } from '../services/userJobService.js';
 import { batchGet } from '../services/dynamoDbService.js';
 import { GameService } from '../services/gameService.js';
 import { fetchWithRetry } from '../utils/http.js';
+import { Logger } from '../utils/logger.js';
 
-export const handler = async (event) => {
-  console.log('StartAnalysis event:', JSON.stringify(event));
+export const handler = async (event, context) => {
+  Logger.init(event, context);
+  Logger.info('StartAnalysis invoked');
 
   try {
     let body = {};
@@ -15,13 +17,14 @@ export const handler = async (event) => {
 
     const username = body.username;
     if (!username) {
+      Logger.warn('Missing username in request');
       return {
         statusCode: 400,
         body: JSON.stringify({ error: 'Username is required' }),
       };
     }
 
-    console.log(`Starting analysis for user: ${username}`);
+    Logger.info(`Starting analysis for user: ${username}`, { username });
 
     // 1. Check if valid job exists (TTL handles 24h expiry)
     const cachedJob = await getUserJob(username);
@@ -29,15 +32,15 @@ export const handler = async (event) => {
     if (cachedJob) {
       // READY: Return full game data immediately — no polling needed
       if (cachedJob.status === 'ready') {
-        console.log(`[StartAnalysis] Job is READY for ${username}. Returning full data.`);
+        Logger.info(`Job is READY for ${username}. Returning full data.`, { username });
         return await buildReadyResponse(cachedJob);
       }
 
       // PROCESSING/PENDING: Already being worked on — tell frontend to poll
       if (cachedJob.status === 'pending' || cachedJob.status === 'processing') {
-        console.log(
-          `[StartAnalysis] Job is ${cachedJob.status} for ${username}. Frontend should poll.`
-        );
+        Logger.info(`Job is ${cachedJob.status} for ${username}. Frontend should poll.`, {
+          username,
+        });
         return {
           statusCode: 200,
           body: JSON.stringify({
@@ -49,7 +52,7 @@ export const handler = async (event) => {
       }
 
       // FAILED: Fall through to create a new job
-      console.log(`[StartAnalysis] Previous job failed for ${username}. Restarting.`);
+      Logger.info(`Previous job failed for ${username}. Restarting.`, { username });
     }
 
     // 2. Quick Existence Check (fire-and-forget style — proceed on non-404)
@@ -57,15 +60,13 @@ export const handler = async (event) => {
       await fetchWithRetry(`https://letterboxd.com/${username}/`, {}, 1);
     } catch (err) {
       if (err.response?.status === 404) {
-        console.warn(`[StartAnalysis] User not found: ${username}`);
+        Logger.warn(`User not found: ${username}`);
         return {
           statusCode: 404,
           body: JSON.stringify({ error: `User not found: ${username}` }),
         };
       }
-      console.warn(
-        `[StartAnalysis] Existence check failed (non-404) for ${username}: ${err.message}`
-      );
+      Logger.error(`Existence check failed (non-404) for ${username}`, err, { username });
     }
 
     // 3. Create new job state (PENDING) with conditional write
@@ -92,13 +93,25 @@ export const handler = async (event) => {
 
     // 4. Dispatch to List Scrape Queue
     if (process.env.SQS_LIST_QUEUE_URL) {
-      console.log(`[StartAnalysis] Dispatching list scrape task for ${username}`);
-      await sendMessage(process.env.SQS_LIST_QUEUE_URL, {
-        action: 'scrape_user_list',
-        username,
-      });
+      Logger.info(`Dispatching list scrape task to SQS`, { username, queue: 'list-scrape' });
+
+      const messageAttributes = {
+        correlationId: {
+          DataType: 'String',
+          StringValue: Logger.getCorrelationId(),
+        },
+      };
+
+      await sendMessage(
+        process.env.SQS_LIST_QUEUE_URL,
+        {
+          action: 'scrape_user_list',
+          username,
+        },
+        messageAttributes
+      );
     } else {
-      console.error('[StartAnalysis] SQS_LIST_QUEUE_URL not set!');
+      Logger.error('SQS_LIST_QUEUE_URL not set!');
       return { statusCode: 500, body: JSON.stringify({ error: 'Configuration error' }) };
     }
 

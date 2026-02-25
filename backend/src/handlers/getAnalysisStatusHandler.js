@@ -1,8 +1,10 @@
 import { batchGet } from '../services/dynamoDbService.js';
 import { getUserJob, updateUserJob, deleteUserJob } from '../services/userJobService.js';
 import { GameService } from '../services/gameService.js';
+import { Logger } from '../utils/logger.js';
 
-export const handler = async (event) => {
+export const handler = async (event, context) => {
+  Logger.init(event, context);
   try {
     const FILMS_TABLE = process.env.FILMS_TABLE;
     const username = event.queryStringParameters?.username;
@@ -27,7 +29,7 @@ export const handler = async (event) => {
       if (!job || !job.films) {
         // Option A: Return "Not Found" logic (Frontend should restart)
         // Option B: Fallback to scraping (Removed to enforce cleaner architecture)
-        console.warn(`[Status] No active job found for ${username}`);
+        Logger.warn(`No active job found for ${username}`, { username });
         return {
           statusCode: 200, // Return 200 with specific status so frontend handles it gently
           body: JSON.stringify({
@@ -38,7 +40,7 @@ export const handler = async (event) => {
       }
 
       userFilms = job.films; // [{ slug, userRating }]
-      console.log(`[Status] Loaded ${userFilms.length} films from cache (User: ${username})`);
+      Logger.info(`Loaded ${userFilms.length} films from cache`, { username });
 
       // SELF-HEALING: Check for Stuck Jobs (Processing > 3 mins)
       if (job.status === 'processing') {
@@ -47,9 +49,9 @@ export const handler = async (event) => {
         const lastUpdated = job.updatedAt || job.createdAt;
 
         if (now - lastUpdated > MAX_PROCESSING_TIME) {
-          console.warn(
-            `[Status] Job for ${username} is STUCK (last update: ${now - lastUpdated}s ago). Auto-deleting.`
-          );
+          Logger.warn(`Job is STUCK (last update: ${now - lastUpdated}s ago). Auto-deleting.`, {
+            username,
+          });
           await deleteUserJob(username);
           return {
             statusCode: 200,
@@ -84,7 +86,7 @@ export const handler = async (event) => {
         };
       }
     } catch (error) {
-      console.error(`[Status] Failed to load job:`, error);
+      Logger.error(`Failed to load job`, error, { username });
       return {
         statusCode: 500,
         body: JSON.stringify({ error: 'Internal Server Error' }),
@@ -114,8 +116,9 @@ export const handler = async (event) => {
 
     // Threshold: If we expect > 10 films but found < 5% of them, and job says it has films...
     if (expectedCount > 10 && foundCount < expectedCount * 0.05) {
-      console.warn(
-        `[Status] DATA INCONSISTENCY! Expected ${expectedCount} films, found ${foundCount}. Auto-deleting job.`
+      Logger.warn(
+        `DATA INCONSISTENCY! Expected ${expectedCount} films, found ${foundCount}. Auto-deleting job.`,
+        { username }
       );
       await deleteUserJob(username);
       return {
@@ -146,16 +149,12 @@ export const handler = async (event) => {
     const progress = totalRatedFilms > 0 ? ratedFilmsWithMetadata / totalRatedFilms : 0;
     const isReady = progress >= 1;
 
-    console.log(
-      `[Status] ${username}: ${ratedFilmsWithMetadata}/${totalRatedFilms} rated films have metadata. Ready: ${isReady}`
-    );
-
     // 4. PROGRESSIVE LOADING: Return partial_ready if we have enough for game
     if (!isReady) {
       if (ratedFilmsWithMetadata >= minFilms) {
-        console.log(
-          `[Status] Partial Ready: ${username} has ${ratedFilmsWithMetadata}/${minFilms} min films.`
-        );
+        Logger.info(`Partial Ready: has ${ratedFilmsWithMetadata}/${minFilms} min films.`, {
+          username,
+        });
 
         // Generate Rating Game with available data using GameService
         const ratingGameData = await GameService.generatePartialRatingGame(
@@ -184,21 +183,20 @@ export const handler = async (event) => {
     }
 
     // 5. Generate Stats & Games (100% Ready)
-    console.log(
-      `[Status] READY: ${username} has ${ratedFilmsWithMetadata}/${totalRatedFilms} films.`
-    );
+    Logger.info(`READY: ${ratedFilmsWithMetadata}/${totalRatedFilms} films processed.`, {
+      username,
+    });
 
     // PERSISTENCE FIX: Mark job as ready in DB so it doesn't get auto-deleted as "stuck"
     if (job.status !== 'ready') {
       try {
-        console.log(`[Status] Updating job ${username} to ready...`);
         await updateUserJob(username, {
           status: 'ready',
           updatedAt: Math.floor(Date.now() / 1000),
         });
-        console.log(`[Status] Job ${username} marked as ready.`);
+        Logger.info(`Job marked as ready.`, { username });
       } catch (updateErr) {
-        console.error(`[Status] Failed to update job status for ${username}:`, updateErr);
+        Logger.error(`Failed to update job status`, updateErr, { username });
         // Soft fail - don't block the response, but log it
       }
     }
@@ -215,7 +213,7 @@ export const handler = async (event) => {
       }),
     };
   } catch (error) {
-    console.error('Status Handler Error:', error);
+    Logger.error('Status Handler Error', error);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Failed to check status' }),

@@ -1,11 +1,13 @@
 import { scrapeFilmDetails } from '../services/letterboxdScrapingService.js';
 import { putItem, getItem } from '../services/dynamoDbService.js';
+import { Logger } from '../utils/logger.js';
 
 const FILMS_TABLE = process.env.FILMS_TABLE;
 const TTL_HOURS = 24;
 
-export const handler = async (event) => {
-  console.log(`Worker received ${event.Records.length} messages`);
+export const handler = async (event, context) => {
+  Logger.init(event, context);
+  Logger.info(`Worker received ${event.Records.length} messages`);
 
   const batchItemFailures = [];
 
@@ -18,7 +20,7 @@ export const handler = async (event) => {
         if (body.action === 'scrape_batch') {
           const { slugs } = body;
           if (!slugs || !Array.isArray(slugs)) {
-            console.warn('Batch message missing slugs array:', body);
+            Logger.warn('Batch message missing slugs array', { body });
             return;
           }
           await handleBatchFilmScrape(slugs);
@@ -33,9 +35,9 @@ export const handler = async (event) => {
           return;
         }
 
-        console.warn('Message missing slug or unknown action:', body);
+        Logger.warn('Message missing slug or unknown action', { body });
       } catch (error) {
-        console.error(`Error processing message ${record.messageId}:`, error);
+        Logger.error(`Error processing message ${record.messageId}`, error);
         batchItemFailures.push({ itemIdentifier: record.messageId });
       }
     })
@@ -50,17 +52,17 @@ export const handler = async (event) => {
 async function handleBatchFilmScrape(slugs) {
   if (!slugs || slugs.length === 0) return;
 
-  console.log(`[Worker] Starting Batch Scrape for ${slugs.length} films...`);
+  Logger.info(`Starting Batch Scrape for ${slugs.length} films...`);
 
   for (const slug of slugs) {
     try {
       await handleFilmScrape(slug);
     } catch (err) {
-      console.error(`[Worker] Failed to scrape ${slug} in batch:`, err);
+      Logger.error(`Failed to scrape ${slug} in batch`, err, { slug });
       // Continue to next film in batch
     }
   }
-  console.log(`[Worker] Batch Scrape Complete.`);
+  Logger.info(`Batch Scrape Complete.`);
 }
 
 /**
@@ -73,19 +75,19 @@ async function handleFilmScrape(slug) {
   if (FILMS_TABLE) {
     const existing = await getItem(FILMS_TABLE, { slug });
     if (existing && existing.year && existing.year !== '????') {
-      console.log(`[Worker] Film already exists (Skipping): ${slug}`);
+      Logger.info(`Film already exists (Skipping): ${slug}`, { slug });
       return;
     }
   }
 
   // 2. Scrape film details
-  console.log(`[Worker] Scraping details for: ${slug}`);
+  Logger.info(`Scraping details for: ${slug}`, { slug });
   const filmDetails = await scrapeFilmDetails(slug, url);
 
   // 3. Store in DynamoDB with TTL
   const ttl = Math.floor(Date.now() / 1000) + TTL_HOURS * 60 * 60;
   if (FILMS_TABLE) {
     await putItem(FILMS_TABLE, { ...filmDetails, ttl });
-    console.log(`[Worker] Stored film: ${slug}`);
+    Logger.info(`Stored film: ${slug}`, { slug });
   }
 }

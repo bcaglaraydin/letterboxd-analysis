@@ -120,10 +120,19 @@ describe('startAnalysisHandler', () => {
     expect(body.status).toBe('accepted');
     expect(body.username).toBe('testuser');
     expect(putUserJob).toHaveBeenCalledWith('testuser', [], { status: 'pending' });
-    expect(sendMessage).toHaveBeenCalledWith(process.env.SQS_LIST_QUEUE_URL, {
-      action: 'scrape_user_list',
-      username: 'testuser',
-    });
+    expect(sendMessage).toHaveBeenCalledWith(
+      process.env.SQS_LIST_QUEUE_URL,
+      {
+        action: 'scrape_user_list',
+        username: 'testuser',
+      },
+      expect.objectContaining({
+        correlationId: expect.objectContaining({
+          DataType: 'String',
+          StringValue: expect.any(String),
+        }),
+      })
+    );
   });
 
   it('should restart when previous job failed', async () => {
