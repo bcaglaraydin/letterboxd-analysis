@@ -33,8 +33,10 @@ inputs = {
     BROWSER_CONCURRENCY = "10"
   }
 
+  reserved_concurrent_executions = 5
+
   sqs_event_source_arn = dependency.sqs.outputs.queue_arn
-  sqs_batch_size       = 10
+  sqs_batch_size       = 2
   sqs_batch_window     = 0
 
   policy_arns = [
