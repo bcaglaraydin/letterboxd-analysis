@@ -10,7 +10,7 @@ FROM public.ecr.aws/lambda/nodejs:22
 COPY package*.json ${LAMBDA_TASK_ROOT}/
 
 # Install production dependencies only
-RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev && npm cache clean --force
+RUN npm ci --omit=dev && npm cache clean --force
 
 # Copy application source code
 COPY src/ ${LAMBDA_TASK_ROOT}/src/
