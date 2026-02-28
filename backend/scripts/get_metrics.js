@@ -31,10 +31,7 @@ async function fetchMetrics() {
     'letterboxd-analysis-worker-dev',
   ];
 
-  const queues = [
-    'letterboxd-analysis-list-scrape-queue-dev',
-    'letterboxd-analysis-film-scrape-queue-dev',
-  ];
+  const queues = ['list-scrape-queue', 'film-scrape-queue'];
 
   let totalBilledGbSeconds = 0;
   let totalInvocations = 0;
