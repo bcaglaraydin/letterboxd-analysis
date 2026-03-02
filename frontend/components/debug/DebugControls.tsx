@@ -194,6 +194,19 @@ export const DebugControls = () => {
                     Jump to Theme Sorting
                   </button>
                 </div>
+
+                <div className="grid grid-cols-1 gap-1 mt-2">
+                  <button
+                    onClick={() =>
+                      handleAction(() => {
+                        useExperienceStore.setState({ currentPhase: GAME_PHASES.HABITS });
+                      })
+                    }
+                    className="px-2 py-1 bg-orange-900/50 hover:bg-orange-900/80 rounded text-left"
+                  >
+                    Jump to Viewing Habits
+                  </button>
+                </div>
               </div>
             </div>
 

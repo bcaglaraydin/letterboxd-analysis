@@ -92,7 +92,7 @@ export function ThemeExperience({ onComplete }: ThemeExperienceProps) {
                 maxScore={rounds.length * 20}
                 showMaxScore
                 label="Score"
-                size="sm"
+                size="lg"
                 position="static"
                 maxPositivePoint={20}
                 maxNegativePoint={0}

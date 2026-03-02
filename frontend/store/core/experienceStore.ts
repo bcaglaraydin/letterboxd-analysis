@@ -13,6 +13,7 @@ interface ExperienceState {
     rating: number;
     genre: number;
     theme: number;
+    habits: number;
   };
   unlockedGames: string[];
   completedGames: string[];
@@ -24,6 +25,8 @@ interface ExperienceState {
   completeGenreGame: (score: number) => void;
   startThemeExperience: () => void;
   completeThemeExperience: (score: number) => void;
+  startHabitsExperience: () => void;
+  completeHabitsExperience: (score: number) => void;
   resetExperience: () => void;
 }
 
@@ -33,6 +36,7 @@ export const useExperienceStore = create<ExperienceState>((set) => ({
     rating: 0,
     genre: 0,
     theme: 0,
+    habits: 0,
   },
   unlockedGames: [GAME_PHASES.RATING],
   completedGames: [],
@@ -71,14 +75,27 @@ export const useExperienceStore = create<ExperienceState>((set) => ({
   completeThemeExperience: (score) =>
     set((state) => ({
       scores: { ...state.scores, theme: score },
+      unlockedGames: [...new Set([...state.unlockedGames, GAME_PHASES.HABITS])],
       completedGames: [...new Set([...state.completedGames, GAME_PHASES.THEME])],
+      currentPhase: GAME_PHASES.HUB,
+    })),
+
+  startHabitsExperience: () =>
+    set({
+      currentPhase: GAME_PHASES.HABITS,
+    }),
+
+  completeHabitsExperience: (score) =>
+    set((state) => ({
+      scores: { ...state.scores, habits: score },
+      completedGames: [...new Set([...state.completedGames, GAME_PHASES.HABITS])],
       currentPhase: GAME_PHASES.HUB,
     })),
 
   resetExperience: () =>
     set({
       currentPhase: GAME_PHASES.RATING,
-      scores: { rating: 0, genre: 0, theme: 0 },
+      scores: { rating: 0, genre: 0, theme: 0, habits: 0 },
       unlockedGames: [GAME_PHASES.RATING],
       completedGames: [],
     }),
@@ -97,10 +114,15 @@ export const selectIsThemeCompleted = (state: ExperienceState) =>
   state.completedGames.includes(GAME_PHASES.THEME);
 export const selectIsThemeUnlocked = (state: ExperienceState) =>
   state.unlockedGames.includes(GAME_PHASES.THEME);
+export const selectIsHabitsCompleted = (state: ExperienceState) =>
+  state.completedGames.includes(GAME_PHASES.HABITS);
+export const selectIsHabitsUnlocked = (state: ExperienceState) =>
+  state.unlockedGames.includes(GAME_PHASES.HABITS);
 export const selectAllGamesCompleted = (state: ExperienceState) =>
   state.completedGames.includes(GAME_PHASES.RATING) &&
   state.completedGames.includes(GAME_PHASES.GENRE) &&
-  state.completedGames.includes(GAME_PHASES.THEME);
+  state.completedGames.includes(GAME_PHASES.THEME) &&
+  state.completedGames.includes(GAME_PHASES.HABITS);
 
 // Derived Status Selectors
 export const selectRatingGameStatus = (state: ExperienceState): GameStatus => {
@@ -117,5 +139,11 @@ export const selectGenreGameStatus = (state: ExperienceState): GameStatus => {
 export const selectThemeGameStatus = (state: ExperienceState): GameStatus => {
   if (state.completedGames.includes(GAME_PHASES.THEME)) return 'COMPLETED';
   if (state.unlockedGames.includes(GAME_PHASES.THEME)) return 'UNLOCKED';
+  return 'LOCKED';
+};
+
+export const selectHabitsGameStatus = (state: ExperienceState): GameStatus => {
+  if (state.completedGames.includes(GAME_PHASES.HABITS)) return 'COMPLETED';
+  if (state.unlockedGames.includes(GAME_PHASES.HABITS)) return 'UNLOCKED';
   return 'LOCKED';
 };

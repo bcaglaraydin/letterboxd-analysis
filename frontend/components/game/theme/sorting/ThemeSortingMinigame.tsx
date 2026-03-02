@@ -91,9 +91,9 @@ export function ThemeSortingMinigame() {
   return (
     <GameLayout
       centered
-      className="p-4"
+      className="p-4 md:p-8"
       top={
-        <div className="flex items-center justify-between w-full px-2 py-1">
+        <div className="flex justify-between items-start w-full relative z-[60]">
           <GameRoundIndicator
             major={2}
             majorTotal={2}
@@ -110,7 +110,7 @@ export function ThemeSortingMinigame() {
             maxScore={100}
             showMaxScore={true}
             className="mb-0"
-            size="md"
+            size="lg"
             position="static"
             maxPositivePoint={SORTING_POINTS.CORRECT}
             maxNegativePoint={Math.abs(SORTING_POINTS.INCORRECT)}
