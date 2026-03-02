@@ -9,6 +9,7 @@ import {
   selectRatingGameStatus,
   selectGenreGameStatus,
   selectThemeGameStatus,
+  selectHabitsGameStatus,
 } from '@/store/core/experienceStore';
 import { GameBackground } from '@/components/game/shared/GameBackground';
 import { GameLayout } from '@/components/game/shared/GameLayout';
@@ -22,10 +23,12 @@ export const GameHub = () => {
   const ratingGameStatus = useExperienceStore(selectRatingGameStatus);
   const genreGameStatus = useExperienceStore(selectGenreGameStatus);
   const themeGameStatus = useExperienceStore(selectThemeGameStatus);
+  const habitsGameStatus = useExperienceStore(selectHabitsGameStatus);
 
   const startGenreGame = useExperienceStore((state) => state.startGenreGame);
   const startRatingGame = useExperienceStore((state) => state.startRatingGame);
   const startThemeExperience = useExperienceStore((state) => state.startThemeExperience);
+  const startHabitsExperience = useExperienceStore((state) => state.startHabitsExperience);
 
   const container = {
     hidden: { opacity: 0 },
@@ -48,7 +51,7 @@ export const GameHub = () => {
             variants={container}
             initial="hidden"
             animate="show"
-            className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-6xl mx-auto"
           >
             {/* Rating Game Card - Always visible (or check unlocked status if needed, but usually entry point) */}
             {ratingGameStatus !== 'LOCKED' && (
@@ -112,6 +115,33 @@ export const GameHub = () => {
                 maxScore={100}
                 icon={<Lightbulb className="w-6 h-6" />}
                 onClick={startThemeExperience}
+                actionLabel="Continue"
+                onHoverBorderColor="focus-visible:ring-accent"
+                gradientColor="from-accent/5"
+              />
+            ) : null}
+
+            {/* Viewing Habits Card */}
+            {habitsGameStatus === 'UNLOCKED' ? (
+              <div className="w-full h-full flex items-center justify-center">
+                <button
+                  onClick={startHabitsExperience}
+                  className="w-full h-full min-h-[200px] rounded-3xl border border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 transition-all duration-300 flex flex-col items-center justify-center gap-4 group"
+                >
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
+                    <Play className="w-8 h-8 fill-current ml-1" />
+                  </div>
+                  <span className="text-xl font-bold text-primary">Continue</span>
+                </button>
+              </div>
+            ) : habitsGameStatus === 'COMPLETED' ? (
+              <GameHubCard
+                title="Viewing Habits"
+                status={habitsGameStatus}
+                score={scores.habits}
+                maxScore={40} // 2 rounds * 20 points
+                icon={<Film className="w-6 h-6" />}
+                onClick={startHabitsExperience}
                 actionLabel="Continue"
                 onHoverBorderColor="focus-visible:ring-accent"
                 gradientColor="from-accent/5"

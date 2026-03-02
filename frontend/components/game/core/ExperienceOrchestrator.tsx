@@ -7,6 +7,7 @@ import { RatingGame } from '../rating/RatingGame';
 import { GameHub } from './GameHub';
 import { GenreOrchestration } from '@/components/game/genre/GenreOrchestration';
 import { ThemeExperience } from '@/components/game/theme/ThemeExperience';
+import { ViewingHabitsOrchestration } from '@/components/game/habits/ViewingHabitsOrchestration';
 import { useUserStore } from '@/store/core/userStore';
 import { Loader2 } from 'lucide-react';
 import { GAME_PHASES } from '@/lib/gameTypes';
@@ -26,6 +27,10 @@ export const ExperienceOrchestrator = () => {
 
   const completeThemeHandler = (score: number) => {
     completeThemeExperience(score);
+  };
+
+  const completeHabitsHandler = (score: number) => {
+    useExperienceStore.getState().completeHabitsExperience(score);
   };
 
   return (
@@ -85,6 +90,18 @@ export const ExperienceOrchestrator = () => {
             className="w-full h-full"
           >
             <ThemeExperience onComplete={completeThemeHandler} />
+          </motion.div>
+        )}
+
+        {currentPhase === GAME_PHASES.HABITS && (
+          <motion.div
+            key="viewing-habits"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="w-full h-full"
+          >
+            <ViewingHabitsOrchestration onGameComplete={completeHabitsHandler} />
           </motion.div>
         )}
       </AnimatePresence>

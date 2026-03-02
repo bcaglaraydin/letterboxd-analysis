@@ -1068,3 +1068,335 @@ export const MOCK_METRICS_RESPONSE: MetricsResponse = {
     genreOverview: MOCK_GENRE_STATS,
   },
 };
+
+// ============================================================================
+// VIEWING HABITS MOCK DATA
+// ============================================================================
+
+export interface MockMovie {
+  id: string;
+  title: string;
+  rating: number;
+  posterUrl: string;
+}
+
+export interface ActorMockData {
+  id: string;
+  name: string;
+  photoUrl: string | null;
+  watchCount: number;
+  moviesWatched: MockMovie[];
+}
+
+export interface DurationBatchMockData {
+  id: string;
+  label: string;
+  avgRating: number;
+  watchCount: number;
+  minDuration: number;
+  maxDuration: number | null;
+}
+
+export interface DistributionGraphMockData {
+  id: string;
+  isActual: boolean; // Tells us if this is the user's real distribution
+  batches: DurationBatchMockData[];
+}
+
+export const mockActors: ActorMockData[] = [
+  {
+    id: 'actor-1',
+    name: 'Willem Dafoe',
+    photoUrl: 'https://image.tmdb.org/t/p/w235_and_h235_face/ui8e4sgZAwMPi3hzEO53jyBJF9B.jpg',
+    watchCount: 15,
+    moviesWatched: [
+      {
+        id: '1',
+        title: 'The Lighthouse',
+        rating: 4.5,
+        posterUrl: 'https://image.tmdb.org/t/p/w500/3nk9UoepYmv1G1M8CqIfQOusYvA.jpg',
+      },
+      {
+        id: '2',
+        title: 'Spider-Man',
+        rating: 4.0,
+        posterUrl: 'https://image.tmdb.org/t/p/w500/gh4cZbhZxyTbgxQPxD0dOudNPTn.jpg',
+      },
+      {
+        id: '3',
+        title: 'Poor Things',
+        rating: 5.0,
+        posterUrl: 'https://image.tmdb.org/t/p/w500/kCGlIMHnOm8PhbO3VFc69xOepqj.jpg',
+      },
+    ],
+  },
+  {
+    id: 'actor-2',
+    name: 'Tilda Swinton',
+    photoUrl: 'https://image.tmdb.org/t/p/w235_and_h235_face/6bZkHAkYolV8h7tYfA38oXyV7kH.jpg',
+    watchCount: 12,
+    moviesWatched: [
+      {
+        id: '4',
+        title: 'The Grand Budapest Hotel',
+        rating: 4.5,
+        posterUrl: 'https://image.tmdb.org/t/p/w500/eWdyYQreja6JGCzcNvjcXemt00i.jpg',
+      },
+      {
+        id: '5',
+        title: 'Suspiria',
+        rating: 4.0,
+        posterUrl: 'https://image.tmdb.org/t/p/w500/dzWTnkPW9vddRS7PyZmnNa8v1B0.jpg',
+      },
+      {
+        id: '6',
+        title: 'We Need to Talk About Kevin',
+        rating: 4.5,
+        posterUrl: 'https://image.tmdb.org/t/p/w500/w1M21sWqN7u1qQ11n2e15y26jS4.jpg',
+      },
+    ],
+  },
+  {
+    id: 'actor-3',
+    name: 'Ethan Hawke',
+    photoUrl: 'https://image.tmdb.org/t/p/w235_and_h235_face/w1W1WnINxX2rF2g3Qj82w2YVb3l.jpg',
+    watchCount: 10,
+    moviesWatched: [
+      {
+        id: '7',
+        title: 'Before Sunrise',
+        rating: 5.0,
+        posterUrl: 'https://image.tmdb.org/t/p/w500/kf1Jb1c2ZA546h4v80c3C9kHlI7.jpg',
+      },
+      {
+        id: '8',
+        title: 'First Reformed',
+        rating: 4.5,
+        posterUrl: 'https://image.tmdb.org/t/p/w500/tLpEUfE83BEd0X7d0FzG5oGZgC.jpg',
+      },
+    ],
+  },
+  {
+    id: 'actor-4',
+    name: 'Anya Taylor-Joy',
+    photoUrl: 'https://image.tmdb.org/t/p/w235_and_h235_face/1zA5GuTgxupOcgA12U59iQtoKic.jpg',
+    watchCount: 8,
+    moviesWatched: [
+      {
+        id: '9',
+        title: 'The Witch',
+        rating: 4.5,
+        posterUrl: 'https://image.tmdb.org/t/p/w500/oVQ4B7OEDzDnjtq4B9jYitQJmOh.jpg',
+      },
+      {
+        id: '10',
+        title: 'The Northman',
+        rating: 4.0,
+        posterUrl: 'https://image.tmdb.org/t/p/w500/8npA2R1XvY7v99yS9S7A9pGgW37.jpg',
+      },
+    ],
+  },
+  {
+    id: 'actor-5',
+    name: 'Cillian Murphy',
+    photoUrl: 'https://image.tmdb.org/t/p/w235_and_h235_face/z1eS4f5yT5B7U2nS9tU57M9p3X1.jpg',
+    watchCount: 7,
+    moviesWatched: [
+      {
+        id: '11',
+        title: 'Oppenheimer',
+        rating: 5.0,
+        posterUrl: 'https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg',
+      },
+      {
+        id: '12',
+        title: '28 Days Later',
+        rating: 4.0,
+        posterUrl: 'https://image.tmdb.org/t/p/w500/eQ4mE2c3Nl0UOfLq5Q1zO6K7V1S.jpg',
+      },
+    ],
+  },
+];
+
+// Provide some decoy actors for the question list
+export const mockActorWaitlist: ActorMockData[] = [
+  ...mockActors,
+  {
+    id: 'actor-6',
+    name: 'Zendaya',
+    photoUrl: 'https://image.tmdb.org/t/p/w235_and_h235_face/qEzt0XQjYgJ5k5S2sOtyk61C5pU.jpg',
+    watchCount: 4,
+    moviesWatched: [],
+  },
+  {
+    id: 'actor-7',
+    name: 'Timothée Chalamet',
+    photoUrl: 'https://image.tmdb.org/t/p/w235_and_h235_face/8ZzS0K4rL5JbK9J6Z2VnY8qL8B4.jpg',
+    watchCount: 5,
+    moviesWatched: [],
+  },
+  {
+    id: 'actor-8',
+    name: 'Florence Pugh',
+    photoUrl: 'https://image.tmdb.org/t/p/w235_and_h235_face/6nri1I6009L1O1I06L1rB2A4O7e.jpg',
+    watchCount: 6,
+    moviesWatched: [],
+  },
+];
+
+export const mockDurationBatches: DurationBatchMockData[] = [
+  {
+    id: 'batch-1',
+    label: '<90 min',
+    avgRating: 3.4,
+    watchCount: 45,
+    minDuration: 0,
+    maxDuration: 89,
+  },
+  {
+    id: 'batch-2',
+    label: '90-120 min',
+    avgRating: 3.8,
+    watchCount: 150,
+    minDuration: 90,
+    maxDuration: 119,
+  },
+  {
+    id: 'batch-3',
+    label: '120-150 min',
+    avgRating: 4.1,
+    watchCount: 80,
+    minDuration: 120,
+    maxDuration: 149,
+  },
+  {
+    id: 'batch-4',
+    label: '150+ min',
+    avgRating: 4.3,
+    watchCount: 25,
+    minDuration: 150,
+    maxDuration: null,
+  },
+];
+
+export const mockDistributionGraphs: DistributionGraphMockData[] = [
+  {
+    id: 'graph-1',
+    isActual: true, // Let's say Graph 1 is the real one, based on mockDurationBatches
+    batches: mockDurationBatches,
+  },
+  {
+    id: 'graph-2',
+    isActual: false,
+    batches: [
+      {
+        id: 'b1',
+        label: '<90 min',
+        avgRating: 4.0,
+        watchCount: 120,
+        minDuration: 0,
+        maxDuration: 89,
+      },
+      {
+        id: 'b2',
+        label: '90-120 min',
+        avgRating: 3.5,
+        watchCount: 60,
+        minDuration: 90,
+        maxDuration: 119,
+      },
+      {
+        id: 'b3',
+        label: '120-150 min',
+        avgRating: 3.2,
+        watchCount: 30,
+        minDuration: 120,
+        maxDuration: 149,
+      },
+      {
+        id: 'b4',
+        label: '150+ min',
+        avgRating: 3.8,
+        watchCount: 15,
+        minDuration: 150,
+        maxDuration: null,
+      },
+    ],
+  },
+  {
+    id: 'graph-3',
+    isActual: false,
+    batches: [
+      {
+        id: 'b1',
+        label: '<90 min',
+        avgRating: 3.1,
+        watchCount: 20,
+        minDuration: 0,
+        maxDuration: 89,
+      },
+      {
+        id: 'b2',
+        label: '90-120 min',
+        avgRating: 3.3,
+        watchCount: 40,
+        minDuration: 90,
+        maxDuration: 119,
+      },
+      {
+        id: 'b3',
+        label: '120-150 min',
+        avgRating: 4.5,
+        watchCount: 160,
+        minDuration: 120,
+        maxDuration: 149,
+      },
+      {
+        id: 'b4',
+        label: '150+ min',
+        avgRating: 4.1,
+        watchCount: 90,
+        minDuration: 150,
+        maxDuration: null,
+      },
+    ],
+  },
+  {
+    id: 'graph-4',
+    isActual: false,
+    batches: [
+      {
+        id: 'b1',
+        label: '<90 min',
+        avgRating: 3.5,
+        watchCount: 80,
+        minDuration: 0,
+        maxDuration: 89,
+      },
+      {
+        id: 'b2',
+        label: '90-120 min',
+        avgRating: 3.7,
+        watchCount: 80,
+        minDuration: 90,
+        maxDuration: 119,
+      },
+      {
+        id: 'b3',
+        label: '120-150 min',
+        avgRating: 3.6,
+        watchCount: 80,
+        minDuration: 120,
+        maxDuration: 149,
+      },
+      {
+        id: 'b4',
+        label: '150+ min',
+        avgRating: 3.5,
+        watchCount: 80,
+        minDuration: 150,
+        maxDuration: null,
+      },
+    ],
+  },
+];

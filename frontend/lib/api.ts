@@ -23,6 +23,28 @@ export interface GenreInsight {
   genreId?: string;
 }
 
+export interface TopActor {
+  name: string;
+  count: number;
+  movies: { title: string; posterUrl: string }[];
+  photoUrl: string | null;
+}
+
+export interface DurationBatch {
+  id: string;
+  label: string;
+  avgRating: number;
+  watchCount: number;
+  minDuration: number;
+  maxDuration: number | null;
+}
+
+export interface DurationDistributionGraph {
+  id: string;
+  isActual: boolean;
+  batches: DurationBatch[];
+}
+
 export interface UserStats {
   totalMovies: number;
   averageRating: number;
@@ -41,6 +63,8 @@ export interface UserStats {
   controversialPicks: RatingGameMovie[];
   genreOverview: GenreStat[];
   genreInsights?: GenreInsight[];
+  topActors?: TopActor[];
+  durationDistribution?: DurationDistributionGraph[];
 }
 
 export type GenreBubbleTagType = 'hidden_gem' | 'comfort_zone' | 'true_love';
