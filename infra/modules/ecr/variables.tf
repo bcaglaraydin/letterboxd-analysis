@@ -36,7 +36,7 @@ variable "enable_lifecycle_policy" {
 variable "max_image_count" {
   description = "Maximum number of images to keep"
   type        = number
-  default     = 10
+  default     = 2
 }
 
 variable "repository_policy" {

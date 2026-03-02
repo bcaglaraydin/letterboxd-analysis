@@ -10,5 +10,5 @@ inputs = {
   repository_name         = "letterboxd-worker-dev"
   environment             = "dev"
   enable_lifecycle_policy = true
-  max_image_count         = 10
+  max_image_count         = 2
 }
