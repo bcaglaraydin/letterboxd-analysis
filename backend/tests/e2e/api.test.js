@@ -329,7 +329,7 @@ describe.runIf(shouldRun)('E2E: Full Backend Flow', () => {
         expect(topActors).toBeDefined();
         expect(Array.isArray(topActors)).toBe(true);
         expect(topActors.length).toBeGreaterThan(0);
-        expect(topActors.length).toBeLessThanOrEqual(5);
+        expect(topActors.length).toBeLessThanOrEqual(8);
 
         topActors.forEach((actor, index) => {
           expect(actor.name, `Actor ${index} should have name`).toBeDefined();

@@ -9,6 +9,7 @@ import {
   findGuiltyPleasure,
   calculateGenreStats,
   calculateTopActors,
+  calculateDurationDistribution,
 } from './statsService.js';
 
 export const GameService = {
@@ -93,6 +94,9 @@ export const GameService = {
     // Calculate Top Actors (Fetching TMDB Profiles)
     const topActors = await calculateTopActors(allFilmsWithMeta);
 
+    // Calculate Duration Distribution with decoy graphs
+    const durationData = calculateDurationDistribution(allFilmsWithMeta);
+
     const userStats = {
       totalMovies: userFilms.length,
       averageRating: basicStats.average,
@@ -108,6 +112,7 @@ export const GameService = {
       controversialPicks,
       genreOverview,
       topActors,
+      durationDistribution: durationData.graphs,
     };
 
     return {
