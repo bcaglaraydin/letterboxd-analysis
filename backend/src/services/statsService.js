@@ -2,6 +2,49 @@
  * Calculates statistical metrics for a user's film ratings.
  */
 
+import { getActorPhotoUrl } from './tmdbService.js';
+
+export async function calculateTopActors(films) {
+  const actorCounts = {};
+
+  films.forEach((film) => {
+    if (film.userRating == null) return; // Only count movies the user watched & rated
+
+    if (film.cast && Array.isArray(film.cast)) {
+      film.cast.forEach((actor) => {
+        if (!actorCounts[actor]) {
+          actorCounts[actor] = {
+            name: actor,
+            count: 0,
+            movies: [],
+          };
+        }
+        actorCounts[actor].count++;
+        // Keep a reference to up to 5 movies they're in
+        if (actorCounts[actor].movies.length < 5) {
+          actorCounts[actor].movies.push({
+            title: film.title,
+            posterUrl: film.poster || '',
+          });
+        }
+      });
+    }
+  });
+
+  // Sort by count descending
+  const sortedActors = Object.values(actorCounts)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5); // Take top 5
+
+  // Fetch TMDB photos for top 5
+  const topCastPromises = sortedActors.map(async (actor) => {
+    const photoUrl = await getActorPhotoUrl(actor.name);
+    return { ...actor, photoUrl };
+  });
+
+  return Promise.all(topCastPromises);
+}
+
 /**
  * Calculates the distribution of ratings in 0.5 buckets.
  * @param {Array} ratings - Array of rating numbers (0-5).
