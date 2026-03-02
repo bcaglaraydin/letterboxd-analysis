@@ -34,9 +34,9 @@ export async function calculateTopActors(films) {
   // Sort by count descending
   const sortedActors = Object.values(actorCounts)
     .sort((a, b) => b.count - a.count)
-    .slice(0, 5); // Take top 5
+    .slice(0, 8); // Take top 8
 
-  // Fetch TMDB photos for top 5
+  // Fetch TMDB photos for top 8
   const topCastPromises = sortedActors.map(async (actor) => {
     const photoUrl = await getActorPhotoUrl(actor.name);
     return { ...actor, photoUrl };
@@ -277,4 +277,139 @@ export function calculateGenreStats(films) {
   }
 
   return stats;
+}
+
+/**
+ * Calculates duration distribution and generates tricky decoy graphs.
+ * @param {Array} films - Array of film objects with { runtime, userRating }.
+ * @returns {object} - { realDistribution: DurationBatch[], graphs: DistributionGraph[] }
+ */
+export function calculateDurationDistribution(films) {
+  const BUCKETS = [
+    { id: 'batch-1', label: '<90 min', minDuration: 0, maxDuration: 89 },
+    { id: 'batch-2', label: '90-120 min', minDuration: 90, maxDuration: 119 },
+    { id: 'batch-3', label: '120-150 min', minDuration: 120, maxDuration: 149 },
+    { id: 'batch-4', label: '150+ min', minDuration: 150, maxDuration: null },
+  ];
+
+  // Calculate real distribution
+  const bucketData = BUCKETS.map((bucket) => {
+    const inBucket = films.filter((f) => {
+      if (f.runtime == null) return false;
+      if (bucket.maxDuration === null) return f.runtime >= bucket.minDuration;
+      return f.runtime >= bucket.minDuration && f.runtime <= bucket.maxDuration;
+    });
+
+    const rated = inBucket.filter((f) => f.userRating != null);
+    const avgRating =
+      rated.length > 0
+        ? parseFloat((rated.reduce((s, f) => s + f.userRating, 0) / rated.length).toFixed(1))
+        : 0;
+
+    return {
+      id: bucket.id,
+      label: bucket.label,
+      avgRating,
+      watchCount: inBucket.length,
+      minDuration: bucket.minDuration,
+      maxDuration: bucket.maxDuration,
+    };
+  });
+
+  // Generate 3 tricky decoy distributions based on the real data
+  const decoys = generateDecoyDistributions(bucketData);
+
+  // Build graphs array: real + decoys, then shuffle
+  const graphs = [
+    { id: 'graph-1', isActual: true, batches: bucketData },
+    ...decoys.map((d, i) => ({ id: `graph-${i + 2}`, isActual: false, batches: d })),
+  ];
+
+  // Shuffle using Fisher-Yates
+  for (let i = graphs.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [graphs[i], graphs[j]] = [graphs[j], graphs[i]];
+  }
+
+  return { realDistribution: bucketData, graphs };
+}
+
+/**
+ * Generates 3 decoy distributions that look similar to the real one
+ * but have meaningful differences.
+ */
+function generateDecoyDistributions(realBatches) {
+  const totalWatched = realBatches.reduce((s, b) => s + b.watchCount, 0);
+  if (totalWatched === 0) return [realBatches, realBatches, realBatches];
+
+  // Strategy 1: Swap the two highest bars
+  const decoy1 = createSwappedDecoy(realBatches);
+
+  // Strategy 2: Redistribute — take from the dominant bucket, give to the smallest
+  const decoy2 = createRedistributedDecoy(realBatches, totalWatched);
+
+  // Strategy 3: Flip/mirror the distribution
+  const decoy3 = createMirroredDecoy(realBatches);
+
+  return [decoy1, decoy2, decoy3];
+}
+
+function createSwappedDecoy(batches) {
+  const sorted = [...batches].sort((a, b) => b.watchCount - a.watchCount);
+  const result = batches.map((b) => ({ ...b }));
+
+  if (sorted.length >= 2) {
+    const idx1 = result.findIndex((b) => b.id === sorted[0].id);
+    const idx2 = result.findIndex((b) => b.id === sorted[1].id);
+    // Swap watch counts and ratings
+    const tempCount = result[idx1].watchCount;
+    const tempRating = result[idx1].avgRating;
+    result[idx1].watchCount = result[idx2].watchCount;
+    result[idx1].avgRating = result[idx2].avgRating;
+    result[idx2].watchCount = tempCount;
+    result[idx2].avgRating = tempRating;
+  }
+
+  return result;
+}
+
+function createRedistributedDecoy(batches, _total) {
+  const result = batches.map((b) => ({ ...b }));
+
+  // Find dominant and smallest
+  let maxIdx = 0,
+    minIdx = 0;
+  result.forEach((b, i) => {
+    if (b.watchCount > result[maxIdx].watchCount) maxIdx = i;
+    if (b.watchCount < result[minIdx].watchCount) minIdx = i;
+  });
+
+  if (maxIdx !== minIdx) {
+    // Transfer ~30-40% from dominant to smallest
+    const transfer = Math.round(result[maxIdx].watchCount * (0.3 + Math.random() * 0.1));
+    result[maxIdx].watchCount = Math.max(1, result[maxIdx].watchCount - transfer);
+    result[minIdx].watchCount += transfer;
+
+    // Slightly perturb ratings (±0.3)
+    result.forEach((b) => {
+      b.avgRating = parseFloat(
+        Math.max(0.5, Math.min(5, b.avgRating + (Math.random() - 0.5) * 0.6)).toFixed(1)
+      );
+    });
+  }
+
+  return result;
+}
+
+function createMirroredDecoy(batches) {
+  const counts = batches.map((b) => b.watchCount);
+  const ratings = batches.map((b) => b.avgRating);
+  const reversedCounts = [...counts].reverse();
+  const reversedRatings = [...ratings].reverse();
+
+  return batches.map((b, i) => ({
+    ...b,
+    watchCount: reversedCounts[i],
+    avgRating: reversedRatings[i],
+  }));
 }
