@@ -80,7 +80,7 @@ export const RankingItem = ({
   // Common base styles - mobile uses h-full to fill parent container, desktop uses fixed height
   // Reduced right padding to allow rating to sit closer to the edge
   const baseClasses =
-    'flex items-center gap-2 md:gap-4 pl-1.5 py-1.5 pr-1 md:pl-4 md:py-4 md:pr-2 rounded-md md:rounded-xl border-2 transition-all h-full md:h-[72px]';
+    'flex items-center gap-2 md:gap-4 pl-1.5 py-1.5 pr-1 md:pl-4 md:py-4 md:pr-2 rounded-md md:rounded-xl border-2 transition-all min-h-[44px] h-full md:h-[72px]';
 
   // Variant-specific styles
   const variantStyles = {
