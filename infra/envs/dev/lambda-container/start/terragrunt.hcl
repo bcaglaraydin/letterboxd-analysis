@@ -42,6 +42,7 @@ inputs = {
     BROWSER_MAX_PAGES  = "5"
     SCRAPING_CONCURRENCY_LIST = "2"
     SCRAPING_CONCURRENCY_FILM = "5"
+    API_READ_ACCESS_TOKEN = get_env("API_READ_ACCESS_TOKEN", "")
   }
 
   policy_arns = [

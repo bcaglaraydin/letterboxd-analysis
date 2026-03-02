@@ -1,5 +1,9 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { calculateGenreStats } from '../statsService.js';
+
+vi.mock('../tmdbService.js', () => ({
+  getActorPhotoUrl: vi.fn().mockResolvedValue('mock-url.jpg'),
+}));
 
 describe('calculateGenreStats', () => {
   it('should calculate basic genre stats correctly', () => {

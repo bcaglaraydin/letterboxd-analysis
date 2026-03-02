@@ -320,6 +320,26 @@ describe.runIf(shouldRun)('E2E: Full Backend Flow', () => {
         expect(Array.isArray(stats.genreOverview)).toBe(true);
       }
     });
+
+    it('user stats contain topActors with TMDB photo URLs', async () => {
+      const { data } = await getStatus(USERNAME);
+
+      if (data.status === 'ready' && data.userStats) {
+        const { topActors } = data.userStats;
+        expect(topActors).toBeDefined();
+        expect(Array.isArray(topActors)).toBe(true);
+        expect(topActors.length).toBeGreaterThan(0);
+        expect(topActors.length).toBeLessThanOrEqual(5);
+
+        topActors.forEach((actor, index) => {
+          expect(actor.name, `Actor ${index} should have name`).toBeDefined();
+          expect(actor.count, `Actor ${index} should have count`).toBeGreaterThan(0);
+          expect(Array.isArray(actor.movies), `Actor ${index} should have movies array`).toBe(true);
+          // photoUrl may be null if TMDB token is not set, but the field should exist
+          expect('photoUrl' in actor, `Actor ${index} should have photoUrl field`).toBe(true);
+        });
+      }
+    });
   });
 });
 

@@ -10,6 +10,7 @@ import {
   calculateCommunityComparison,
   findGuiltyPleasure,
   calculateGenreStats,
+  calculateTopActors,
 } from '../statsService.js';
 
 // Mock all dependencies
@@ -41,6 +42,7 @@ describe('GameService', () => {
       mockReturnValue(calculateBasicStats, { average: 4.5, median: 4, stdDev: 0.5 });
       mockReturnValue(calculateCommunityComparison, { diff: 0 });
       mockReturnValue(calculateGenreStats, ['genreStats']);
+      mockResolved(calculateTopActors, [{ name: 'Test Actor' }]);
       mockReturnValue(findGuiltyPleasure, { guiltyPleasures: [], controversialPicks: [] });
 
       const result = await GameService.generateAll(mockUserFilms, mockMetadataMap, minFilms);
@@ -77,6 +79,7 @@ describe('GameService', () => {
           averageRating: 4.5,
           ratingDistribution: { 5: 1 },
           genreOverview: ['genreStats'],
+          topActors: [{ name: 'Test Actor' }],
         }),
       });
     });

@@ -63,6 +63,8 @@ jobs:
 
       - name: Terragrunt Apply
         working-directory: ${{ inputs.working_directory }}
+        env:
+          API_READ_ACCESS_TOKEN: ${{ secrets.API_READ_ACCESS_TOKEN }}
         run: |
           terragrunt apply -auto-approve
 
