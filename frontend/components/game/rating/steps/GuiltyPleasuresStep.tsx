@@ -151,9 +151,10 @@ export const GuiltyPleasuresStep: React.FC<GuiltyPleasuresStepProps> = ({
 
         <Button
           onClick={onContinue}
-          className="px-6 py-3 h-auto rounded-full flex items-center gap-2 backdrop-blur shadow-lg border border-border font-medium ring-1 ring-border/50 animate-pulse hover:animate-none"
+          className="w-full md:w-auto h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 md:hover:-translate-y-1 transform duration-200"
         >
-          {isLastOfEverything ? 'See Summary' : 'Continue'} <ArrowRight size={16} />
+          {isLastOfEverything ? 'See Summary' : 'Continue'}{' '}
+          <ArrowRight size={20} className="ml-2" />
         </Button>
       </div>
     </div>

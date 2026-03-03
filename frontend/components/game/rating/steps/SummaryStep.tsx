@@ -59,9 +59,9 @@ export const SummaryStep: React.FC<SummaryStepProps> = ({
         <div className="pt-6 border-t border-border flex flex-col gap-3">
           <Button
             onClick={onContinue}
-            className="w-full py-3 h-auto rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all mb-2"
+            className="w-full h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 md:hover:-translate-y-1 transform duration-200 mb-2"
           >
-            Continue to Journey <ArrowRight size={18} />
+            Continue to Journey <ArrowRight size={18} className="ml-2" />
           </Button>
           <div className="flex gap-3">
             <Button

@@ -76,10 +76,9 @@ export const AveragesStep: React.FC<AveragesStepProps> = ({ userStats, onNext })
         <div className="pt-4">
           <Button
             onClick={onNext}
-            variant="secondary"
-            className="mx-auto px-6 py-3 h-auto rounded-full flex items-center gap-2"
+            className="w-full md:w-auto mx-auto h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 md:hover:-translate-y-1 transform duration-200"
           >
-            Next <ArrowRight size={16} />
+            Next <ArrowRight size={20} className="ml-2" />
           </Button>
         </div>
       </motion.div>

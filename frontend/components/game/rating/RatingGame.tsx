@@ -102,7 +102,7 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
   }
 
   return (
-    <GameBackground className="h-[100dvh] overflow-hidden md:h-auto md:min-h-screen md:overflow-visible">
+    <GameBackground>
       <div className="w-full flex-1 flex flex-col relative">
         <AnimatePresence mode="wait">
           {showIntro ? (
@@ -198,8 +198,7 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
                   </div>
                 }
                 bottom={
-                  /* Mobile: Interaction Section Pinned to Bottom */
-                  <div className="md:hidden w-full max-w-sm mx-auto pb-6">
+                  <div className="md:hidden w-full max-w-sm mx-auto px-4 pb-6 pt-2">
                     <RatingInteractionPanel
                       currentRating={currentRating}
                       setCurrentRating={setCurrentRating}

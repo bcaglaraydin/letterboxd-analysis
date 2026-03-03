@@ -111,12 +111,11 @@ export function ThemeResultsScreen({ onComplete }: ThemeResultsScreenProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1 }}
-        className="absolute bottom-6 left-0 right-0 px-6 flex justify-center z-50 bg-gradient-to-t from-background via-background pb-6 pt-12 pointer-events-none"
+        className="absolute bottom-6 left-0 right-0 px-6 sm:px-12 flex justify-center md:justify-end z-50 pointer-events-none"
       >
         <Button
-          size="lg"
           onClick={onComplete}
-          className="w-full max-w-sm rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-lg shadow-xl pointer-events-auto h-14"
+          className="w-full md:w-auto h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 md:hover:-translate-y-1 transform duration-200 pointer-events-auto"
         >
           {GAME_TEXT.THEME_EXPERIENCE.CONTINUE}
         </Button>

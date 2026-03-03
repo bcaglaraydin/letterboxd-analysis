@@ -145,8 +145,9 @@ export function ThemeGuessingRound({
   return (
     <GameBackground>
       <GameLayout
+        className="w-full max-w-7xl mx-auto"
         top={
-          <div className="flex justify-between items-start p-4 md:p-8 w-full max-w-7xl mx-auto relative z-[60]">
+          <div className="flex justify-between items-start p-4 md:p-8 w-full relative z-[60]">
             {roundIndicator}
             {scorePanel}
           </div>
@@ -306,8 +307,7 @@ export function ThemeGuessingRound({
                     <Button
                       onClick={handleSubmit}
                       disabled={!userGuess.trim() || isSubmitting}
-                      className="w-full h-10 md:h-14 rounded-xl text-sm md:text-base
-                        font-bold tracking-widest uppercase"
+                      className="w-full h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 md:hover:-translate-y-1 transform duration-200"
                     >
                       {GAME_TEXT.THEME_EXPERIENCE.SUBMIT}
                     </Button>
@@ -386,11 +386,10 @@ export function ThemeGuessingRound({
         }
         bottom={
           phase === 'revealed' ? (
-            <div className="px-4 pb-4 md:px-6 md:pb-6 pt-2">
+            <div className="w-full max-w-sm mx-auto px-4 pb-6 pt-2">
               <Button
                 onClick={onRoundComplete}
-                className="w-full max-w-sm md:max-w-md mx-auto h-10 md:h-14 rounded-xl text-sm md:text-base
-                  font-bold tracking-widest uppercase block relative z-[5]"
+                className="w-full h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 md:hover:-translate-y-1 transform duration-200 block relative z-[5]"
               >
                 {GAME_TEXT.THEME_EXPERIENCE.CONTINUE}
               </Button>
