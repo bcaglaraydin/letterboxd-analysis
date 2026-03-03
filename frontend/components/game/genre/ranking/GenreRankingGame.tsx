@@ -89,9 +89,9 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full">
         <GameLayout
-          className="p-3 md:p-6 md:py-8 max-w-7xl mx-auto"
+          className="w-full max-w-7xl mx-auto"
           top={
-            <div className="flex justify-between items-start w-full relative z-[60]">
+            <div className="flex justify-between items-start p-4 md:p-8 w-full relative z-[60]">
               <GameRoundIndicator major={1} majorTotal={2} />
               {isRevealing ? (
                 /* Score display during reveal */
@@ -117,7 +117,7 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
             </div>
           }
           middle={
-            <div className="w-full max-w-[57.5rem] mx-auto flex flex-col justify-center h-full md:h-auto">
+            <div className="w-full max-w-[57.5rem] flex-1 min-h-0 mx-auto flex flex-col justify-center px-4 md:px-8 py-2 md:py-6">
               {/* Header: Moved to Middle for better proximity */}
               {!isRevealing && (
                 <motion.div className="text-center mb-6 md:mb-10" layout="position">
@@ -145,7 +145,7 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
 
               <LayoutGroup>
                 <motion.div
-                  className={`w-full h-full md:h-auto grid gap-1 md:gap-6 ${showTwoColumns ? 'grid-cols-2' : 'grid-cols-1 max-w-md mx-auto'}`}
+                  className={`w-full grid gap-1.5 md:gap-6 ${showTwoColumns ? 'grid-cols-2' : 'grid-cols-1 max-w-md mx-auto'}`}
                   layout
                   transition={{
                     type: 'tween',
@@ -155,7 +155,7 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
                 >
                   <motion.div
                     layout
-                    className="w-full h-full md:h-auto flex flex-col relative"
+                    className="w-full flex flex-col relative"
                     transition={{
                       type: 'tween',
                       duration: 2,
@@ -186,7 +186,7 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
                       />
                     ) : (
                       /* Reveal Phase: Static items - compact block, no vertical fill */
-                      <div className="flex flex-col gap-1 md:gap-3 w-full h-full">
+                      <div className="flex flex-col gap-1.5 md:gap-3 w-full">
                         {userRanking.map((genreId, index) => {
                           const genre = getGenre(genreId);
                           if (!genre) return null;
@@ -238,8 +238,7 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
                   >
                     <Button
                       onClick={confirmRanking}
-                      size="lg"
-                      className="px-8 py-4 h-auto text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
+                      className="w-full md:w-auto h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 md:hover:-translate-y-1 transform duration-200"
                     >
                       <Lock className="w-5 h-5 mr-2" />
                       Lock It In
@@ -256,8 +255,7 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
                   >
                     <Button
                       onClick={() => onGameComplete(totalScore)}
-                      size="lg"
-                      className="px-6 py-3 h-auto rounded-xl font-semibold"
+                      className="w-full md:w-auto h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 md:hover:-translate-y-1 transform duration-200"
                     >
                       Continue <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
@@ -267,20 +265,17 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
             </div>
           }
           bottom={
-            <div className="md:hidden flex justify-center w-full pt-2 pb-2 min-h-[60px]">
-              <div className="h-12 flex items-center">
+            <div className="md:hidden w-full max-w-sm mx-auto px-4 pb-6 pt-2">
+              <div className="w-full">
                 {!isRevealing && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
                   >
                     <Button
                       onClick={confirmRanking}
-                      size="lg"
-                      className="px-6 py-3 h-auto text-base font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
+                      className="w-full h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 md:hover:-translate-y-1 transform duration-200"
                     >
                       <Lock className="w-4 h-4 mr-2" />
                       Lock It In
@@ -289,16 +284,10 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
                 )}
 
                 {isComplete && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                     <Button
                       onClick={() => onGameComplete(totalScore)}
-                      size="lg"
-                      className="px-6 py-3 h-auto rounded-xl font-semibold"
+                      className="w-full h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 md:hover:-translate-y-1 transform duration-200"
                     >
                       Continue <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>

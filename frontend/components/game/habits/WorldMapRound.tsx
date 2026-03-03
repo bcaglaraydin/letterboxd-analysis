@@ -422,8 +422,7 @@ export function WorldMapRound({
           className="w-full max-w-sm"
         >
           <Button
-            size="lg"
-            className="w-full py-6 text-lg rounded-2xl shadow-xl border-2 border-primary/20 hover:border-primary/50 transition-colors"
+            className="w-full h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 md:hover:-translate-y-1 transform duration-200"
             onClick={() => setPhase('analysis')}
           >
             See Country Analysis
@@ -574,8 +573,7 @@ function CountryAnalysis({
           className="w-full max-w-sm"
         >
           <Button
-            size="lg"
-            className="w-full py-6 text-lg rounded-2xl shadow-xl border-2 border-primary/20 hover:border-primary/50 transition-colors"
+            className="w-full h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 md:hover:-translate-y-1 transform duration-200"
             onClick={onComplete}
           >
             Continue

@@ -29,7 +29,7 @@ export const DraggableRankingList: React.FC<DraggableRankingListProps> = ({
       axis="y"
       values={userRanking}
       onReorder={onReorder}
-      className="h-full flex flex-col gap-1.5 md:gap-3"
+      className="flex flex-col justify-center gap-1.5 md:gap-3 w-full"
     >
       <AnimatePresence>
         {userRanking.map((genreId, index) => {
@@ -43,14 +43,14 @@ export const DraggableRankingList: React.FC<DraggableRankingListProps> = ({
               onDragStart={() => onDragStart(genreId)}
               onDragEnd={onDragEnd}
               whileDrag={{ scale: 1.02, zIndex: 50 }}
-              className="touch-none flex-1 md:flex-none"
+              className="touch-none w-full"
             >
               <motion.div
                 layout
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.03 }}
-                className="h-full md:h-auto"
+                className="w-full"
               >
                 <RankingItem
                   genre={genre}

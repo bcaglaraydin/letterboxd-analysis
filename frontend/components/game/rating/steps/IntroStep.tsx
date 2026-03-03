@@ -114,17 +114,17 @@ export const IntroStep: React.FC<IntroStepProps> = ({ score, onNext }) => {
             className="pt-8"
             onAnimationComplete={() => setIsAnimationComplete(true)}
           >
-            <motion.button
-              whileHover={isAnimationComplete ? { scale: 1.05 } : {}}
-              whileTap={isAnimationComplete ? { scale: 0.95 } : {}}
+            <Button
               onClick={handleNext}
               disabled={!isAnimationComplete}
-              className={`bg-primary text-primary-foreground px-12 py-6 rounded-full text-xl font-bold flex items-center gap-3 shadow-lg transition-all touch-manipulation ${
-                !isAnimationComplete ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-primary/50'
+              className={`w-full md:w-auto h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg hover:shadow-xl transform duration-200 ${
+                !isAnimationComplete
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'hover:-translate-y-0.5 md:hover:-translate-y-1'
               }`}
             >
-              Let&apos;s go <ArrowRight size={24} />
-            </motion.button>
+              Let&apos;s go <ArrowRight size={24} className="ml-2" />
+            </Button>
           </motion.div>
         </motion.div>
       </div>
@@ -191,10 +191,10 @@ export const IntroStep: React.FC<IntroStepProps> = ({ score, onNext }) => {
               variant="outline"
               onClick={handleLowScoreNext}
               disabled={!isAnimationComplete}
-              className={`w-full max-w-sm text-lg py-6 border-primary/20 bg-background/50 transition-all duration-300 ${
+              className={`w-full md:w-auto max-w-sm h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase transform duration-200 bg-background/50 ${
                 !isAnimationComplete
                   ? 'opacity-50 cursor-not-allowed'
-                  : 'hover:bg-primary/10 hover:text-primary hover:border-primary/50'
+                  : 'hover:bg-primary/10 hover:text-primary hover:border-primary/50 hover:-translate-y-0.5 md:hover:-translate-y-1'
               }`}
             >
               I know.
@@ -229,17 +229,17 @@ export const IntroStep: React.FC<IntroStepProps> = ({ score, onNext }) => {
           className="pt-8 w-full flex justify-center"
           onAnimationComplete={() => setIsAnimationComplete(true)}
         >
-          <motion.button
-            whileHover={isAnimationComplete ? { scale: 1.05 } : {}}
-            whileTap={isAnimationComplete ? { scale: 0.95 } : {}}
+          <Button
             onClick={handleNext}
             disabled={!isAnimationComplete}
-            className={`bg-primary text-primary-foreground px-12 py-6 rounded-full text-xl font-bold flex items-center gap-3 shadow-lg transition-all touch-manipulation ${
-              !isAnimationComplete ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-primary/50'
+            className={`w-full md:w-auto h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg hover:shadow-xl transform duration-200 ${
+              !isAnimationComplete
+                ? 'opacity-50 cursor-not-allowed'
+                : 'hover:-translate-y-0.5 md:hover:-translate-y-1'
             }`}
           >
-            Thank you <ArrowRight size={24} />
-          </motion.button>
+            Thank you <ArrowRight size={24} className="ml-2" />
+          </Button>
         </motion.div>
       </motion.div>
     </div>

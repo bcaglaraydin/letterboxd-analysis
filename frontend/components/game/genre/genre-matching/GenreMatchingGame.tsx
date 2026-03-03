@@ -292,17 +292,19 @@ export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
                   {phase === 'selecting' && (
                     <Button
                       onClick={handleLock}
-                      size="lg"
-                      className="gap-2 text-base px-8 font-semibold shadow-md transition-all hover:scale-105"
                       disabled={!canLock}
+                      className="w-full md:w-auto h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 md:hover:-translate-y-1 transform duration-200"
                     >
-                      <Lock className="w-4 h-4" />
+                      <Lock className="w-4 h-4 mr-2" />
                       Lock It In
                     </Button>
                   )}
 
                   {(phase === 'locked' || phase === 'revealing' || phase === 'showing-missed') && (
-                    <Button size="lg" disabled className="gap-2 text-base px-8 opacity-60">
+                    <Button
+                      disabled
+                      className="w-full md:w-auto h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg opacity-60"
+                    >
                       {phase === 'showing-missed' ? 'Revealing...' : 'Revealing...'}
                     </Button>
                   )}
@@ -310,11 +312,10 @@ export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
                   {phase === 'complete' && !isGameComplete && (
                     <Button
                       onClick={handleNext}
-                      size="lg"
-                      className="gap-2 text-base px-8 shadow-md hover:scale-105"
+                      className="w-full md:w-auto h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 md:hover:-translate-y-1 transform duration-200"
                     >
                       Next Film
-                      <ArrowRight className="w-4 h-4" />
+                      <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   )}
 
@@ -324,17 +325,16 @@ export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
                         if (onGameComplete) onGameComplete(totalScore);
                         else handleReset();
                       }}
-                      size="lg"
                       variant={onGameComplete ? 'default' : 'outline'}
-                      className="gap-2 text-base"
+                      className="w-full md:w-auto h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 md:hover:-translate-y-1 transform duration-200"
                     >
                       {onGameComplete ? (
                         <>
-                          Complete <ArrowRight className="w-4 h-4" />
+                          Complete <ArrowRight className="w-4 h-4 ml-2" />
                         </>
                       ) : (
                         <>
-                          <RotateCcw className="w-4 h-4" />
+                          <RotateCcw className="w-4 h-4 mr-2" />
                           Play Again
                         </>
                       )}
@@ -393,51 +393,63 @@ export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
             )}
 
             {phase === 'selecting' && (
-              <Button
-                onClick={handleLock}
-                size="sm"
-                className="gap-1 text-xs font-semibold"
-                disabled={!canLock}
-              >
-                <Lock className="w-3 h-3" />
-                Lock It In
-              </Button>
+              <div className="w-full">
+                <Button
+                  onClick={handleLock}
+                  disabled={!canLock}
+                  className="w-full h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 md:hover:-translate-y-1 transform duration-200"
+                >
+                  <Lock className="w-4 h-4 mr-2" />
+                  Lock It In
+                </Button>
+              </div>
             )}
 
             {(phase === 'locked' || phase === 'revealing' || phase === 'showing-missed') && (
-              <Button size="sm" disabled className="gap-1 text-xs opacity-60">
-                Revealing...
-              </Button>
+              <div className="w-full">
+                <Button
+                  disabled
+                  className="w-full h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg opacity-60"
+                >
+                  Revealing...
+                </Button>
+              </div>
             )}
 
             {phase === 'complete' && !isGameComplete && (
-              <Button onClick={handleNext} size="sm" className="gap-1 text-xs">
-                Next Film
-                <ArrowRight className="w-3 h-3" />
-              </Button>
+              <div className="w-full">
+                <Button
+                  onClick={handleNext}
+                  className="w-full h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 md:hover:-translate-y-1 transform duration-200"
+                >
+                  Next Film
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
             )}
 
             {isGameComplete && (
-              <Button
-                onClick={() => {
-                  if (onGameComplete) onGameComplete(totalScore);
-                  else handleReset();
-                }}
-                size="sm"
-                variant={onGameComplete ? 'default' : 'outline'}
-                className="gap-1 text-xs"
-              >
-                {onGameComplete ? (
-                  <>
-                    Complete <ArrowRight className="w-3 h-3" />
-                  </>
-                ) : (
-                  <>
-                    <RotateCcw className="w-3 h-3" />
-                    Play Again
-                  </>
-                )}
-              </Button>
+              <div className="w-full">
+                <Button
+                  onClick={() => {
+                    if (onGameComplete) onGameComplete(totalScore);
+                    else handleReset();
+                  }}
+                  variant={onGameComplete ? 'default' : 'outline'}
+                  className="w-full h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 md:hover:-translate-y-1 transform duration-200"
+                >
+                  {onGameComplete ? (
+                    <>
+                      Complete <ArrowRight className="w-4 h-4 ml-2" />
+                    </>
+                  ) : (
+                    <>
+                      <RotateCcw className="w-4 h-4 mr-2" />
+                      Play Again
+                    </>
+                  )}
+                </Button>
+              </div>
             )}
           </div>
         }
