@@ -14,7 +14,7 @@ export const GAME_TEXT = {
     },
   },
   THEME_EXPERIENCE: {
-    PROMPT: 'These themes describe a movie from your library.',
+    PROMPT: 'Which movie from your library has these themes?',
     INPUT_PLACEHOLDER: 'Type the movie title…',
     SUBMIT: 'Submit',
     REVEAL_LABEL: 'The movie was',
