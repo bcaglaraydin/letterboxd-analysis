@@ -145,7 +145,9 @@ export function ThemeSortingMinigame() {
           />
 
           <div className="text-center mb-8 sm:mb-12 z-10">
-            <h2 className="text-2xl sm:text-3xl font-serif text-foreground">Swipe Your Themes</h2>
+            <h2 className="text-2xl sm:text-3xl font-serif text-foreground">
+              Which themes are your favorites?
+            </h2>
           </div>
 
           <div className="relative w-full max-w-[320px] h-[400px] flex items-center justify-center">

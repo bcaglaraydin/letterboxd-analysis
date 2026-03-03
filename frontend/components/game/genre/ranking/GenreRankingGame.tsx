@@ -126,7 +126,7 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                   >
-                    Rank Your Genres
+                    How would you rank your genres?
                   </motion.h2>
                   <motion.div
                     className="flex items-center justify-center gap-2 text-muted-foreground mt-2"
