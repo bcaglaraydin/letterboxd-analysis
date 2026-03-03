@@ -47,83 +47,98 @@ export const GameHub = () => {
         className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-12"
         top={null}
         middle={
-          <motion.div
-            variants={container}
-            initial="hidden"
-            animate="show"
-            className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 w-full max-w-6xl mx-auto"
-          >
-            {/* Rating Game Card - Always visible (or check unlocked status if needed, but usually entry point) */}
-            {ratingGameStatus !== 'LOCKED' && (
-              <GameHubCard
-                title="Rating Intuition"
-                status={ratingGameStatus}
-                score={scores.rating}
-                maxScore={RATING_GAME_CONFIG.MAX_SCORE}
-                icon={<Star className="w-5 h-5 md:w-6 md:h-6 fill-current" />}
-                onClick={startRatingGame}
-                actionLabel="Continue"
-                onHoverBorderColor="focus-visible:ring-primary"
-              />
-            )}
+          <div className="flex flex-col h-[calc(100vh-8rem)] justify-center gap-12 w-full max-w-6xl mx-auto items-center">
+            <motion.div
+              variants={container}
+              initial="hidden"
+              animate="show"
+              className="flex flex-wrap justify-center gap-3 md:gap-6 w-full max-w-6xl mx-auto"
+            >
+              {/* Rating Game Card */}
+              {ratingGameStatus === 'COMPLETED' && (
+                <GameHubCard
+                  title="Rating Intuition"
+                  status={ratingGameStatus}
+                  score={scores.rating}
+                  maxScore={RATING_GAME_CONFIG.MAX_SCORE}
+                  icon={<Star className="w-5 h-5 md:w-6 md:h-6 fill-current" />}
+                  onClick={startRatingGame}
+                />
+              )}
 
-            {/* Genre Ranking Game Card */}
-            {genreGameStatus !== 'LOCKED' && (
-              <GameHubCard
-                title="Genre Ranking"
-                status={genreGameStatus}
-                score={scores.genre}
-                maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
-                icon={<Film className="w-5 h-5 md:w-6 md:h-6 fill-current" />}
-                onClick={startGenreGame}
-                actionLabel="Continue"
-                onHoverBorderColor={
-                  genreGameStatus === 'UNLOCKED'
-                    ? 'focus-visible:ring-primary'
-                    : 'focus-visible:ring-accent'
-                }
-                gradientColor={genreGameStatus === 'UNLOCKED' ? 'from-primary/5' : 'from-accent/5'}
-              />
-            )}
+              {/* Genre Ranking Game Card */}
+              {genreGameStatus === 'COMPLETED' && (
+                <GameHubCard
+                  title="Genre Ranking"
+                  status={genreGameStatus}
+                  score={scores.genre}
+                  maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
+                  icon={<Film className="w-5 h-5 md:w-6 md:h-6 fill-current" />}
+                  onClick={startGenreGame}
+                />
+              )}
 
-            {/* Theme Guessing Card */}
-            {themeGameStatus !== 'LOCKED' && (
-              <GameHubCard
-                title="Theme Guessing"
-                status={themeGameStatus}
-                score={scores.theme}
-                maxScore={100}
-                icon={<Lightbulb className="w-5 h-5 md:w-6 md:h-6 fill-current" />}
-                onClick={startThemeExperience}
-                actionLabel="Continue"
-                onHoverBorderColor={
-                  themeGameStatus === 'UNLOCKED'
-                    ? 'focus-visible:ring-primary'
-                    : 'focus-visible:ring-accent'
-                }
-                gradientColor={themeGameStatus === 'UNLOCKED' ? 'from-primary/5' : 'from-accent/5'}
-              />
-            )}
+              {/* Theme Guessing Card */}
+              {themeGameStatus === 'COMPLETED' && (
+                <GameHubCard
+                  title="Theme Guessing"
+                  status={themeGameStatus}
+                  score={scores.theme}
+                  maxScore={100}
+                  icon={<Lightbulb className="w-5 h-5 md:w-6 md:h-6 fill-current" />}
+                  onClick={startThemeExperience}
+                />
+              )}
 
-            {/* Viewing Habits Card */}
-            {habitsGameStatus !== 'LOCKED' && (
-              <GameHubCard
-                title="Viewing Habits"
-                status={habitsGameStatus}
-                score={scores.habits}
-                maxScore={40} // 2 rounds * 20 points
-                icon={<Film className="w-5 h-5 md:w-6 md:h-6 fill-current" />}
-                onClick={startHabitsExperience}
-                actionLabel="Continue"
-                onHoverBorderColor={
-                  habitsGameStatus === 'UNLOCKED'
-                    ? 'focus-visible:ring-primary'
-                    : 'focus-visible:ring-accent'
-                }
-                gradientColor={habitsGameStatus === 'UNLOCKED' ? 'from-primary/5' : 'from-accent/5'}
-              />
-            )}
-          </motion.div>
+              {/* Viewing Habits Card */}
+              {habitsGameStatus === 'COMPLETED' && (
+                <GameHubCard
+                  title="Viewing Habits"
+                  status={habitsGameStatus}
+                  score={scores.habits}
+                  maxScore={40}
+                  icon={<Film className="w-5 h-5 md:w-6 md:h-6 fill-current" />}
+                  onClick={startHabitsExperience}
+                />
+              )}
+            </motion.div>
+
+            {/* Render UNLOCKED game as a bottom button */}
+            <div className="w-full flex justify-center mt-4">
+              {ratingGameStatus === 'UNLOCKED' && (
+                <button
+                  onClick={startRatingGame}
+                  className="w-full max-w-sm h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2"
+                >
+                  Continue
+                </button>
+              )}
+              {genreGameStatus === 'UNLOCKED' && (
+                <button
+                  onClick={startGenreGame}
+                  className="w-full max-w-sm h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2"
+                >
+                  Continue
+                </button>
+              )}
+              {themeGameStatus === 'UNLOCKED' && (
+                <button
+                  onClick={startThemeExperience}
+                  className="w-full max-w-sm h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2"
+                >
+                  Continue
+                </button>
+              )}
+              {habitsGameStatus === 'UNLOCKED' && (
+                <button
+                  onClick={startHabitsExperience}
+                  className="w-full max-w-sm h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2"
+                >
+                  Continue
+                </button>
+              )}
+            </div>
+          </div>
         }
         bottom={null}
       />
