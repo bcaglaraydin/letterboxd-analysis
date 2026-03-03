@@ -10,6 +10,7 @@ import {
   calculateGenreStats,
   calculateTopActors,
   calculateDurationDistribution,
+  calculateCountryStats,
 } from './statsService.js';
 
 export const GameService = {
@@ -97,6 +98,9 @@ export const GameService = {
     // Calculate Duration Distribution with decoy graphs
     const durationData = calculateDurationDistribution(allFilmsWithMeta);
 
+    // Calculate Country Stats
+    const countryStats = calculateCountryStats(allFilmsWithMeta);
+
     const userStats = {
       totalMovies: userFilms.length,
       averageRating: basicStats.average,
@@ -113,6 +117,7 @@ export const GameService = {
       genreOverview,
       topActors,
       durationDistribution: durationData.graphs,
+      countryStats,
     };
 
     return {

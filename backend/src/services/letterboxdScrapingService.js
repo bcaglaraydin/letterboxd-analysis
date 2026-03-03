@@ -242,6 +242,13 @@ export async function scrapeUserFilms(username) {
             }
           });
 
+          // Countries of origin (from the same detail page)
+          const countries = [];
+          $film('a[href^="/films/country/"]').each((_, el) => {
+            const countryName = $film(el).text().trim();
+            if (countryName) countries.push(countryName);
+          });
+
           // Fetch Stats (Watched Count)
           const stats = await fetchFilmStats(film.slug);
 
@@ -255,6 +262,7 @@ export async function scrapeUserFilms(username) {
             studios,
             genres,
             themes,
+            countries,
             runtime,
             backdropUrl,
             plot,
@@ -360,6 +368,13 @@ export async function scrapeFilmDetails(slug, url) {
       }
     });
 
+    // Countries of origin (from the same detail page)
+    const countries = [];
+    $film('a[href^="/films/country/"]').each((_, el) => {
+      const countryName = $film(el).text().trim();
+      if (countryName) countries.push(countryName);
+    });
+
     // Skip stats fetch - not critical for game and causes significant delays
     // due to Cloudflare challenges on the CSI endpoint
     const watchedCount = 0;
@@ -374,6 +389,7 @@ export async function scrapeFilmDetails(slug, url) {
       studios,
       genres,
       themes,
+      countries,
       runtime,
       backdropUrl,
       plot,
