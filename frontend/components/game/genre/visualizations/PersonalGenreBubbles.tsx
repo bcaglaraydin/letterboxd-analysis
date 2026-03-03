@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { Film, Sparkles as SparklesIcon } from 'lucide-react';
+import { Film, Sparkles as SparklesIcon, ZoomIn } from 'lucide-react';
 import * as d3 from 'd3';
 import { GenreStat, GenreInsight } from '@/lib/api';
 import { AnimatePresence, motion } from 'framer-motion';
+
 import { BubblePosterStrip } from './BubblePosterStrip';
 
 interface BubbleNode extends d3.SimulationNodeDatum {
@@ -32,6 +33,11 @@ export function PersonalGenreBubbles({ data, insights }: PersonalGenreBubblesPro
     r: number;
   } | null>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [zoomScale, setZoomScale] = useState(1);
+  const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
+  const [showZoomHint, setShowZoomHint] = useState(true);
+  const pinchStartDistRef = useRef(0);
+  const pinchStartScaleRef = useRef(1);
 
   // 1. Normalize Data
   const { nodes, getGenreBaseColor, minRating, maxRating } = useMemo(() => {
@@ -100,6 +106,71 @@ export function PersonalGenreBubbles({ data, insights }: PersonalGenreBubblesPro
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Zoom: Pinch (mobile) + Scroll Wheel (desktop)
+  const MIN_ZOOM = 1;
+  const MAX_ZOOM = 3;
+
+  const getTouchDistance = useCallback((t1: React.Touch, t2: React.Touch) => {
+    return Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+  }, []);
+
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      if (e.touches.length === 2) {
+        pinchStartDistRef.current = getTouchDistance(e.touches[0], e.touches[1]);
+        pinchStartScaleRef.current = zoomScale;
+        setShowZoomHint(false);
+      }
+    },
+    [zoomScale, getTouchDistance],
+  );
+
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const dist = getTouchDistance(e.touches[0], e.touches[1]);
+        const ratio = dist / pinchStartDistRef.current;
+        const newScale = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, pinchStartScaleRef.current * ratio));
+        setZoomScale(newScale);
+
+        // Set origin to midpoint of the two fingers relative to the wrapper
+        if (svgWrapperRef.current) {
+          const rect = svgWrapperRef.current.getBoundingClientRect();
+          const midX =
+            (((e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left) / rect.width) * 100;
+          const midY =
+            (((e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top) / rect.height) * 100;
+          setZoomOrigin({ x: midX, y: midY });
+        }
+      }
+    },
+    [getTouchDistance],
+  );
+
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    setShowZoomHint(false);
+    const delta = -e.deltaY * 0.002;
+    setZoomScale((prev) => {
+      const next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, prev + delta));
+      return next;
+    });
+
+    // Set origin to mouse position
+    if (svgWrapperRef.current) {
+      const rect = svgWrapperRef.current.getBoundingClientRect();
+      const mx = ((e.clientX - rect.left) / rect.width) * 100;
+      const my = ((e.clientY - rect.top) / rect.height) * 100;
+      setZoomOrigin({ x: mx, y: my });
+    }
+  }, []);
+
+  const handleDoubleClick = useCallback(() => {
+    setZoomScale(1);
+    setZoomOrigin({ x: 50, y: 50 });
   }, []);
 
   // 3. D3 Simulation
@@ -319,19 +390,21 @@ export function PersonalGenreBubbles({ data, insights }: PersonalGenreBubblesPro
       .append('xhtml:div')
       .style('width', '100%')
       .style('height', '100%')
-      .attr('class', 'flex items-center justify-center gap-3 text-white opacity-90')
+      .attr('class', 'flex items-center justify-center text-white opacity-90')
       .style('font-size', (d) => `${metaSize(d)}px`)
+      .style('gap', (d) => `${Math.max(2, d.r / 12)}px`)
       .style('text-shadow', '0px 1px 2px rgba(0,0,0,0.3)')
-      .html(
-        (d) => `
+      .html((d) => {
+        const dividerH = Math.max(6, d.r / 6);
+        const innerGap = Math.max(1, d.r / 20);
+        return `
            <span class="font-serif font-semibold">★ ${d.genre.userAvgRating.toFixed(1)}</span>
-           <div class="w-px h-3 bg-white/40"></div>
-           <div class="flex items-center gap-1">
+           <div class="w-px bg-white/40" style="height:${dividerH}px"></div>
+           <div class="flex items-center" style="gap:${innerGap}px">
              ${renderToStaticMarkup(<Film size="1em" strokeWidth={2.5} />)}
              <span class="font-sans font-medium leading-none mt-[1px]">${d.genre.userWatchCount}</span>
-           </div>
-      `,
-      );
+           </div>`;
+      });
 
     // Clean up
     return () => {
@@ -387,52 +460,110 @@ export function PersonalGenreBubbles({ data, insights }: PersonalGenreBubblesPro
         </div>
       </div>
 
-      <div ref={svgWrapperRef} className="flex-1 w-full relative min-h-0">
-        <svg ref={svgRef} width="100%" height="100%" className="touch-none absolute inset-0" />
+      <div
+        ref={svgWrapperRef}
+        className="flex-1 w-full relative min-h-0"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onWheel={handleWheel}
+        onDoubleClick={handleDoubleClick}
+        style={{
+          overflow: 'hidden',
+        }}
+      >
+        <svg
+          ref={svgRef}
+          width="100%"
+          height="100%"
+          className="touch-none absolute inset-0"
+          viewBox={(() => {
+            const w = dimensions.width || 1;
+            const h = dimensions.height || 1;
+            const ox = (zoomOrigin.x / 100) * w;
+            const oy = (zoomOrigin.y / 100) * h;
+            const vbW = w / zoomScale;
+            const vbH = h / zoomScale;
+            const vbX = ox * (1 - 1 / zoomScale);
+            const vbY = oy * (1 - 1 / zoomScale);
+            return `${vbX} ${vbY} ${vbW} ${vbH}`;
+          })()}
+          preserveAspectRatio="xMidYMid meet"
+        />
 
         {/* Highlight & Poster Strip Overlay - Inside wrapper for correct coordinates */}
         <AnimatePresence>
           {hoveredGenre && (
             <div className="absolute inset-0 pointer-events-none z-50">
-              {/* Active Bubble Highlight Ring */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 1.1 }}
-                className="absolute rounded-full border-2 border-white/80"
-                style={{
-                  left: hoveredGenre.x - hoveredGenre.r,
-                  top: hoveredGenre.y - hoveredGenre.r,
-                  width: hoveredGenre.r * 2,
-                  height: hoveredGenre.r * 2,
-                  boxShadow: '0 0 0 4px rgba(255, 255, 255, 0.15), 0 0 15px rgba(0,0,0,0.2)',
-                }}
-              />
+              {/* Transform overlay coords to match zoomed SVG */}
+              {(() => {
+                const wrapperW = dimensions.width;
+                const wrapperH = dimensions.height;
+                const ox = (zoomOrigin.x / 100) * wrapperW;
+                const oy = (zoomOrigin.y / 100) * wrapperH;
+                const zx = ox + (hoveredGenre.x - ox) * zoomScale;
+                const zy = oy + (hoveredGenre.y - oy) * zoomScale;
+                const zr = hoveredGenre.r * zoomScale;
 
-              <div
-                style={{
-                  position: 'absolute',
-                  // Smart Clamping: Keep strip within screen bounds
-                  left: (() => {
-                    const isMobile = dimensions.width < 768;
-                    const halfStripWidth = isMobile ? 140 : 210;
-                    const padding = 20;
-                    return Math.max(
-                      halfStripWidth + padding,
-                      Math.min(hoveredGenre.x, dimensions.width - halfStripWidth - padding),
-                    );
-                  })(),
-                  top: hoveredGenre.y,
-                }}
-              >
-                <BubblePosterStrip
-                  movies={hoveredGenre.genre.exampleMovies}
-                  bubbleRadius={hoveredGenre.r}
-                  isMobile={dimensions.width < 768}
-                  tag={hoveredGenre.genre.tag}
-                />
-              </div>
+                const isMobile = wrapperW < 768;
+                const halfStripWidth = isMobile ? 140 : 210;
+                const padding = 20;
+                const clampedStripX = Math.max(
+                  halfStripWidth + padding,
+                  Math.min(zx, wrapperW - halfStripWidth - padding),
+                );
+
+                return (
+                  <>
+                    {/* Active Bubble Highlight Ring */}
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 1.1 }}
+                      className="absolute rounded-full border-2 border-white/80"
+                      style={{
+                        left: zx - zr,
+                        top: zy - zr,
+                        width: zr * 2,
+                        height: zr * 2,
+                        boxShadow: '0 0 0 4px rgba(255, 255, 255, 0.15), 0 0 15px rgba(0,0,0,0.2)',
+                      }}
+                    />
+
+                    <div
+                      style={{
+                        position: 'absolute',
+                        left: clampedStripX,
+                        top: zy,
+                      }}
+                    >
+                      <BubblePosterStrip
+                        movies={hoveredGenre.genre.exampleMovies}
+                        bubbleRadius={hoveredGenre.r}
+                        isMobile={dimensions.width < 768}
+                        tag={hoveredGenre.genre.tag}
+                      />
+                    </div>
+                  </>
+                );
+              })()}
             </div>
+          )}
+        </AnimatePresence>
+
+        {/* Zoom Hint */}
+        <AnimatePresence>
+          {showZoomHint && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ delay: 2, duration: 0.5 }}
+              className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-md border border-[#E76F51]/15 text-[#555] text-xs md:text-sm font-medium pointer-events-none"
+            >
+              <ZoomIn className="w-3.5 h-3.5 md:w-4 md:h-4 text-[#E76F51]" />
+              <span className="hidden md:inline">Scroll to zoom</span>
+              <span className="md:hidden">Pinch to zoom</span>
+            </motion.div>
           )}
         </AnimatePresence>
       </div>

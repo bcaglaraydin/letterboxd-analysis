@@ -94,61 +94,94 @@ export function FavoriteActorRound({
                   const isActual = actualFavoriteId === actor.id;
                   const isFeedback = phase === 'feedback';
 
+                  // Deterministic subtle rotation for "photos on a desk" feel
+                  const rotations = [-2.2, 1.5, -1.0, 2.8, -1.8, 0.8, -2.5, 1.2];
+                  const cardRotation = rotations[idx % rotations.length];
+
                   // Determine border/bg color during feedback
-                  let feedbackClasses = 'border-primary/20 hover:border-primary/50';
+                  let feedbackClasses = '';
+                  let feedbackBorderColor = 'border-transparent';
                   if (isFeedback) {
                     if (isSelected && !isActual) {
-                      feedbackClasses =
-                        'border-destructive bg-destructive/10 shadow-[0_0_15px_rgba(239,68,68,0.3)] z-10'; // Immediate wrong pick glow
+                      feedbackBorderColor = 'border-destructive/60 border-2';
+                      feedbackClasses = 'bg-destructive/5 z-10';
                     }
 
                     if (showActualFavorite) {
                       if (isActual) {
-                        feedbackClasses =
-                          'border-emerald-500 bg-emerald-500/10 shadow-[0_0_15px_rgba(16,185,129,0.3)] z-20'; // Correct glow appears later
+                        feedbackBorderColor = 'border-primary border-[3px]';
+                        feedbackClasses = 'bg-primary/10 ring-4 ring-primary/10 z-20';
                       } else if (isSelected) {
-                        feedbackClasses =
-                          'border-destructive bg-destructive/10 opacity-70 grayscale-[50%]'; // Previous wrong pick dims
+                        feedbackBorderColor = 'border-destructive/40 border-2';
+                        feedbackClasses = 'bg-destructive/5 opacity-60 grayscale-[40%]';
                       } else {
-                        feedbackClasses = 'border-border/40 opacity-30 grayscale'; // Everyone else dims massively
+                        feedbackBorderColor = 'border-border/20';
+                        feedbackClasses = 'opacity-30 grayscale';
                       }
                     } else if (isFeedback && !isSelected) {
-                      feedbackClasses =
-                        'border-border/40 opacity-50 grayscale transition-all duration-1000'; // Dim others gradually while waiting
+                      feedbackBorderColor = 'border-border/20';
+                      feedbackClasses = 'opacity-50 grayscale transition-all duration-1000';
                     }
                   }
 
                   return (
                     <motion.div
                       key={actor.id}
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      whileHover={!isFeedback ? { scale: 1.05 } : {}}
-                      whileTap={!isFeedback ? { scale: 0.95 } : {}}
-                      transition={{ delay: idx * 0.05 }}
+                      initial={{ opacity: 0, scale: 0.9, rotate: cardRotation * 2 }}
+                      animate={{
+                        opacity: 1,
+                        scale: isFeedback && showActualFavorite && isActual ? 1.04 : 1,
+                        rotate: isFeedback ? 0 : cardRotation,
+                      }}
+                      whileHover={
+                        !isFeedback
+                          ? {
+                              scale: 1.06,
+                              rotate: 0,
+                              y: -4,
+                              transition: { type: 'spring', stiffness: 400, damping: 20 },
+                            }
+                          : {}
+                      }
+                      whileTap={!isFeedback ? { scale: 0.97 } : {}}
+                      transition={{
+                        delay: idx * 0.07,
+                        type: 'spring',
+                        stiffness: 300,
+                        damping: 22,
+                      }}
                       onClick={(e) => !isFeedback && handleSelectActor(actor.id, e)}
                       className={cn(
-                        'cursor-pointer relative flex flex-col items-center overflow-hidden rounded-xl border bg-card transition-all duration-500 shadow-sm w-full min-w-[75px] max-w-[140px] md:max-w-[180px] mx-auto',
+                        'cursor-pointer relative flex flex-col items-center overflow-hidden rounded-lg bg-card transition-all duration-500 w-full min-w-[75px] max-w-[140px] md:max-w-[180px] mx-auto',
+                        'shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)]',
+                        feedbackBorderColor || 'border border-primary/10',
                         feedbackClasses,
                       )}
                     >
-                      <div className="w-full aspect-[3/4] relative bg-muted shrink-0">
+                      {/* Photo area with vintage vignette */}
+                      <div className="w-full aspect-[3/4] relative bg-muted shrink-0 overflow-hidden">
                         {actor.photoUrl ? (
-                          <Image
-                            src={actor.photoUrl}
-                            alt={actor.name}
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 768px) 50vw, 25vw"
-                          />
+                          <>
+                            <Image
+                              src={actor.photoUrl}
+                              alt={actor.name}
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 768px) 50vw, 25vw"
+                            />
+                            {/* Warm vignette overlay — analog photo feel */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-black/10 pointer-events-none" />
+                            <div className="absolute inset-0 shadow-[inset_0_0_20px_rgba(0,0,0,0.15)] pointer-events-none rounded-t-lg" />
+                          </>
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">
                             No Photo
                           </div>
                         )}
                       </div>
-                      <div className="w-full p-1.5 sm:p-2 lg:py-4 text-center bg-card flex items-center justify-center flex-1">
-                        <span className="text-[9px] sm:text-xs md:text-base font-semibold leading-tight line-clamp-2">
+                      {/* Name area — Polaroid-style wider bottom */}
+                      <div className="w-full p-2 sm:p-2.5 lg:py-4 text-center bg-card flex items-center justify-center flex-1 border-t border-primary/5">
+                        <span className="text-[9px] sm:text-xs md:text-base font-serif font-semibold leading-tight line-clamp-2 text-foreground/85 tracking-tight">
                           {actor.name}
                         </span>
                       </div>
