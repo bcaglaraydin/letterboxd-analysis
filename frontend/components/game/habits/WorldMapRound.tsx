@@ -66,7 +66,42 @@ export function WorldMapRound({
     stat: CountryStat | null;
     x: number;
     y: number;
+    safeX: number;
+    safeY: number;
   } | null>(null);
+
+  // Helper to calculate safe tooltip coordinates
+  const getSafePosition = (
+    evt: React.MouseEvent,
+    width: number,
+    height: number,
+    offset: number = 10,
+  ) => {
+    const margin = 10;
+    const x = evt.clientX;
+    const y = evt.clientY;
+
+    // Default: right side, above cursor
+    let safeX = x + offset;
+    let safeY = y - height - offset;
+
+    // Check right boundary
+    if (safeX + width > window.innerWidth - margin) {
+      safeX = x - width - offset; // flip to left side
+    }
+
+    // Check left boundary (if flipped and still off-screen)
+    if (safeX < margin) {
+      safeX = margin;
+    }
+
+    // Check top boundary
+    if (safeY < margin) {
+      safeY = y + offset; // flip to below cursor
+    }
+
+    return { x, y, safeX, safeY };
+  };
 
   // Build lookup map: normalized country name → CountryStat
   const countryLookup = useMemo(() => {
@@ -240,7 +275,7 @@ export function WorldMapRound({
           }}
           width={800}
           height={450}
-          className="w-full max-h-[60vh] md:max-h-full touch-none"
+          className="w-full max-h-[75vh] md:max-h-full touch-none"
           style={{ maxWidth: '100%', maxHeight: '100%' }}
         >
           <ZoomableGroup
@@ -271,20 +306,24 @@ export function WorldMapRound({
                       strokeLinejoin="round"
                       strokeLinecap="round"
                       onMouseEnter={(evt) => {
+                        const width = 200; // rough max width
+                        const height = stat ? 150 : 40;
+                        const pos = getSafePosition(evt, width, height);
                         setTooltip({
                           name: geoName,
                           stat,
-                          x: evt.clientX,
-                          y: evt.clientY,
+                          ...pos,
                         });
                       }}
                       onMouseLeave={() => setTooltip(null)}
                       onClick={(evt) => {
+                        const width = 200;
+                        const height = stat ? 150 : 40;
+                        const pos = getSafePosition(evt, width, height);
                         setTooltip({
                           name: geoName,
                           stat,
-                          x: evt.clientX,
-                          y: evt.clientY,
+                          ...pos,
                         });
                       }}
                       style={{
@@ -339,7 +378,7 @@ export function WorldMapRound({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               className="fixed z-[100] pointer-events-none"
-              style={{ left: tooltip.x + 12, top: tooltip.y - 10 }}
+              style={{ left: tooltip.safeX, top: tooltip.safeY }}
             >
               <div className="bg-card/95 backdrop-blur-md border border-primary/10 rounded-xl shadow-lg px-4 py-3 md:px-6 md:py-4 max-w-[300px] md:max-w-[420px]">
                 <p className="font-serif font-bold text-sm md:text-base text-foreground">
@@ -459,8 +498,8 @@ function CountryAnalysis({
 
   const [hoveredMovies, setHoveredMovies] = useState<{
     movies: { title: string; posterUrl: string }[];
-    x: number;
-    y: number;
+    safeX: number;
+    safeY: number;
   } | null>(null);
 
   return (
@@ -541,7 +580,7 @@ function CountryAnalysis({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             className="fixed z-[100] pointer-events-none"
-            style={{ left: hoveredMovies.x + 12, top: hoveredMovies.y - 60 }}
+            style={{ left: hoveredMovies.safeX, top: hoveredMovies.safeY }}
           >
             <div className="bg-card/95 backdrop-blur-md border border-primary/10 rounded-xl shadow-lg p-2 md:p-3 flex gap-1.5 md:gap-2.5">
               {hoveredMovies.movies.map((m, i) => (
@@ -595,7 +634,7 @@ interface AnalysisSectionProps {
   color: string;
   delay: number;
   onHover: (
-    data: { movies: { title: string; posterUrl: string }[]; x: number; y: number } | null,
+    data: { movies: { title: string; posterUrl: string }[]; safeX: number; safeY: number } | null,
   ) => void;
 }
 
@@ -637,7 +676,25 @@ function AnalysisSection({
               className="flex items-center gap-3 group cursor-default"
               onMouseEnter={(e) => {
                 if (item.topMovies.length > 0) {
-                  onHover({ movies: item.topMovies, x: e.clientX, y: e.clientY });
+                  // Calculate safe tooltip coordinates
+                  const margin = 10;
+                  const width = 160; // rough tooltip width on mobile
+                  const height = 100; // rough tooltip height
+                  let safeX = e.clientX + 12;
+                  let safeY = e.clientY - 60;
+
+                  // Check boundaries
+                  if (safeX + width > window.innerWidth - margin) {
+                    safeX = e.clientX - width - 12; // flip to left side
+                  }
+                  if (safeX < margin) safeX = margin;
+
+                  if (safeY < margin) safeY = e.clientY + 20; // flip to bottom
+                  if (safeY + height > window.innerHeight - margin) {
+                    safeY = window.innerHeight - height - margin;
+                  }
+
+                  onHover({ movies: item.topMovies, safeX, safeY });
                 }
               }}
               onMouseLeave={() => onHover(null)}
