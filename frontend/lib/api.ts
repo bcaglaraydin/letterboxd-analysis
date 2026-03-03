@@ -45,6 +45,14 @@ export interface DurationDistributionGraph {
   batches: DurationBatch[];
 }
 
+export interface CountryStat {
+  name: string;
+  slug: string;
+  watchCount: number;
+  avgRating: number;
+  topMovies: { title: string; posterUrl: string }[];
+}
+
 export interface UserStats {
   totalMovies: number;
   averageRating: number;
@@ -65,6 +73,7 @@ export interface UserStats {
   genreInsights?: GenreInsight[];
   topActors?: TopActor[];
   durationDistribution?: DurationDistributionGraph[];
+  countryStats?: CountryStat[];
 }
 
 export type GenreBubbleTagType = 'hidden_gem' | 'comfort_zone' | 'true_love';

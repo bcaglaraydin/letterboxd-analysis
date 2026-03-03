@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FavoriteActorRound } from './FavoriteActorRound';
 import { DurationBatchRound } from './DurationBatchRound';
+import { WorldMapRound } from './WorldMapRound';
 import { useUserStore } from '@/store/core/userStore';
 import { mockActors, mockActorWaitlist } from '@/mocks/data';
 import type { TopActor } from '@/lib/api';
@@ -12,7 +13,7 @@ interface ViewingHabitsOrchestrationProps {
   onGameComplete: (totalScore: number) => void;
 }
 
-export type HabitsPhase = 'actor' | 'duration';
+export type HabitsPhase = 'actor' | 'duration' | 'map';
 
 // Convert backend TopActor[] to the shape FavoriteActorRound expects
 function buildActorData(topActors: TopActor[]) {
@@ -60,10 +61,22 @@ export function ViewingHabitsOrchestration({ onGameComplete }: ViewingHabitsOrch
     setPhase('duration');
   };
 
+  // Check if country data is available
+  const hasCountryData = userStats?.countryStats && userStats.countryStats.length > 0;
+  const totalRounds = hasCountryData ? 3 : 2;
+
   const handleDurationComplete = (roundScore: number) => {
-    const finalScore = score + roundScore;
-    setScore(finalScore);
-    onGameComplete(finalScore);
+    const newScore = score + roundScore;
+    setScore(newScore);
+    if (hasCountryData) {
+      setPhase('map');
+    } else {
+      onGameComplete(newScore);
+    }
+  };
+
+  const handleMapComplete = () => {
+    onGameComplete(score);
   };
 
   return (
@@ -82,7 +95,7 @@ export function ViewingHabitsOrchestration({ onGameComplete }: ViewingHabitsOrch
               onComplete={handleActorComplete}
               currentScore={score}
               roundNumber={1}
-              totalRounds={2}
+              totalRounds={totalRounds}
               topActors={actorData.top8}
               actorWaitlist={actorData.waitlist}
             />
@@ -102,8 +115,27 @@ export function ViewingHabitsOrchestration({ onGameComplete }: ViewingHabitsOrch
               onComplete={handleDurationComplete}
               currentScore={score}
               roundNumber={2}
-              totalRounds={2}
+              totalRounds={totalRounds}
               distributionGraphs={userStats?.durationDistribution}
+            />
+          </motion.div>
+        )}
+
+        {phase === 'map' && hasCountryData && (
+          <motion.div
+            key="map-round"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, scale: 1.05 }}
+            transition={{ duration: 0.4 }}
+            className="w-full h-full"
+          >
+            <WorldMapRound
+              onComplete={handleMapComplete}
+              currentScore={score}
+              roundNumber={3}
+              totalRounds={totalRounds}
+              countryStats={userStats!.countryStats!}
             />
           </motion.div>
         )}
@@ -123,6 +155,12 @@ export function ViewingHabitsOrchestration({ onGameComplete }: ViewingHabitsOrch
             className="px-3 py-1 bg-black/50 text-white text-xs rounded hover:bg-black/80"
           >
             Debug: Duration
+          </button>
+          <button
+            onClick={() => setPhase('map')}
+            className="px-3 py-1 bg-black/50 text-white text-xs rounded hover:bg-black/80"
+          >
+            Debug: Map
           </button>
         </div>
       )}
