@@ -512,6 +512,12 @@ export function PersonalGenreBubbles({ data, insights }: PersonalGenreBubblesPro
                   Math.min(zx, wrapperW - halfStripWidth - padding),
                 );
 
+                // Estimate strip height
+                const estimatedStripHeight = isMobile ? 160 : 200;
+                const gapTop = zr + (isMobile ? 24 : 32);
+                const showBelow = zy - gapTop - estimatedStripHeight < 40; // 40px safe area from top constraint
+                const direction = showBelow ? 'down' : 'up';
+
                 return (
                   <>
                     {/* Active Bubble Highlight Ring */}
@@ -539,8 +545,9 @@ export function PersonalGenreBubbles({ data, insights }: PersonalGenreBubblesPro
                       <BubblePosterStrip
                         movies={hoveredGenre.genre.exampleMovies}
                         bubbleRadius={hoveredGenre.r}
-                        isMobile={dimensions.width < 768}
+                        isMobile={isMobile}
                         tag={hoveredGenre.genre.tag}
+                        direction={direction}
                       />
                     </div>
                   </>

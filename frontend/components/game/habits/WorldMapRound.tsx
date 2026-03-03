@@ -2,7 +2,14 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ComposableMap, Geographies, Geography, Sphere, Graticule } from 'react-simple-maps';
+import {
+  ComposableMap,
+  Geographies,
+  Geography,
+  Sphere,
+  Graticule,
+  ZoomableGroup,
+} from 'react-simple-maps';
 import { scalePow } from 'd3-scale';
 import { interpolateRgb } from 'd3-interpolate';
 import { GameRoundIndicator } from '@/components/game/shared/GameRoundIndicator';
@@ -233,63 +240,96 @@ export function WorldMapRound({
           }}
           width={800}
           height={450}
-          className="w-full max-h-full"
+          className="w-full max-h-[60vh] md:max-h-full touch-none"
           style={{ maxWidth: '100%', maxHeight: '100%' }}
         >
-          {/* Ocean background */}
-          <Sphere id="ocean-sphere" fill="#F5F1EB" stroke="#D5CFC7" strokeWidth={0.8} />
-          {/* Lat/lon grid — subtle depth cue */}
-          <Graticule stroke="#E0DBD3" strokeWidth={0.3} />
-          <Geographies geography={GEO_URL}>
-            {({ geographies }) =>
-              geographies.map((geo) => {
-                const geoName = geo.properties.name || '';
-                const stat = findCountryStat(geoName);
+          <ZoomableGroup
+            minZoom={1}
+            maxZoom={4}
+            translateExtent={[
+              [-100, -50],
+              [900, 500],
+            ]}
+          >
+            {/* Ocean background */}
+            <Sphere id="ocean-sphere" fill="#F5F1EB" stroke="#D5CFC7" strokeWidth={0.8} />
+            {/* Lat/lon grid — subtle depth cue */}
+            <Graticule stroke="#E0DBD3" strokeWidth={0.3} />
+            <Geographies geography={GEO_URL}>
+              {({ geographies }) =>
+                geographies.map((geo) => {
+                  const geoName = geo.properties.name || '';
+                  const stat = findCountryStat(geoName);
 
-                return (
-                  <Geography
-                    key={geo.rsmKey}
-                    geography={geo}
-                    fill={getColor(geoName)}
-                    stroke="#C9C3B8"
-                    strokeWidth={0.4}
-                    strokeLinejoin="round"
-                    strokeLinecap="round"
-                    onMouseEnter={(evt) => {
-                      setTooltip({
-                        name: geoName,
-                        stat,
-                        x: evt.clientX,
-                        y: evt.clientY,
-                      });
-                    }}
-                    onMouseLeave={() => setTooltip(null)}
-                    onClick={(evt) => {
-                      setTooltip({
-                        name: geoName,
-                        stat,
-                        x: evt.clientX,
-                        y: evt.clientY,
-                      });
-                    }}
-                    style={{
-                      default: {
-                        outline: 'none',
-                        transition: 'fill 0.3s ease',
-                      },
-                      hover: {
-                        fill: stat ? (mode === 'watchCount' ? '#D4533B' : '#3a4d3f') : '#DAD5CD',
-                        outline: 'none',
-                        cursor: stat ? 'pointer' : 'default',
-                      },
-                      pressed: { outline: 'none' },
-                    }}
-                  />
-                );
-              })
-            }
-          </Geographies>
+                  return (
+                    <Geography
+                      key={geo.rsmKey}
+                      geography={geo}
+                      fill={getColor(geoName)}
+                      stroke="#C9C3B8"
+                      strokeWidth={0.4}
+                      strokeLinejoin="round"
+                      strokeLinecap="round"
+                      onMouseEnter={(evt) => {
+                        setTooltip({
+                          name: geoName,
+                          stat,
+                          x: evt.clientX,
+                          y: evt.clientY,
+                        });
+                      }}
+                      onMouseLeave={() => setTooltip(null)}
+                      onClick={(evt) => {
+                        setTooltip({
+                          name: geoName,
+                          stat,
+                          x: evt.clientX,
+                          y: evt.clientY,
+                        });
+                      }}
+                      style={{
+                        default: {
+                          outline: 'none',
+                          transition: 'fill 0.3s ease',
+                        },
+                        hover: {
+                          fill: stat ? (mode === 'watchCount' ? '#D4533B' : '#3a4d3f') : '#DAD5CD',
+                          outline: 'none',
+                          cursor: stat ? 'pointer' : 'default',
+                        },
+                        pressed: { outline: 'none' },
+                      }}
+                    />
+                  );
+                })
+              }
+            </Geographies>
+          </ZoomableGroup>
         </ComposableMap>
+
+        {/* Mobile Interaction Hint */}
+        <div className="absolute top-4 right-4 md:hidden pointer-events-none bg-background/50 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1.5 border border-primary/10">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-muted-foreground"
+          >
+            <path d="M5 9l-3 3 3 3" />
+            <path d="M9 5l3-3 3 3" />
+            <path d="M19 9l3 3-3 3" />
+            <path d="M15 19l-3 3-3-3" />
+            <path d="M2 12h20" />
+            <path d="M12 2v20" />
+          </svg>
+          <span className="text-[10px] text-muted-foreground font-medium">Drag to pan</span>
+        </div>
 
         {/* Tooltip */}
         <AnimatePresence>
@@ -450,9 +490,9 @@ function CountryAnalysis({
         </motion.h2>
       </div>
 
-      {/* Scrollable Analysis Grid — vertically centered */}
-      <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar px-4 md:px-8 lg:px-12 pb-4 flex flex-col justify-center">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-6xl mx-auto w-full my-auto">
+      {/* Scrollable Analysis Grid — vertically centered on desktop, normal flow on mobile */}
+      <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar px-4 md:px-8 lg:px-12 pb-4 md:flex md:flex-col md:justify-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-6xl mx-auto w-full md:my-auto">
           <AnalysisSection
             title="Most Watched"
             items={topWatched}
