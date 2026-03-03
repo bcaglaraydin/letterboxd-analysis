@@ -8,7 +8,7 @@ import {
   calculateRatingDistribution,
   calculateBasicStats,
   calculateCommunityComparison,
-  findGuiltyPleasure,
+  findRatingDeviations,
   calculateGenreStats,
   calculateTopActors,
 } from '../statsService.js';
@@ -43,7 +43,12 @@ describe('GameService', () => {
       mockReturnValue(calculateCommunityComparison, { diff: 0 });
       mockReturnValue(calculateGenreStats, ['genreStats']);
       mockResolved(calculateTopActors, [{ name: 'Test Actor' }]);
-      mockReturnValue(findGuiltyPleasure, { guiltyPleasures: [], controversialPicks: [] });
+      mockReturnValue(findRatingDeviations, {
+        guiltyPleasures: [],
+        controversialPicks: [],
+        hotTakes: [],
+        skepticPicks: [],
+      });
 
       const result = await GameService.generateAll(mockUserFilms, mockMetadataMap, minFilms);
 
