@@ -413,3 +413,57 @@ function createMirroredDecoy(batches) {
     avgRating: reversedRatings[i],
   }));
 }
+
+/**
+ * Calculates per-country statistics from user's film list.
+ * @param {Array} films - Array of film objects with { countries, userRating, title, poster }.
+ * @returns {Array} - Array of country stats sorted by watchCount desc.
+ */
+export function calculateCountryStats(films) {
+  const countryMap = {};
+
+  films.forEach((film) => {
+    if (!film.countries || !Array.isArray(film.countries)) return;
+    const isRated = film.userRating !== null && film.userRating !== undefined;
+
+    film.countries.forEach((countryName) => {
+      if (!countryMap[countryName]) {
+        countryMap[countryName] = {
+          name: countryName,
+          slug: countryName.toLowerCase().replace(/\s+/g, '-'),
+          ratingSum: 0,
+          ratingCount: 0,
+          watchCount: 0,
+          films: [],
+        };
+      }
+
+      const entry = countryMap[countryName];
+      entry.watchCount++;
+
+      if (isRated) {
+        entry.ratingSum += film.userRating;
+        entry.ratingCount++;
+      }
+
+      // Keep up to 5 movies per country (prefer rated ones with posters)
+      if (entry.films.length < 5) {
+        entry.films.push({
+          title: film.title,
+          posterUrl: film.poster || film.posterUrl || '',
+        });
+      }
+    });
+  });
+
+  return Object.values(countryMap)
+    .filter((c) => c.watchCount > 0)
+    .map((c) => ({
+      name: c.name,
+      slug: c.slug,
+      watchCount: c.watchCount,
+      avgRating: c.ratingCount > 0 ? parseFloat((c.ratingSum / c.ratingCount).toFixed(2)) : 0,
+      topMovies: c.films,
+    }))
+    .sort((a, b) => b.watchCount - a.watchCount);
+}
