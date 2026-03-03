@@ -132,38 +132,59 @@ export function calculateCommunityComparison(films) {
 }
 
 /**
- * Finds "Guilty Pleasure" and "Controversial Pick" movies.
- * Guilty Pleasure: User rated high, community rated low/mid.
- * Controversial Pick: User rated WAY higher than community on good movies.
+ * Finds rating deviations: Guilty Pleasures, Controversial Picks, Hot Takes, and Skeptic Picks.
  * @param {Array} movies - Array of movie objects with userRating and communityRating.
- * @returns {{guiltyPleasures: Array, controversialPicks: Array}} - Sorted by rating difference.
+ * @returns {Object} - { guiltyPleasures, controversialPicks, hotTakes, skepticPicks }
  */
-export function findGuiltyPleasure(movies) {
-  if (!movies || movies.length === 0) return [];
+export function findRatingDeviations(movies) {
+  if (!movies || movies.length === 0)
+    return { guiltyPleasures: [], controversialPicks: [], hotTakes: [], skepticPicks: [] };
 
-  const getDiff = (m) => m.userRating - m.communityRating;
-
-  // 1. Guilty Pleasures: User >= 3.5, Comm < 3.7, Diff >= 0.8
-  // "Bad movie (or mid) that you loved"
+  // 1. Guilty Pleasures (Loved a bad/mid movie)
   const guiltyPleasures = movies
-    .filter((m) => m.userRating >= 3.5 && m.communityRating < 3.7 && getDiff(m) >= 0.8)
-    .sort((a, b) => getDiff(b) - getDiff(a));
+    .filter(
+      (m) =>
+        m.userRating > m.communityRating &&
+        m.communityRating < 3.4 &&
+        m.userRating - m.communityRating >= 0.5
+    )
+    .sort((a, b) => b.userRating - b.communityRating - (a.userRating - a.communityRating));
 
-  // 2. Controversial Picks: User >= 3.5, Comm >= 3.7, Comm < 4.0, Diff >= 0.7
-  // "Good movie that you loved WAY more than the average"
+  // 2. Controversial Picks (Loved a good movie WAY more)
   const controversialPicks = movies
     .filter(
       (m) =>
-        m.userRating >= 3.5 &&
-        m.communityRating >= 3.7 &&
-        m.communityRating < 4.0 &&
-        getDiff(m) >= 0.7
+        m.userRating > m.communityRating &&
+        m.communityRating >= 3.4 &&
+        m.userRating - m.communityRating >= 0.5
     )
-    .sort((a, b) => getDiff(b) - getDiff(a));
+    .sort((a, b) => b.userRating - b.communityRating - (a.userRating - a.communityRating));
+
+  // 3. Hot Takes (Hated a good/great movie)
+  const hotTakes = movies
+    .filter(
+      (m) =>
+        m.communityRating > m.userRating &&
+        m.communityRating >= 3.6 &&
+        m.communityRating - m.userRating >= 0.8
+    )
+    .sort((a, b) => b.communityRating - b.userRating - (a.communityRating - a.userRating));
+
+  // 4. Skeptic Picks (Hated a bad/mid movie even more)
+  const skepticPicks = movies
+    .filter(
+      (m) =>
+        m.communityRating > m.userRating &&
+        m.communityRating < 3.6 &&
+        m.communityRating - m.userRating >= 0.8
+    )
+    .sort((a, b) => b.communityRating - b.userRating - (a.communityRating - a.userRating));
 
   return {
     guiltyPleasures,
     controversialPicks,
+    hotTakes,
+    skepticPicks,
   };
 }
 

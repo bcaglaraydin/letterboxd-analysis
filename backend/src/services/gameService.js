@@ -6,7 +6,7 @@ import {
   calculateRatingDistribution,
   calculateBasicStats,
   calculateCommunityComparison,
-  findGuiltyPleasure,
+  findRatingDeviations,
   calculateGenreStats,
   calculateTopActors,
   calculateDurationDistribution,
@@ -50,8 +50,8 @@ export const GameService = {
         ...meta,
         poster: meta.posterUrl || f.posterUrl,
         title: meta.title || f.title || f.slug,
-        genres: meta.genres || [], // Ensure genres array exists
-        themes: meta.themes || [], // Ensure themes array exists
+        genres: meta.genres || [],
+        themes: meta.themes || [],
       };
     });
 
@@ -79,15 +79,8 @@ export const GameService = {
       .filter((r) => r != null && r > 0);
     const commDist = calculateRatingDistribution(commRatings);
 
-    // Guilty Pleasure
-    const candidates = allFilmsWithMeta
-      .filter((f) => f.averageRating)
-      .map((f) => ({
-        ...f,
-        communityRating: f.averageRating,
-      }));
-
-    const { guiltyPleasures, controversialPicks } = findGuiltyPleasure(candidates);
+    // Guilty Pleasure and Controversial Picks
+    const ratingDeviations = findRatingDeviations(allFilmsWithMeta);
 
     // Calculate Genre Stats
     const genreOverview = calculateGenreStats(allFilmsWithMeta);
@@ -112,8 +105,10 @@ export const GameService = {
       },
       communityComparison: commStats,
       communityRatingDistribution: commDist,
-      guiltyPleasures,
-      controversialPicks,
+      guiltyPleasures: ratingDeviations.guiltyPleasures.slice(0, 5),
+      controversialPicks: ratingDeviations.controversialPicks.slice(0, 5),
+      hotTakes: ratingDeviations.hotTakes.slice(0, 5),
+      skepticPicks: ratingDeviations.skepticPicks.slice(0, 5),
       genreOverview,
       topActors,
       durationDistribution: durationData.graphs,
