@@ -80,7 +80,13 @@ export const GameService = {
     const commDist = calculateRatingDistribution(commRatings);
 
     // Guilty Pleasure and Controversial Picks
-    const ratingDeviations = findRatingDeviations(allFilmsWithMeta);
+    const candidates = allFilmsWithMeta
+      .filter((f) => f.averageRating)
+      .map((f) => ({
+        ...f,
+        communityRating: f.averageRating,
+      }));
+    const ratingDeviations = findRatingDeviations(candidates);
 
     // Calculate Genre Stats
     const genreOverview = calculateGenreStats(allFilmsWithMeta);

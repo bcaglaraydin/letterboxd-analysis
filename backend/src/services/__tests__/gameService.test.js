@@ -11,6 +11,8 @@ import {
   findRatingDeviations,
   calculateGenreStats,
   calculateTopActors,
+  calculateDurationDistribution,
+  calculateCountryStats,
 } from '../statsService.js';
 
 // Mock all dependencies
@@ -49,6 +51,8 @@ describe('GameService', () => {
         hotTakes: [],
         skepticPicks: [],
       });
+      mockReturnValue(calculateDurationDistribution, { graphs: [] });
+      mockReturnValue(calculateCountryStats, []);
 
       const result = await GameService.generateAll(mockUserFilms, mockMetadataMap, minFilms);
 
