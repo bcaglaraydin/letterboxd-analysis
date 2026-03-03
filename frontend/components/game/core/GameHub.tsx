@@ -44,14 +44,14 @@ export const GameHub = () => {
   return (
     <GameBackground className="bg-background">
       <GameLayout
-        className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
+        className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-12"
         top={null}
         middle={
           <motion.div
             variants={container}
             initial="hidden"
             animate="show"
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-6xl mx-auto"
+            className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 w-full max-w-6xl mx-auto"
           >
             {/* Rating Game Card - Always visible (or check unlocked status if needed, but usually entry point) */}
             {ratingGameStatus !== 'LOCKED' && (
@@ -60,7 +60,7 @@ export const GameHub = () => {
                 status={ratingGameStatus}
                 score={scores.rating}
                 maxScore={RATING_GAME_CONFIG.MAX_SCORE}
-                icon={<Star className="w-6 h-6 fill-current" />}
+                icon={<Star className="w-5 h-5 md:w-6 md:h-6 fill-current" />}
                 onClick={startRatingGame}
                 actionLabel="Continue"
                 onHoverBorderColor="focus-visible:ring-primary"
@@ -72,12 +72,14 @@ export const GameHub = () => {
               <div className="w-full h-full flex items-center justify-center">
                 <button
                   onClick={startGenreGame}
-                  className="w-full h-full min-h-[200px] rounded-3xl border border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 transition-all duration-300 flex flex-col items-center justify-center gap-4 group"
+                  className="w-full h-full aspect-square md:aspect-auto min-h-[140px] md:min-h-[200px] rounded-3xl border border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 transition-all duration-300 flex flex-col items-center justify-center gap-2 md:gap-4 p-2 group"
                 >
-                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
-                    <Play className="w-8 h-8 fill-current ml-1" />
+                  <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
+                    <Play className="w-6 h-6 md:w-8 md:h-8 fill-current ml-0.5 md:ml-1" />
                   </div>
-                  <span className="text-xl font-bold text-primary">Continue</span>
+                  <span className="text-sm md:text-xl font-bold text-primary text-center">
+                    Continue
+                  </span>
                 </button>
               </div>
             ) : genreGameStatus === 'COMPLETED' ? (
@@ -86,7 +88,7 @@ export const GameHub = () => {
                 status={genreGameStatus}
                 score={scores.genre}
                 maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
-                icon={<Film className="w-6 h-6" />}
+                icon={<Film className="w-5 h-5 md:w-6 md:h-6" />}
                 onClick={startGenreGame}
                 actionLabel="Continue"
                 onHoverBorderColor="focus-visible:ring-accent"
@@ -99,12 +101,14 @@ export const GameHub = () => {
               <div className="w-full h-full flex items-center justify-center">
                 <button
                   onClick={startThemeExperience}
-                  className="w-full h-full min-h-[200px] rounded-3xl border border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 transition-all duration-300 flex flex-col items-center justify-center gap-4 group"
+                  className="w-full h-full aspect-square md:aspect-auto min-h-[140px] md:min-h-[200px] rounded-3xl border border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 transition-all duration-300 flex flex-col items-center justify-center gap-2 md:gap-4 p-2 group"
                 >
-                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
-                    <Play className="w-8 h-8 fill-current ml-1" />
+                  <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
+                    <Play className="w-6 h-6 md:w-8 md:h-8 fill-current ml-0.5 md:ml-1" />
                   </div>
-                  <span className="text-xl font-bold text-primary">Continue</span>
+                  <span className="text-sm md:text-xl font-bold text-primary text-center">
+                    Continue
+                  </span>
                 </button>
               </div>
             ) : themeGameStatus === 'COMPLETED' ? (
@@ -113,7 +117,7 @@ export const GameHub = () => {
                 status={themeGameStatus}
                 score={scores.theme}
                 maxScore={100}
-                icon={<Lightbulb className="w-6 h-6" />}
+                icon={<Lightbulb className="w-5 h-5 md:w-6 md:h-6" />}
                 onClick={startThemeExperience}
                 actionLabel="Continue"
                 onHoverBorderColor="focus-visible:ring-accent"
@@ -126,12 +130,14 @@ export const GameHub = () => {
               <div className="w-full h-full flex items-center justify-center">
                 <button
                   onClick={startHabitsExperience}
-                  className="w-full h-full min-h-[200px] rounded-3xl border border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 transition-all duration-300 flex flex-col items-center justify-center gap-4 group"
+                  className="w-full h-full aspect-square md:aspect-auto min-h-[140px] md:min-h-[200px] rounded-3xl border border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 transition-all duration-300 flex flex-col items-center justify-center gap-2 md:gap-4 p-2 group"
                 >
-                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
-                    <Play className="w-8 h-8 fill-current ml-1" />
+                  <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
+                    <Play className="w-6 h-6 md:w-8 md:h-8 fill-current ml-0.5 md:ml-1" />
                   </div>
-                  <span className="text-xl font-bold text-primary">Continue</span>
+                  <span className="text-sm md:text-xl font-bold text-primary text-center">
+                    Continue
+                  </span>
                 </button>
               </div>
             ) : habitsGameStatus === 'COMPLETED' ? (
@@ -140,7 +146,7 @@ export const GameHub = () => {
                 status={habitsGameStatus}
                 score={scores.habits}
                 maxScore={40} // 2 rounds * 20 points
-                icon={<Film className="w-6 h-6" />}
+                icon={<Film className="w-5 h-5 md:w-6 md:h-6" />}
                 onClick={startHabitsExperience}
                 actionLabel="Continue"
                 onHoverBorderColor="focus-visible:ring-accent"

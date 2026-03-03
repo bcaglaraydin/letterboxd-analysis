@@ -14,6 +14,7 @@ interface BubblePosterStripProps {
   bubbleRadius: number;
   isMobile?: boolean;
   tag?: GenreBubbleTag;
+  direction?: 'up' | 'down';
 }
 
 // Earthy Design System Themes
@@ -46,44 +47,47 @@ const TAG_THEMES: Record<
   },
 };
 
-// Configuration for gap between bubble and strip
-// Modify these values to adjust the distance
-const GAP_MOBILE = 140;
-const GAP_DESKTOP = 140;
+// Configuration for gap between bubble edge and strip edge
+const GAP_MOBILE = 24;
+const GAP_DESKTOP = 32;
 
 export function BubblePosterStrip({
   movies,
   bubbleRadius,
   isMobile = false,
   tag,
+  direction = 'up',
 }: BubblePosterStripProps) {
   const displayMovies = movies.slice(0, 5);
   const theme = tag ? TAG_THEMES[tag.type] : null;
 
+  const gap = isMobile ? GAP_MOBILE : GAP_DESKTOP;
+
   return (
     <motion.div
-      className="absolute flex flex-col items-center justify-center gap-2 pointer-events-none"
+      className={`absolute flex items-center justify-center gap-2 pointer-events-none ${direction === 'down' ? 'flex-col-reverse' : 'flex-col'}`}
       style={{
         width: 'max-content',
+        bottom: direction === 'up' ? bubbleRadius + gap : 'auto',
+        top: direction === 'down' ? bubbleRadius + gap : 'auto',
       }}
       initial={{
         opacity: 0,
         scale: 0.5,
         x: '-50%',
-        y: 0,
+        y: direction === 'up' ? 20 : -20,
       }}
       animate={{
         opacity: 1,
         scale: 1,
         x: '-50%',
-        // Fixed distance from top of bubble using configured gaps
-        y: isMobile ? -(bubbleRadius + GAP_MOBILE) : -(bubbleRadius + GAP_DESKTOP),
+        y: 0,
       }}
       exit={{
         opacity: 0,
         scale: 0.5,
         x: '-50%',
-        y: 0,
+        y: direction === 'up' ? 20 : -20,
       }}
       transition={{
         type: 'spring',
