@@ -1065,6 +1065,8 @@ export const MOCK_METRICS_RESPONSE: MetricsResponse = {
         runtimeMinutes: 139,
       },
     ],
+    hotTakes: [],
+    skepticPicks: [],
     genreOverview: MOCK_GENRE_STATS,
   },
 };

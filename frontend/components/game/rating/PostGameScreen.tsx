@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useRatingGameStore } from '@/store/rating/ratingStore';
-import { cn } from '@/lib/utils';
+
 import { IntroStep, AveragesStep, HistogramStep, GuiltyPleasuresStep } from './steps';
 
 import { useUserStore } from '@/store/core/userStore';
@@ -20,11 +20,21 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({ score, onComplet
   const { backgroundStatus, fetchFullStats } = useUserStore();
   const startGenreGame = useGenreRankingStore((s) => s.startGame);
 
-  // Step navigation and guilty pleasures state
+  // Step navigation and deviations state
   const [step, setStep] = useState(0);
-  const [gpIndex, setGpIndex] = useState(0);
-  const [cpIndex, setCpIndex] = useState(0);
-  const [viewingControversial, setViewingControversial] = useState(false);
+  const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
+  const [movieIndex, setMovieIndex] = useState(0);
+
+  // Derived state for deviations
+  const DEVIATION_CATEGORIES = [
+    'guiltyPleasures',
+    'controversialPicks',
+    'hotTakes',
+    'skepticPicks',
+  ] as const;
+  const activeCategories = userStats
+    ? DEVIATION_CATEGORIES.filter((cat) => userStats[cat] && userStats[cat].length > 0)
+    : [];
 
   // Fetch Logic
   React.useEffect(() => {
@@ -35,17 +45,6 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({ score, onComplet
       });
     }
   }, [backgroundStatus, userStats, fetchFullStats, setUserStats, startGenreGame]);
-
-  // Auto-switch to controversial if no guilty pleasures
-  React.useEffect(() => {
-    if (userStats) {
-      const gpLen = userStats.guiltyPleasures?.length || 0;
-      const cpLen = userStats.controversialPicks?.length || 0;
-      if (gpLen === 0 && cpLen > 0) {
-        setViewingControversial(true);
-      }
-    }
-  }, [userStats]);
 
   // Loading Gate
   if (!userStats) {
@@ -64,28 +63,21 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({ score, onComplet
     );
   }
 
-  // Safety check if stats aren't ready (Redundant but keeps Typescript happy for derived vars)
-  // Actually, safe access is better.
-  const guiltyPleasures = userStats?.guiltyPleasures || [];
-  const controversialPicks = userStats?.controversialPicks || [];
-
-  const currentList = viewingControversial ? controversialPicks : guiltyPleasures;
-  const currentIndex = viewingControversial ? cpIndex : gpIndex;
-  const currentMovie = currentList[currentIndex];
+  const currentCategoryKey = activeCategories[activeCategoryIndex];
+  const currentList = userStats && currentCategoryKey ? userStats[currentCategoryKey] : [];
+  const currentMovie = currentList[movieIndex];
 
   const handleShowAnother = () => {
-    if (viewingControversial) {
-      if (cpIndex < controversialPicks.length - 1) setCpIndex((prev) => prev + 1);
-    } else {
-      if (gpIndex < guiltyPleasures.length - 1) setGpIndex((prev) => prev + 1);
+    if (movieIndex < currentList.length - 1) {
+      setMovieIndex((prev) => prev + 1);
     }
   };
 
   const handleContinue = () => {
-    if (!viewingControversial && controversialPicks.length > 0) {
-      setViewingControversial(true);
+    if (activeCategoryIndex < activeCategories.length - 1) {
+      setActiveCategoryIndex((prev) => prev + 1);
+      setMovieIndex(0);
     } else {
-      // If we were viewing guilty pleasures or controversial picks and are done, complete the flow.
       onComplete();
     }
   };
@@ -99,10 +91,9 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({ score, onComplet
     }
   };
 
-  const hasMoreInCurrentList = currentIndex < currentList.length - 1;
-  const isLastOfEverything = viewingControversial
-    ? !hasMoreInCurrentList
-    : !hasMoreInCurrentList && controversialPicks.length === 0;
+  const hasMoreInCurrentList = movieIndex < currentList.length - 1;
+  const isLastOfEverything =
+    !hasMoreInCurrentList && activeCategoryIndex === activeCategories.length - 1;
 
   // Build steps array dynamically
   const steps = [
@@ -116,20 +107,16 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({ score, onComplet
     <HistogramStep
       key="histogram"
       userStats={userStats}
-      onNext={
-        guiltyPleasures.length > 0 || controversialPicks.length > 0
-          ? handleStepCompletion
-          : onComplete
-      }
+      onNext={activeCategories.length > 0 ? handleStepCompletion : onComplete}
     />,
 
-    // Step 3: Guilty Pleasures (conditionally included)
-    guiltyPleasures.length > 0 || controversialPicks.length > 0 ? (
+    // Step 3: Deviations (conditionally included)
+    activeCategories.length > 0 ? (
       <GuiltyPleasuresStep
-        key="guilty"
+        key="deviations"
         currentMovie={currentMovie}
-        viewingControversial={viewingControversial}
-        cpIndex={cpIndex}
+        categoryKey={currentCategoryKey}
+        movieIndex={movieIndex}
         hasMoreInCurrentList={hasMoreInCurrentList}
         isLastOfEverything={isLastOfEverything}
         currentListLength={currentList.length}
@@ -142,19 +129,6 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({ score, onComplet
   return (
     <div className="w-full h-full min-h-[100dvh] bg-background text-foreground overflow-hidden fixed inset-0 z-50">
       <AnimatePresence mode="wait">{steps[step]}</AnimatePresence>
-
-      {/* Progress Dots */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-50 pointer-events-none">
-        {steps.map((_, i) => (
-          <div
-            key={i}
-            className={cn(
-              'w-2 h-2 rounded-full transition-all duration-300 shadow-sm',
-              i === step ? 'bg-primary w-6' : 'bg-muted-foreground/30',
-            )}
-          />
-        ))}
-      </div>
     </div>
   );
 };

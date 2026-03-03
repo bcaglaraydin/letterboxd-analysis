@@ -10,8 +10,8 @@ import { Button } from '@/components/ui/button';
 
 interface GuiltyPleasuresStepProps {
   currentMovie: Movie | undefined;
-  viewingControversial: boolean;
-  cpIndex: number;
+  categoryKey: 'guiltyPleasures' | 'controversialPicks' | 'hotTakes' | 'skepticPicks';
+  movieIndex: number;
   hasMoreInCurrentList: boolean;
   isLastOfEverything: boolean;
   currentListLength: number;
@@ -21,8 +21,8 @@ interface GuiltyPleasuresStepProps {
 
 export const GuiltyPleasuresStep: React.FC<GuiltyPleasuresStepProps> = ({
   currentMovie,
-  viewingControversial,
-  cpIndex,
+  categoryKey,
+  movieIndex,
   hasMoreInCurrentList,
   isLastOfEverything,
   currentListLength,
@@ -72,41 +72,99 @@ export const GuiltyPleasuresStep: React.FC<GuiltyPleasuresStepProps> = ({
         </div>
 
         <div className="order-2 md:order-1 space-y-4 md:space-y-6 text-center md:text-left">
-          {/* Transition Message: Show ONLY on the first Controversial Pick */}
-          {viewingControversial && cpIndex === 0 && (
+          {/* Transition Message: Show ONLY on the first item of a new category */}
+          {movieIndex === 0 && categoryKey === 'guiltyPleasures' && (
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="text-sm text-muted-foreground italic"
             >
-              You also have some{' '}
-              <span className="text-amber-400 font-bold">Controversial Picks</span> that you loved
-              more than most...
+              Some movies you loved, even when the rest of the world disagreed...
+            </motion.p>
+          )}
+          {movieIndex === 0 && categoryKey === 'controversialPicks' && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-sm text-muted-foreground italic"
+            >
+              Sometimes, you find <span className="text-amber-400 font-bold">a masterpiece</span>{' '}
+              where others just see a &quot;good&quot; movie...
+            </motion.p>
+          )}
+          {movieIndex === 0 && categoryKey === 'hotTakes' && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-sm text-muted-foreground italic"
+            >
+              And then there are the movies that everyone seems to love...{' '}
+              <span className="text-orange-400 font-bold">except you</span>.
+            </motion.p>
+          )}
+          {movieIndex === 0 && categoryKey === 'skepticPicks' && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-sm text-muted-foreground italic"
+            >
+              Finally, the ones where the community said &quot;meh&quot;, and you said{' '}
+              <span className="text-red-500 font-bold">&quot;absolutely not&quot;</span>.
             </motion.p>
           )}
 
           <div
             className={cn(
               'inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] md:text-sm font-bold uppercase tracking-widest shadow-lg',
-              !viewingControversial
-                ? 'bg-rose-600 text-white border border-rose-400'
-                : 'bg-amber-600 text-white border border-amber-400',
+              categoryKey === 'guiltyPleasures' && 'bg-rose-600 text-white border border-rose-400',
+              categoryKey === 'controversialPicks' &&
+                'bg-amber-600 text-white border border-amber-400',
+              categoryKey === 'hotTakes' && 'bg-orange-600 text-white border border-orange-400',
+              categoryKey === 'skepticPicks' && 'bg-red-600 text-white border border-red-400',
             )}
           >
             <Heart size={14} className="fill-current" />
-            {!viewingControversial ? 'Guilty Pleasure' : 'Controversial Pick'}
+            {categoryKey === 'guiltyPleasures' && 'Guilty Pleasure'}
+            {categoryKey === 'controversialPicks' && 'Controversial Pick'}
+            {categoryKey === 'hotTakes' && 'Hot Take'}
+            {categoryKey === 'skepticPicks' && "Skeptic's Pick"}
           </div>
 
           <h2 className="text-2xl md:text-5xl font-serif font-bold leading-none text-foreground">
-            {!viewingControversial
-              ? "You loved it. They didn't."
-              : 'You saw something they missed.'}
+            {categoryKey === 'guiltyPleasures' && "You loved it. They didn't."}
+            {categoryKey === 'controversialPicks' && 'You saw a masterpiece.'}
+            {categoryKey === 'hotTakes' && 'You Did Not Get the Hype.'}
+            {categoryKey === 'skepticPicks' && 'Hater of the year.'}
           </h2>
 
           <p className="text-sm md:text-lg text-muted-foreground">
-            While the community gave{' '}
-            <span className="font-bold text-foreground">{currentMovie.title}</span> a{' '}
-            {currentMovie.communityRating}, you saw it differently.
+            {categoryKey === 'guiltyPleasures' && (
+              <>
+                The world gave{' '}
+                <span className="font-bold text-foreground">{currentMovie.title}</span> a low score,
+                but you saw something special they missed.
+              </>
+            )}
+            {categoryKey === 'controversialPicks' && (
+              <>
+                The community thought{' '}
+                <span className="font-bold text-foreground">{currentMovie.title}</span> was nice.
+                You knew it was incredible.
+              </>
+            )}
+            {categoryKey === 'hotTakes' && (
+              <>
+                You watched <span className="font-bold text-foreground">{currentMovie.title}</span>{' '}
+                and thought: &apos;Is this really what all the fuss is about?&apos;
+              </>
+            )}
+            {categoryKey === 'skepticPicks' && (
+              <>
+                The community already thought{' '}
+                <span className="font-bold text-foreground">{currentMovie.title}</span> was
+                mediocre, but you made sure to let them know it was actually terrible.
+              </>
+            )}
           </p>
 
           <div className="grid grid-cols-2 gap-3 md:gap-4 pt-2">
@@ -135,7 +193,7 @@ export const GuiltyPleasuresStep: React.FC<GuiltyPleasuresStepProps> = ({
           (hasMoreInCurrentList ? (
             <button
               onClick={onShowAnother}
-              className="text-xs md:text-sm text-muted-foreground hover:text-foreground underline underline-offset-4 transition-colors"
+              className="text-xs md:text-sm text-foreground/80 hover:text-foreground bg-white/5 hover:bg-white/10 px-4 py-2 mt-2 rounded-full border border-white/10 transition-all active:scale-95 flex items-center gap-2"
             >
               Do you want to see another one?
             </button>

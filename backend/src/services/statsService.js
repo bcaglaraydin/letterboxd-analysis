@@ -144,6 +144,7 @@ export function findRatingDeviations(movies) {
   const guiltyPleasures = movies
     .filter(
       (m) =>
+        m.userRating != null &&
         m.userRating > m.communityRating &&
         m.communityRating < 3.4 &&
         m.userRating - m.communityRating >= 0.5
@@ -154,6 +155,7 @@ export function findRatingDeviations(movies) {
   const controversialPicks = movies
     .filter(
       (m) =>
+        m.userRating != null &&
         m.userRating > m.communityRating &&
         m.communityRating >= 3.4 &&
         m.userRating - m.communityRating >= 0.5
@@ -164,6 +166,7 @@ export function findRatingDeviations(movies) {
   const hotTakes = movies
     .filter(
       (m) =>
+        m.userRating != null &&
         m.communityRating > m.userRating &&
         m.communityRating >= 3.6 &&
         m.communityRating - m.userRating >= 0.8
@@ -174,6 +177,7 @@ export function findRatingDeviations(movies) {
   const skepticPicks = movies
     .filter(
       (m) =>
+        m.userRating != null &&
         m.communityRating > m.userRating &&
         m.communityRating < 3.6 &&
         m.communityRating - m.userRating >= 0.8

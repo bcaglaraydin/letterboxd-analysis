@@ -40,6 +40,8 @@ export interface UserStats {
   communityRatingDistribution: Record<string, number>;
   guiltyPleasures: Movie[];
   controversialPicks: Movie[];
+  hotTakes: Movie[];
+  skepticPicks: Movie[];
 }
 
 interface RoundResult {

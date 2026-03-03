@@ -69,6 +69,8 @@ export interface UserStats {
   communityRatingDistribution: Record<string, number>;
   guiltyPleasures: RatingGameMovie[];
   controversialPicks: RatingGameMovie[];
+  hotTakes: RatingGameMovie[];
+  skepticPicks: RatingGameMovie[];
   genreOverview: GenreStat[];
   genreInsights?: GenreInsight[];
   topActors?: TopActor[];
