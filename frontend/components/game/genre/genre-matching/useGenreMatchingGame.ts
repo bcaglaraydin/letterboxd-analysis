@@ -61,7 +61,7 @@ export interface UseGenreMatchingGameReturn {
   totalGameMaxScore: number;
 }
 
-export function useGenreMatchingGame(): UseGenreMatchingGameReturn {
+export function useGenreMatchingGame(baseScore: number = 0): UseGenreMatchingGameReturn {
   const { rounds, rarityMap, currentIndex, isActive, nextRound, resetGame, config } =
     useGenreMatchingStore();
 
@@ -76,8 +76,8 @@ export function useGenreMatchingGame(): UseGenreMatchingGameReturn {
   >(new Map());
 
   // We keep a running local score for the UI, synced with store when confirmed?
-  // Or just use local state for the game session.
-  const [totalScore, setTotalScore] = useState(0);
+  // Use the passed baseScore (e.g. from Ranking Game) to start the cumulative score
+  const [totalScore, setTotalScore] = useState(baseScore);
   const [lastPointsEarned, setLastPointsEarned] = useState<number | null>(null);
 
   const [heldIncorrectIds, setHeldIncorrectIds] = useState<Set<string>>(new Set());
@@ -371,9 +371,9 @@ export function useGenreMatchingGame(): UseGenreMatchingGameReturn {
   // Reset entire game
   const handleReset = useCallback(() => {
     resetGame(); // Reset store
-    setTotalScore(0);
+    setTotalScore(baseScore);
     resetRoundState();
-  }, [resetRoundState, resetGame]);
+  }, [resetRoundState, resetGame, baseScore]);
 
   // Clear selections
   const clearSelections = useCallback(() => {

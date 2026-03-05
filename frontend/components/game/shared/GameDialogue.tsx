@@ -12,6 +12,7 @@ interface GameDialogueProps {
   buttonText?: string;
   completionMessage?: string;
   className?: string;
+  top?: React.ReactNode;
 }
 
 export const GameDialogue: React.FC<GameDialogueProps> = ({
@@ -20,6 +21,7 @@ export const GameDialogue: React.FC<GameDialogueProps> = ({
   buttonText = 'Continue',
   completionMessage,
   className,
+  top,
 }) => {
   const [isCompleting, setIsCompleting] = useState(false);
 
@@ -70,7 +72,7 @@ export const GameDialogue: React.FC<GameDialogueProps> = ({
     hidden: { opacity: 0 },
     show: (i: number) => ({
       opacity: 1,
-      transition: { delay: i * 1.0, duration: 0.7 },
+      transition: { delay: i * 1.4, duration: 0.8 },
     }),
   };
 
@@ -79,7 +81,7 @@ export const GameDialogue: React.FC<GameDialogueProps> = ({
     show: (i: number) => ({
       opacity: 1,
       y: 0,
-      transition: { delay: i * 1.0, duration: 0.7 },
+      transition: { delay: i * 1.4, duration: 0.8 },
     }),
   };
 
@@ -87,6 +89,7 @@ export const GameDialogue: React.FC<GameDialogueProps> = ({
     <GameBackground className={className}>
       <GameLayout
         className="w-full max-w-4xl mx-auto"
+        top={top}
         middle={
           <div className="flex flex-col items-center justify-center w-full px-6">
             <motion.div

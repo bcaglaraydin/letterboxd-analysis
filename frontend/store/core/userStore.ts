@@ -15,6 +15,7 @@ interface UserState {
   setUserStats: (stats: UserStats) => void;
   setProcessing: (username: string) => void;
   setPartialReady: () => void;
+  setReady: () => void;
   setStartedGame: (started: boolean) => void;
   setHasSeenFakeScorePrank: (seen: boolean) => void;
   setHasSeenSuccessDialog: (seen: boolean) => void;

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { GameBackground } from '@/components/game/shared/GameBackground';
 import { GameLayout } from '@/components/game/shared/GameLayout';
+import { ScorePanel } from '@/components/game/shared/ScorePanel';
 
 interface GenreIntroDialogueProps {
   onComplete: () => void;
@@ -30,7 +31,7 @@ export const GenreIntroDialogue: React.FC<GenreIntroDialogueProps> = ({ onComple
     hidden: { opacity: 0 },
     visible: (i: number) => ({
       opacity: 1,
-      transition: { delay: i * 1.2, duration: 0.8 },
+      transition: { delay: i * 1.4, duration: 0.8 },
     }),
   };
 
@@ -39,7 +40,7 @@ export const GenreIntroDialogue: React.FC<GenreIntroDialogueProps> = ({ onComple
     visible: (i: number) => ({
       opacity: 1,
       y: 0,
-      transition: { delay: i * 1.2, duration: 0.8 },
+      transition: { delay: i * 1.4, duration: 0.8 },
     }),
   };
 
@@ -112,15 +113,15 @@ export const GenreIntroDialogue: React.FC<GenreIntroDialogueProps> = ({ onComple
               </div>
               <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
                 <motion.span variants={sequentialFade} custom={4}>
-                  And yes,{' '}
+                  And yes{' '}
                 </motion.span>
                 <motion.span variants={sequentialFade} custom={5}>
                   if you score over{' '}
-                  <span className="font-bold text-3xl ml-1 text-green-500">75</span>
-                  <span className="font-bold text-3xl mr-1">/100</span>,{' '}
+                  <span className="font-bold text-3xl ml-1 text-green-500">150</span>
+                  <span className="font-bold text-3xl mr-1">/200</span>{' '}
                 </motion.span>
                 <motion.span variants={sequentialFade} custom={6}>
-                  again,{' '}
+                  again{' '}
                 </motion.span>
                 <motion.span variants={sequentialFade} custom={7}>
                   we&apos;ll unlock a<span className="font-bold"> deeper analysis</span>.
@@ -173,8 +174,8 @@ export const GenreIntroDialogue: React.FC<GenreIntroDialogueProps> = ({ onComple
                 </motion.span>
                 <motion.span variants={sequentialFade} custom={4}>
                   if you score over{' '}
-                  <span className="font-bold text-3xl ml-1 text-green-500">75</span>
-                  <span className="font-bold text-3xl mr-1">/100</span>,{' '}
+                  <span className="font-bold text-3xl ml-1 text-green-500">150</span>
+                  <span className="font-bold text-3xl mr-1">/200</span>,{' '}
                 </motion.span>
                 <motion.span variants={sequentialFade} custom={5}>
                   again,{' '}
@@ -213,6 +214,18 @@ export const GenreIntroDialogue: React.FC<GenreIntroDialogueProps> = ({ onComple
     <GameBackground>
       <GameLayout
         className="w-full max-w-4xl mx-auto"
+        top={
+          <div className="flex justify-end items-start p-4 md:p-8 w-full relative z-[60]">
+            <ScorePanel
+              score={0}
+              maxScore={200}
+              showMaxScore={true}
+              size="md"
+              label="Current Score"
+              className="mb-0"
+            />
+          </div>
+        }
         middle={
           <div className="flex flex-col items-center justify-center w-full px-6 min-h-[50vh]">
             <AnimatePresence mode="wait">

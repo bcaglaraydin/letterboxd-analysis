@@ -76,8 +76,8 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) =>
     return userStats?.genreOverview || [];
   }, [userStats]);
 
-  const shouldPlayPrank = !hasSeenFakeScorePrank && matchingScore < 75;
-  const shouldPlaySuccess = !hasSeenSuccessDialog && matchingScore >= 75;
+  const shouldPlayPrank = !hasSeenFakeScorePrank && matchingScore < 150;
+  const shouldPlaySuccess = !hasSeenSuccessDialog && matchingScore >= 150;
 
   const handleNext = () => {
     if (postGameStep < steps.length - 1) {
@@ -95,8 +95,8 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) =>
           component: (
             <FakeScoreInteraction
               score={matchingScore}
-              maxScore={100}
-              threshold={75}
+              maxScore={200}
+              threshold={150}
               onComplete={handleNext}
             />
           ),

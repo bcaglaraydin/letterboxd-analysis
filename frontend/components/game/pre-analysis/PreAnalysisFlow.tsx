@@ -222,6 +222,7 @@ export const PreAnalysisFlow: React.FC<PreAnalysisFlowProps> = ({ onComplete, is
               question={currentQuestion}
               currentScore={score}
               onAnswer={handleAnswer}
+              onScoreUpdate={(delta) => setScore((prev) => prev + delta)}
             />
           </motion.div>
         )}
