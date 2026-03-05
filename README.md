@@ -68,7 +68,7 @@ flowchart TD
     %% ═══════════════════════════════════════════
     %% START LAMBDA — Decision Tree
     %% ═══════════════════════════════════════════
-    subgraph START["Start Lambda — 2048 MB | 30s timeout"]
+    subgraph START["Start Lambda — 256 MB | 30s timeout"]
         direction TB
         S1["getUserJob(username)<br/>from UserJobs table"]
         S_DEC{Job exists<br/>in DynamoDB?}
@@ -93,6 +93,9 @@ flowchart TD
         S_PUT --> S_COND{Write<br/>succeeded?}
         S_COND -->|"Yes"| S_SQS["sendMessage to<br/>list-scrape-queue"]
         S_SQS --> S_202["202 Accepted<br/>{status: accepted}"]
+
+        %% 400 Bad Request Path
+        S_400["400 Bad Request<br/>{error: Username required}"]
         S_COND -->|"ConditionalCheckFailed<br/>(race condition)"| S_RACE["Re-read job<br/>return current status"]
     end
 
@@ -105,8 +108,8 @@ flowchart TD
         direction TB
         FE_DEC{HTTP Status<br/>+ body.status?}
         FE_INSTANT["Hydrate ALL stores<br/>instantly (skip polling)<br/>Show PreAnalysis"]
-        FE_POLL_A["Start polling<br/>GET /analysis/status<br/>every 3 seconds"]
-        FE_POLL_B["Start polling<br/>GET /analysis/status<br/>every 3 seconds"]
+        FE_POLL_A["Start polling<br/>GET /analysis/status<br/>every 2 seconds"]
+        FE_POLL_B["Start polling<br/>GET /analysis/status<br/>every 2 seconds"]
         FE_ERR_404["Show: Who is that?"]
         FE_ERR_400["Show: Username required"]
 
@@ -121,6 +124,7 @@ flowchart TD
     S_PROC_R --> FE_DEC
     S_202 --> FE_DEC
     S_404 --> FE_DEC
+    S_400 --> FE_DEC
 
     %% ═══════════════════════════════════════════
     %% POLLING — Status Lambda
@@ -134,7 +138,7 @@ flowchart TD
 
     POLL_REQ --> APIGW
 
-    subgraph STATUS["Status Lambda — 1024 MB | 30s timeout"]
+    subgraph STATUS["Status Lambda — 256 MB | 30s timeout"]
         direction TB
         ST1["getUserJob(username)"]
         ST_DEC{Job exists?}
@@ -149,6 +153,7 @@ flowchart TD
         ST_HEAL --> ST_NF2["200 OK<br/>{status: not_found}"]
         ST_STUCK -->|"No — Still working"| ST_FILMS
 
+        ST_PROC -->|"failed"| ST_FAIL["200 OK<br/>{status: error,<br/>message: job.error}"]
         ST_PROC -->|"ready / other"| ST_FILMS
 
         %% Film Metadata Count
@@ -156,8 +161,14 @@ flowchart TD
         ST_FILMS --> ST_COUNT{Films with<br/>metadata?}
 
         ST_COUNT -->|"ALL films<br/>have metadata"| ST_GEN
-        ST_GEN["generateAllGames()<br/>updateUserJob(ready)"]
+        ST_GEN["generateAllGames()<br/>+ TMDB actor photos<br/>updateUserJob(ready)"]
         ST_GEN --> ST_READY_R["200 OK<br/>{status: ready,<br/>ratingGame, genreGame,<br/>genreMatchingGame,<br/>themeGame, userStats}"]
+
+        %% Data Inconsistency Self-Healing
+        ST_FILMS --> ST_CONSIST{Films in DB<br/>&lt; 5% of expected?}
+        ST_CONSIST -->|"Yes — DATA INCONSISTENCY"| ST_HEAL2["deleteUserJob()<br/>Self-healing"]
+        ST_HEAL2 --> ST_NF3["200 OK<br/>{status: not_found}"]
+        ST_CONSIST -->|"No"| ST_COUNT
 
         ST_COUNT -->|"&ge; minFilms (5)<br/>but not all"| ST_PART
         ST_PART["generatePartialRatingGame()"]
@@ -191,8 +202,10 @@ flowchart TD
     ST_WAIT --> PS_DEC
     ST_NF --> PS_DEC
     ST_NF2 --> PS_DEC
+    ST_NF3 --> PS_DEC
+    ST_FAIL --> PS_DEC
 
-    PS_PROC -.->|"Next tick<br/>(3s)"| POLL_REQ
+    PS_PROC -.->|"Next tick<br/>(2s)"| POLL_REQ
 
     %% ═══════════════════════════════════════════
     %% ASYNC SCRAPING PIPELINE
@@ -204,26 +217,27 @@ flowchart TD
             LQ_MSG["Message: {username}"]
         end
 
-        subgraph LS["List Scraper Lambda<br/>Chromium | 2048 MB | 900s"]
+        subgraph LS["List Scraper Lambda<br/>Chromium | 3008 MB | 900s"]
             LS1["Launch headless Chromium"]
             LS2["Scrape letterboxd.com/<br/>username/films"]
             LS3["Extract film slugs<br/>+ user ratings"]
+            LS3B["batchGet Films table<br/>filter already-cached slugs"]
             LS4["updateUserJob:<br/>films = [...], status = processing"]
-            LS5["Fan-out: sendMessageBatch<br/>to film-scrape-queue<br/>(batches of 10)"]
-            LS1 --> LS2 --> LS3 --> LS4 --> LS5
+            LS5["Fan-out: sendMessageBatch<br/>to film-scrape-queue<br/>(only missing films, batches of 10)"]
+            LS1 --> LS2 --> LS3 --> LS3B --> LS4 --> LS5
         end
 
         subgraph FSQ["SQS: film-scrape-queue<br/>visibility: 360s | retention: 24h"]
             FQ_MSG["Message: [slug1, slug2, ...]"]
         end
 
-        subgraph WK["Film Worker Lambda<br/>Chromium | 2048 MB | 360s"]
+        subgraph WK["Film Worker Lambda<br/>Chromium | 2048 MB | 300s | concurrency: 5"]
             W1["For each slug in batch"]
             W2{Film exists<br/>in Films table?}
             W3["SKIP — already scraped<br/>(idempotent)"]
             W4["Scrape letterboxd.com<br/>/film/slug"]
-            W5["Extract: title, year, poster,<br/>genres, themes,<br/>communityRating"]
-            W6["putItem to Films table"]
+            W5["Extract: title, year, poster,<br/>genres, themes, director,<br/>cast, countries, runtime,<br/>averageRating, plot"]
+            W6["putItem to Films table<br/>(TTL: 24h)"]
             W1 --> W2
             W2 -->|"Yes"| W3
             W2 -->|"No"| W4
@@ -246,7 +260,7 @@ flowchart TD
             UJ_S["PK: username<br/>status | films[] | createdAt<br/>updatedAt | ttl (24h)"]
         end
         subgraph FI_TBL["Films"]
-            FI_S["PK: slug<br/>title | year | poster<br/>genres | themes<br/>communityRating | ttl (24h)"]
+            FI_S["PK: slug<br/>title | year | poster | director<br/>cast | genres | themes | countries<br/>runtime | averageRating | plot<br/>watchedCount | ttl (24h)"]
         end
     end
 
@@ -279,7 +293,7 @@ flowchart TD
     class S_READY_R,ST_READY_R,PS_READY ready
     class S_PROC_R,FE_POLL_A,FE_POLL_B,PS_PROC processing
     class ST_PART_R,PS_PARTIAL partial
-    class S_404,FE_ERR_404,FE_ERR_400,ST_NF,ST_NF2,PS_ERR error
+    class S_404,S_400,FE_ERR_404,FE_ERR_400,ST_NF,ST_NF2,ST_NF3,ST_FAIL,PS_ERR error
     class FE_INSTANT instant
     class DLQ_LIST,DLQ_FILM dlq
     class S_202 accepted
