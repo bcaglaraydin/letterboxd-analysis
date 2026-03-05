@@ -99,7 +99,7 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
                   score={totalScore}
                   pointsEarned={flyingPoints}
                   flyFromPosition={flyPosition}
-                  maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
+                  maxScore={200} // Unified local max was 100, we now show out of 200
                   /* pointsPerAction removed from API, using maxPositivePoint */
                   maxPositivePoint={GENRE_RANKING_CONFIG.POINTS_PER_ITEM}
                   maxNegativePoint={0}

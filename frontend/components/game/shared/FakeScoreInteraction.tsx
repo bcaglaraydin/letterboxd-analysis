@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ScorePanel } from '@/components/game/shared/ScorePanel';
@@ -27,7 +27,7 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
   score,
   maxScore,
   threshold,
-  onComplete,
+  onComplete: _onComplete,
   onScoreChange,
 }) => {
   const {
@@ -37,13 +37,6 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
     setHasSeenSuccessDialog,
   } = useUserStore();
   const isPass = score >= threshold;
-
-  // We only run this complete flow if it's the right condition. Otherwise, it should just bail and call onComplete instantly.
-  useEffect(() => {
-    if ((hasSeenFakeScorePrank && !isPass) || (hasSeenSuccessDialog && isPass)) {
-      onComplete();
-    }
-  }, [hasSeenFakeScorePrank, hasSeenSuccessDialog, isPass, onComplete]);
 
   const determineInitialPhase = (): InteractionPhase => {
     return isPass ? 'success' : 'initial-fail';
@@ -74,12 +67,12 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
 
   const finishPrank = () => {
     setHasSeenFakeScorePrank(true);
-    onComplete();
+    // onComplete() is called by the useEffect that watches hasSeenFakeScorePrank
   };
 
   const finishSuccess = () => {
     setHasSeenSuccessDialog(true);
-    onComplete();
+    // onComplete() is called by the useEffect that watches hasSeenSuccessDialog
   };
 
   const handleScoreInteraction = () => {
@@ -213,10 +206,15 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
             </motion.div>
             <motion.div
               variants={itemVariants}
-              className="text-xl md:text-3xl text-muted-foreground max-w-2xl mx-auto leading-relaxed"
+              className="text-xl md:text-3xl text-muted-foreground max-w-2xl mx-auto leading-relaxed text-center"
             >
-              You truly have a respectable memory and attention to detail; you know yourself very
-              well. You&apos;ve earned the right to see the analysis.
+              You truly have a <span className="font-bold text-foreground">respectable memory</span>{' '}
+              and <span className="font-bold text-foreground">attention to detail</span>. You know
+              yourself very well.{' '}
+              <span className="font-bold text-foreground">
+                You&apos;ve earned the right to see the genre bubbles
+              </span>
+              .
             </motion.div>
             <motion.div variants={itemVariants} className="pt-8">
               <Button
@@ -347,53 +345,6 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
                 Continue
               </Button>
             </motion.div>
-
-            {/* The ScorePanel is now fixed at the top-right, so we remove the inline one here */}
-            {/* <motion.div
-              variants={itemVariants}
-              className="relative cursor-pointer group"
-              onClick={handleScoreInteraction}
-            >
-              <div className="absolute -top-12 left-1/2 -translate-x-1/2 flex flex-col items-center opacity-50 group-hover:opacity-100 transition-opacity duration-300">
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-primary animate-bounce"
-                >
-                  <path d="m18 15-6-6-6 6" />
-                </svg>
-              </div>
-
-              <div className="pointer-events-none">
-                <ScorePanel score={fakeScore} maxScore={maxScore} label="Score" size="lg" />
-              </div>
-
-              <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center opacity-50 group-hover:opacity-100 transition-opacity duration-300">
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-primary"
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </div>
-            </motion.div>
-
-            <motion.div variants={itemVariants} className="opacity-50 text-sm mt-4">
-              Click to adjust score
-            </motion.div> */}
           </motion.div>
         )}
 
@@ -461,7 +412,7 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
               variants={itemVariants}
               className="text-xl md:text-3xl text-primary font-serif leading-relaxed"
             >
-              No, enjoy your analysis.
+              No, enjoy your <span className="font-bold">genre bubbles</span>.
             </motion.p>
             <motion.div variants={itemVariants} className="pt-8 w-full flex justify-center">
               <Button size="lg" onClick={finishPrank} className="w-full max-w-sm text-xl py-6">

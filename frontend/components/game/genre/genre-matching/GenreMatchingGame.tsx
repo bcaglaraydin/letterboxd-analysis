@@ -2,7 +2,7 @@
 
 import React, { useMemo, useCallback } from 'react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
-import { Lock, ArrowRight, RotateCcw, Sparkles, X } from 'lucide-react';
+import { Sparkles, ArrowRight, X, Lock } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { getScoreColor } from '@/lib/scoreUtils';
@@ -22,10 +22,11 @@ import { useGenreMatchingGame } from './useGenreMatchingGame';
  * Mobile: Stacked with genres first, then movie
  */
 interface GenreMatchingGameProps {
-  onGameComplete?: (score: number) => void;
+  onGameComplete: (totalScore: number) => void;
+  baseScore?: number;
 }
 
-export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
+export function GenreMatchingGame({ onGameComplete, baseScore = 0 }: GenreMatchingGameProps) {
   const {
     currentFilmIndex,
     currentFilm,
@@ -41,19 +42,17 @@ export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
     getChipState,
     getTierGenres,
     handleGenreClick,
-    handleReset,
-    clearSelections,
-    collectedGenreIds,
-    scoringConfig,
     getGenre,
     handleLock,
     handleNext,
+    clearSelections,
+    collectedGenreIds,
+    scoringConfig,
     getGenrePoints,
     maxPositivePoints,
     maxNegativePoints,
     roundScore,
-    totalGameMaxScore,
-  } = useGenreMatchingGame();
+  } = useGenreMatchingGame(baseScore);
 
   // Helper to get points/penalty for a tier (used for header display only now)
   const getTierPoints = useCallback(
@@ -194,7 +193,7 @@ export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
               score={totalScore}
               pointsEarned={lastPointsEarned}
               flyFromPosition={flyFromPosition}
-              maxScore={totalGameMaxScore}
+              maxScore={200} // Unified global max score for Genre
               showMaxScore={true}
               className="mb-0"
               size="md"
@@ -321,23 +320,13 @@ export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
 
                   {isGameComplete && (
                     <Button
-                      onClick={() => {
-                        if (onGameComplete) onGameComplete(totalScore);
-                        else handleReset();
-                      }}
-                      variant={onGameComplete ? 'default' : 'outline'}
+                      onClick={() => onGameComplete(totalScore)}
+                      variant="default"
                       className="w-full md:w-auto h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 md:hover:-translate-y-1 transform duration-200"
                     >
-                      {onGameComplete ? (
-                        <>
-                          Complete <ArrowRight className="w-4 h-4 ml-2" />
-                        </>
-                      ) : (
-                        <>
-                          <RotateCcw className="w-4 h-4 mr-2" />
-                          Play Again
-                        </>
-                      )}
+                      <>
+                        Complete <ArrowRight className="w-4 h-4 ml-2" />
+                      </>
                     </Button>
                   )}
                 </div>
@@ -431,23 +420,13 @@ export function GenreMatchingGame({ onGameComplete }: GenreMatchingGameProps) {
             {isGameComplete && (
               <div className="w-full">
                 <Button
-                  onClick={() => {
-                    if (onGameComplete) onGameComplete(totalScore);
-                    else handleReset();
-                  }}
-                  variant={onGameComplete ? 'default' : 'outline'}
+                  onClick={() => onGameComplete(totalScore)}
+                  variant="default"
                   className="w-full h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 md:hover:-translate-y-1 transform duration-200"
                 >
-                  {onGameComplete ? (
-                    <>
-                      Complete <ArrowRight className="w-4 h-4 ml-2" />
-                    </>
-                  ) : (
-                    <>
-                      <RotateCcw className="w-4 h-4 mr-2" />
-                      Play Again
-                    </>
-                  )}
+                  <>
+                    Complete <ArrowRight className="w-4 h-4 ml-2" />
+                  </>
                 </Button>
               </div>
             )}

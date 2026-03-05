@@ -9,16 +9,23 @@ interface QuestionViewProps {
   question: Question;
   currentScore: number;
   onAnswer: (scoreDelta: number) => void;
+  onScoreUpdate?: (scoreDelta: number) => void;
 }
 
 type PrankPhase = null | 'fast' | 'slow';
 
-export const QuestionView: React.FC<QuestionViewProps> = ({ question, currentScore, onAnswer }) => {
+export const QuestionView: React.FC<QuestionViewProps> = ({
+  question,
+  currentScore,
+  onAnswer,
+  onScoreUpdate,
+}) => {
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [flyFrom, setFlyFrom] = useState<{ x: number; y: number } | undefined>(undefined);
   const [lastPoints, setLastPoints] = useState<number | null>(null);
   const [prankPhase, setPrankPhase] = useState<PrankPhase>(null);
   const startTimeRef = useRef<number>(0);
+  const prankTriggeredRef = useRef(false);
 
   useEffect(() => {
     // Reset timer when question changes
@@ -26,25 +33,27 @@ export const QuestionView: React.FC<QuestionViewProps> = ({ question, currentSco
     setPrankPhase(null);
     setSelectedOptionId(null);
     setLastPoints(null);
+    prankTriggeredRef.current = false;
 
     // Auto-trigger "slow" prank after 8 seconds of inactivity
-    // except if it's the very first question maybe? We'll apply it to all for consistency
     const slowTimeout = setTimeout(() => {
-      // Check if they haven't answered yet or aren't already being pranked
-      setPrankPhase((prevPhase) => {
-        if (!prevPhase) {
-          // Trigger slow prank
-          setFlyFrom({ x: window.innerWidth / 2, y: window.innerHeight / 2 }); // center of screen
-          setLastPoints(-5);
+      // Guard: only trigger once and only if no answer/prank yet
+      if (prankTriggeredRef.current) return;
+      prankTriggeredRef.current = true;
 
-          setTimeout(() => {
-            onAnswer(-5);
-          }, 2000);
+      // Set local states first
+      setPrankPhase('slow');
+      setFlyFrom({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+      setLastPoints(-5);
 
-          return 'slow';
-        }
-        return prevPhase;
+      // Defer parent score update to next microtask to avoid React render conflict
+      queueMicrotask(() => {
+        if (onScoreUpdate) onScoreUpdate(-5);
       });
+
+      setTimeout(() => {
+        onAnswer(0); // score already applied, just advance
+      }, 900);
     }, 8000);
 
     return () => clearTimeout(slowTimeout);
@@ -58,14 +67,19 @@ export const QuestionView: React.FC<QuestionViewProps> = ({ question, currentSco
 
     // Check speed penalties first
     if (elapsed < 1000) {
+      prankTriggeredRef.current = true;
       setPrankPhase('fast');
       setFlyFrom({ x: e.clientX, y: e.clientY });
       setLastPoints(-5);
+      // Defer parent score update to avoid React render conflict
+      queueMicrotask(() => {
+        if (onScoreUpdate) onScoreUpdate(-5);
+      });
 
-      // Auto-advance after 2s
+      // Auto-advance after 0.9s
       setTimeout(() => {
-        onAnswer(-5);
-      }, 2000);
+        onAnswer(0); // score already applied, just advance
+      }, 900);
       return;
     }
 
@@ -124,7 +138,7 @@ export const QuestionView: React.FC<QuestionViewProps> = ({ question, currentSco
                     )}
                     {prankPhase === 'slow' && (
                       <>
-                        Are you Googling the answers about yourself?
+                        Are you Googling the answers?
                         <br />
                         I&apos;m deducting <span className="text-red-500">points</span> for lag.
                       </>

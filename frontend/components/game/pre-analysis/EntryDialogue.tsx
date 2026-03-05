@@ -28,7 +28,7 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
     hidden: { opacity: 0 },
     visible: (i: number) => ({
       opacity: 1,
-      transition: { delay: i * 1.0, duration: 0.7 },
+      transition: { delay: i * 1.4, duration: 0.8 },
     }),
   };
 
@@ -37,7 +37,7 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
     visible: (i: number) => ({
       opacity: 1,
       y: 0,
-      transition: { delay: i * 1.0, duration: 0.7 },
+      transition: { delay: i * 1.4, duration: 0.8 },
     }),
   };
 
@@ -214,7 +214,7 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
               custom={0}
               className="text-xl md:text-3xl font-serif text-primary leading-relaxed mb-8 text-center"
             >
-              Fair enough
+              I don&apos;t really care about you too
             </motion.p>
             <motion.div
               variants={sequentialSlide}

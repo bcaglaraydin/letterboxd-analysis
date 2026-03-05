@@ -42,7 +42,8 @@ export function GenreOrchestration({ onGameComplete }: GenreOrchestrationProps) 
   };
 
   const handlePostGameComplete = () => {
-    onGameComplete(rankingScore + matchingScore);
+    // matchingScore already includes rankingScore (baseScore was passed in)
+    onGameComplete(matchingScore);
   };
 
   return (
@@ -80,7 +81,7 @@ export function GenreOrchestration({ onGameComplete }: GenreOrchestrationProps) 
             exit={{ opacity: 0, x: -20 }}
             className="w-full h-full"
           >
-            <GenreMatchingIntro onComplete={handleMatchingIntroComplete} />
+            <GenreMatchingIntro onComplete={handleMatchingIntroComplete} baseScore={rankingScore} />
           </motion.div>
         )}
 
@@ -92,7 +93,7 @@ export function GenreOrchestration({ onGameComplete }: GenreOrchestrationProps) 
             exit={{ opacity: 0 }}
             className="w-full h-full"
           >
-            <GenreMatchingGame onGameComplete={handleMatchingComplete} />
+            <GenreMatchingGame onGameComplete={handleMatchingComplete} baseScore={rankingScore} />
           </motion.div>
         )}
 

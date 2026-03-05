@@ -2,14 +2,28 @@
 
 import React from 'react';
 import { GameDialogue } from '@/components/game/shared/GameDialogue';
+import { ScorePanel } from '@/components/game/shared/ScorePanel'; // Assuming ScorePanel needs to be imported
 
 interface GenreMatchingIntroProps {
   onComplete: () => void;
+  baseScore?: number;
 }
 
-export const GenreMatchingIntro: React.FC<GenreMatchingIntroProps> = ({ onComplete }) => {
+export function GenreMatchingIntro({ onComplete, baseScore = 0 }: GenreMatchingIntroProps) {
   return (
     <GameDialogue
+      top={
+        <div className="flex justify-end items-start p-4 md:p-8 w-full relative z-[60]">
+          <ScorePanel
+            score={baseScore} // Start from what they got in ranking
+            maxScore={200} // Global max score for entire Genre game
+            showMaxScore={true}
+            size="md"
+            label="Current Score"
+            className="mb-0"
+          />
+        </div>
+      }
       messages={[
         <p key="msg1">Next up is the part I struggled with the most while building.</p>,
         <p key="msg2">
@@ -29,4 +43,4 @@ export const GenreMatchingIntro: React.FC<GenreMatchingIntroProps> = ({ onComple
       onComplete={onComplete}
     />
   );
-};
+}
