@@ -9,14 +9,22 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { PersonalGenreBubbles } from './visualizations/PersonalGenreBubbles';
 import { TasteGapLine } from '@/components/game/genre/visualizations/TasteGapLineChart';
+import { FakeScoreInteraction } from '@/components/game/shared/FakeScoreInteraction';
 
 interface PostGameScreenProps {
   onComplete: () => void;
 }
 
 export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) => {
-  const { fetchFullStats, backgroundStatus, username, userStats: storedUserStats } = useUserStore();
-  const { postGameStep, setPostGameStep } = useGenreOrchestrationStore();
+  const {
+    fetchFullStats,
+    backgroundStatus,
+    username,
+    userStats: storedUserStats,
+    hasSeenFakeScorePrank,
+    hasSeenSuccessDialog,
+  } = useUserStore();
+  const { postGameStep, setPostGameStep, matchingScore } = useGenreOrchestrationStore();
 
   // Use stored stats if available, otherwise default to null (will trigger fetch)
   // But wait! We should trigger the fetch if it's missing.
@@ -68,8 +76,32 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) =>
     return userStats?.genreOverview || [];
   }, [userStats]);
 
+  const shouldPlayPrank = !hasSeenFakeScorePrank && matchingScore < 75;
+  const shouldPlaySuccess = !hasSeenSuccessDialog && matchingScore >= 75;
+
+  const handleNext = () => {
+    if (postGameStep < steps.length - 1) {
+      setPostGameStep(postGameStep + 1);
+    } else {
+      onComplete();
+    }
+  };
+
   // Steps Configuration
   const steps = [
+    shouldPlayPrank || shouldPlaySuccess
+      ? {
+          id: 'fake-score',
+          component: (
+            <FakeScoreInteraction
+              score={matchingScore}
+              maxScore={100}
+              threshold={75}
+              onComplete={handleNext}
+            />
+          ),
+        }
+      : null,
     {
       id: 'bubbles',
       component: (
@@ -122,17 +154,9 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) =>
         </div>
       ),
     },
-  ];
+  ].filter(Boolean) as { id: string; component: React.ReactNode }[];
 
   const currentStep = steps[postGameStep] || steps[0];
-
-  const handleNext = () => {
-    if (postGameStep < steps.length - 1) {
-      setPostGameStep(postGameStep + 1);
-    } else {
-      onComplete();
-    }
-  };
 
   if (error) {
     return (
@@ -171,15 +195,17 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) =>
       </div>
 
       {/* Footer Navigation */}
-      <div className="shrink-0 px-6 py-6 pb-8 md:pb-6 flex justify-center md:justify-end bg-[#F8F5F2] z-50">
-        <Button
-          onClick={handleNext}
-          className="w-full md:w-auto h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 md:hover:-translate-y-1 transform duration-200"
-        >
-          {postGameStep < steps.length - 1 ? 'Next' : 'Finish'}
-          <ArrowRight className="ml-2 w-5 h-5" />
-        </Button>
-      </div>
+      {currentStep.id !== 'fake-score' && (
+        <div className="shrink-0 px-6 py-6 pb-8 md:pb-6 flex justify-center md:justify-end bg-[#F8F5F2] z-50">
+          <Button
+            onClick={handleNext}
+            className="w-full md:w-auto h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 md:hover:-translate-y-1 transform duration-200"
+          >
+            {postGameStep < steps.length - 1 ? 'Next' : 'Finish'}
+            <ArrowRight className="ml-2 w-5 h-5" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

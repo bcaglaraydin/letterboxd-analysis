@@ -70,7 +70,7 @@ export const GameDialogue: React.FC<GameDialogueProps> = ({
     hidden: { opacity: 0 },
     show: (i: number) => ({
       opacity: 1,
-      transition: { delay: i * 1.2, duration: 0.8 },
+      transition: { delay: i * 1.0, duration: 0.7 },
     }),
   };
 
@@ -79,7 +79,7 @@ export const GameDialogue: React.FC<GameDialogueProps> = ({
     show: (i: number) => ({
       opacity: 1,
       y: 0,
-      transition: { delay: i * 1.2, duration: 0.8 },
+      transition: { delay: i * 1.0, duration: 0.7 },
     }),
   };
 

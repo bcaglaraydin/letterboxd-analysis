@@ -28,7 +28,7 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
     hidden: { opacity: 0 },
     visible: (i: number) => ({
       opacity: 1,
-      transition: { delay: i * 1.2, duration: 0.8 },
+      transition: { delay: i * 1.0, duration: 0.7 },
     }),
   };
 
@@ -37,7 +37,7 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
     visible: (i: number) => ({
       opacity: 1,
       y: 0,
-      transition: { delay: i * 1.2, duration: 0.8 },
+      transition: { delay: i * 1.0, duration: 0.7 },
     }),
   };
 
@@ -55,10 +55,10 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
       case 'start':
         return (
           <>
-            <div className="text-xl md:text-3xl font-serif text-primary mb-8 text-center space-y-4">
+            <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed mb-8 text-center space-y-4">
               <p>
                 <motion.span variants={sequentialFade} custom={0} className="mr-2">
-                  You’ve successfully entered a valid username.
+                  <span className="font-bold">You’ve successfully entered</span> a valid username
                 </motion.span>
                 <motion.span variants={sequentialFade} custom={1} className="font-bold">
                   Good!
@@ -66,15 +66,15 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
               </p>
               <p>
                 <motion.span variants={sequentialFade} custom={2} className="mr-2">
-                  Before we start...
+                  Before we start
                 </motion.span>
                 <motion.span variants={sequentialFade} custom={3} className="font-bold">
                   I need to ask you a few questions.
                 </motion.span>
               </p>
               <motion.p variants={sequentialFade} custom={4}>
-                Please answer them <span className="font-bold">calmly and honestly</span>. Your
-                responses will not be stored or shared.
+                Please answer them <span className="font-bold">calmly and honestly</span> Your
+                responses will not be stored or shared
               </motion.p>
             </div>
             <div className="flex flex-col gap-4 w-full max-w-sm">
@@ -121,23 +121,24 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
               <motion.p
                 variants={sequentialFade}
                 custom={0}
-                className="text-xl md:text-3xl font-serif text-primary"
+                className="text-xl md:text-3xl font-serif text-primary leading-relaxed"
               >
                 We’re going to look into your film taste in detail.
               </motion.p>
               <motion.p
                 variants={sequentialFade}
                 custom={1}
-                className="text-xl md:text-3xl font-serif text-primary"
+                className="text-xl md:text-3xl font-serif text-primary leading-relaxed"
               >
                 It will be fun.
               </motion.p>
               <motion.p
                 variants={sequentialFade}
                 custom={2}
-                className="text-xl md:text-3xl font-serif text-primary font-bold"
+                className="text-xl md:text-3xl font-serif text-primary leading-relaxed"
               >
-                But first, you need to answer a few questions correctly.
+                But first you need to answer a few questions{' '}
+                <span className="font-bold">correctly</span>
               </motion.p>
             </div>
             <motion.div
@@ -164,9 +165,9 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
             <motion.p
               variants={sequentialSlide}
               custom={0}
-              className="text-xl md:text-3xl font-serif text-primary mb-8 text-center"
+              className="text-xl md:text-3xl font-serif text-primary leading-relaxed mb-8 text-center"
             >
-              You don’t even know what we’re doing.
+              You don’t even know <span className="font-bold">what we’re doing</span>
             </motion.p>
             <div className="flex flex-col gap-4 w-full max-w-sm">
               <motion.div variants={fastSequentialSlide} custom={2}>
@@ -211,9 +212,9 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
             <motion.p
               variants={sequentialSlide}
               custom={0}
-              className="text-xl md:text-3xl font-serif text-primary mb-8 text-center"
+              className="text-xl md:text-3xl font-serif text-primary leading-relaxed mb-8 text-center"
             >
-              Fair enough.
+              Fair enough
             </motion.p>
             <motion.div
               variants={sequentialSlide}

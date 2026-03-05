@@ -7,14 +7,17 @@ interface UserState {
   userStats: UserStats | null;
   backgroundStatus: 'idle' | 'processing' | 'partial_ready' | 'ready';
   hasStartedGame: boolean;
+  hasSeenFakeScorePrank: boolean;
+  hasSeenSuccessDialog: boolean;
 
   // Actions
   setUsername: (username: string) => void;
   setUserStats: (stats: UserStats) => void;
   setProcessing: (username: string) => void;
   setPartialReady: () => void;
-  setReady: () => void;
   setStartedGame: (started: boolean) => void;
+  setHasSeenFakeScorePrank: (seen: boolean) => void;
+  setHasSeenSuccessDialog: (seen: boolean) => void;
   resetUser: () => void;
   fetchFullStats: () => Promise<{ userStats: UserStats; genreGame: GenreGameData }>;
 }
@@ -24,6 +27,8 @@ export const useUserStore = create<UserState>((set, get) => ({
   userStats: null,
   backgroundStatus: 'idle',
   hasStartedGame: false,
+  hasSeenFakeScorePrank: false,
+  hasSeenSuccessDialog: false,
 
   setUsername: (username) => set({ username }),
   setUserStats: (userStats) => set({ userStats }),
@@ -32,6 +37,8 @@ export const useUserStore = create<UserState>((set, get) => ({
   setPartialReady: () => set({ backgroundStatus: 'partial_ready' }),
   setReady: () => set({ backgroundStatus: 'ready' }),
   setStartedGame: (started) => set({ hasStartedGame: started }),
+  setHasSeenFakeScorePrank: (seen) => set({ hasSeenFakeScorePrank: seen }),
+  setHasSeenSuccessDialog: (seen) => set({ hasSeenSuccessDialog: seen }),
 
   resetUser: () =>
     set({
@@ -39,6 +46,8 @@ export const useUserStore = create<UserState>((set, get) => ({
       userStats: null,
       backgroundStatus: 'idle',
       hasStartedGame: false,
+      hasSeenFakeScorePrank: false,
+      hasSeenSuccessDialog: false,
     }),
 
   fetchFullStats: async () => {

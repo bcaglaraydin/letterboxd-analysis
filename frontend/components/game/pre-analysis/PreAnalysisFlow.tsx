@@ -133,7 +133,7 @@ export const PreAnalysisFlow: React.FC<PreAnalysisFlowProps> = ({ onComplete, is
           animate={{ opacity: 1, scale: 1 }}
           className="flex flex-col items-center max-w-md text-center space-y-8 p-6"
         >
-          <h2 className="text-2xl md:text-3xl font-serif text-primary">
+          <h2 className="text-2xl md:text-3xl font-serif text-primary leading-relaxed">
             Do you really want to stop doing this?
           </h2>
           <div className="flex flex-col w-full gap-4">
@@ -173,7 +173,7 @@ export const PreAnalysisFlow: React.FC<PreAnalysisFlowProps> = ({ onComplete, is
     return (
       <GameDialogue
         messages={[
-          <p key="msg1">I appreciate your answers.</p>,
+          <p key="msg1">I appreciate your answers</p>,
           <p key="msg2">
             You scored{' '}
             <span
@@ -185,9 +185,9 @@ export const PreAnalysisFlow: React.FC<PreAnalysisFlowProps> = ({ onComplete, is
             </span>
             <span className="font-bold text-3xl mr-1">/100</span>.
           </p>,
-          <p key="msg3">While you were dealing with the questions, I went through your films.</p>,
+          <p key="msg3">While you were dealing with the questions I went through your films</p>,
           <p key="msg4" className="font-bold text-2xl md:text-4xl pt-2">
-            We&apos;re ready to start.
+            We&apos;re ready to start
           </p>,
         ]}
         buttonText="Let's start"
