@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Question, QuestionOption } from './questions';
@@ -11,19 +11,69 @@ interface QuestionViewProps {
   onAnswer: (scoreDelta: number) => void;
 }
 
+type PrankPhase = null | 'fast' | 'slow';
+
 export const QuestionView: React.FC<QuestionViewProps> = ({ question, currentScore, onAnswer }) => {
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [flyFrom, setFlyFrom] = useState<{ x: number; y: number } | undefined>(undefined);
   const [lastPoints, setLastPoints] = useState<number | null>(null);
+  const [prankPhase, setPrankPhase] = useState<PrankPhase>(null);
+  const startTimeRef = useRef<number>(0);
+
+  useEffect(() => {
+    // Reset timer when question changes
+    startTimeRef.current = performance.now();
+    setPrankPhase(null);
+    setSelectedOptionId(null);
+    setLastPoints(null);
+
+    // Auto-trigger "slow" prank after 8 seconds of inactivity
+    // except if it's the very first question maybe? We'll apply it to all for consistency
+    const slowTimeout = setTimeout(() => {
+      // Check if they haven't answered yet or aren't already being pranked
+      setPrankPhase((prevPhase) => {
+        if (!prevPhase) {
+          // Trigger slow prank
+          setFlyFrom({ x: window.innerWidth / 2, y: window.innerHeight / 2 }); // center of screen
+          setLastPoints(-5);
+
+          setTimeout(() => {
+            onAnswer(-5);
+          }, 2000);
+
+          return 'slow';
+        }
+        return prevPhase;
+      });
+    }, 8000);
+
+    return () => clearTimeout(slowTimeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [question.id]);
 
   const handleOptionClick = (option: QuestionOption, e: React.MouseEvent) => {
-    if (selectedOptionId) return; // Prevent double clicks
+    if (selectedOptionId || prankPhase) return; // Prevent double clicks or clicking during prank
+
+    const elapsed = performance.now() - startTimeRef.current;
+
+    // Check speed penalties first
+    if (elapsed < 1000) {
+      setPrankPhase('fast');
+      setFlyFrom({ x: e.clientX, y: e.clientY });
+      setLastPoints(-5);
+
+      // Auto-advance after 2s
+      setTimeout(() => {
+        onAnswer(-5);
+      }, 2000);
+      return;
+    }
 
     setSelectedOptionId(option.id);
     setFlyFrom({ x: e.clientX, y: e.clientY });
     setLastPoints(option.scoreEffect);
 
-    // Trigger callback after a short delay to allow animation to start
+    // Continue with normal flow
     onAnswer(option.scoreEffect);
   };
 
@@ -55,7 +105,35 @@ export const QuestionView: React.FC<QuestionViewProps> = ({ question, currentSco
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3 pb-2 shrink-0 w-full max-w-4xl md:pb-0">
+          <div className="relative grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3 pb-2 shrink-0 w-full max-w-4xl md:pb-0">
+            <AnimatePresence>
+              {prankPhase && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 z-10 flex items-center justify-center bg-background/95 backdrop-blur-sm rounded-xl border-2 border-primary/20 p-4 md:p-6 shadow-2xl"
+                >
+                  <p className="text-base sm:text-lg md:text-3xl font-serif text-primary text-center leading-relaxed font-bold">
+                    {prankPhase === 'fast' && (
+                      <>
+                        Did you even read the question?
+                        <br />
+                        <span className="text-red-500">-5 points</span> for not taking me seriously.
+                      </>
+                    )}
+                    {prankPhase === 'slow' && (
+                      <>
+                        Are you Googling the answers about yourself?
+                        <br />
+                        I&apos;m deducting <span className="text-red-500">points</span> for lag.
+                      </>
+                    )}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {question.options.map((option, index) => (
               <motion.div
                 key={option.id}
@@ -67,7 +145,7 @@ export const QuestionView: React.FC<QuestionViewProps> = ({ question, currentSco
                 <Button
                   variant="outline"
                   onClick={(e) => handleOptionClick(option, e)}
-                  disabled={selectedOptionId !== null}
+                  disabled={selectedOptionId !== null || prankPhase !== null}
                   className={cn(
                     'w-full h-full text-xs md:text-xl whitespace-normal text-center justify-center border-primary/20 bg-background/50 leading-tight px-1',
                     'hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all duration-300',

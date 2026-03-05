@@ -108,13 +108,18 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
           {showIntro ? (
             <motion.div
               key="intro"
-              className="z-50 flex flex-col items-center justify-center flex-1 w-full overflow-y-auto"
+              className="z-50 flex flex-col items-center justify-center flex-1 w-full overflow-hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={curtainAnimation.exit}
             >
-              <div className="max-w-2xl mx-auto space-y-8 my-auto pt-10 pb-10 px-8">
-                <div className="space-y-6">
+              <div className="max-w-2xl mx-auto space-y-8 my-auto pt-10 pb-10 px-4 md:px-8 w-full">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="space-y-6"
+                >
                   <p className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
                     {GAME_TEXT.RATING_GAME.INTRO.PART_1}
                   </p>
@@ -128,15 +133,17 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
                       we&rsquo;ll unlock a deeper analysis of your rating behavior.
                     </span>
                   </p>
-                </div>
+                </motion.div>
 
-                <div className="pt-4 w-full flex justify-center">
-                  <button
+                <div className="pt-4 w-full flex justify-center relative min-h-[100px]">
+                  <motion.button
                     onClick={() => setShowIntro(false)}
-                    className="px-12 py-6 text-lg font-bold tracking-widest uppercase rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform duration-200 bg-primary text-primary-foreground"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="absolute px-12 py-6 text-lg font-bold tracking-widest uppercase rounded-xl shadow-lg hover:shadow-xl bg-primary text-primary-foreground transition-all duration-200"
                   >
                     I understand
-                  </button>
+                  </motion.button>
                 </div>
               </div>
             </motion.div>

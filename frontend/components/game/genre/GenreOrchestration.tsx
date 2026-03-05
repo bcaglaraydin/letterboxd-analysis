@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { GenreRankingGame } from './ranking/GenreRankingGame';
 import { GenreMatchingGame } from './genre-matching/GenreMatchingGame';
 import { PostGameScreen } from './PostGameScreen';
+import { GenreIntroDialogue } from './GenreIntroDialogue';
+import { GenreMatchingIntro } from './GenreMatchingIntro';
 
 import { useGenreOrchestrationStore } from '@/store/genre/genreOrchestrationStore';
 import { useUserStore } from '@/store/core/userStore';
@@ -18,8 +20,16 @@ export function GenreOrchestration({ onGameComplete }: GenreOrchestrationProps) 
     useGenreOrchestrationStore();
   const { setReady, setProcessing, username } = useUserStore();
 
+  const handleHubIntroComplete = () => {
+    setPhase('ranking');
+  };
+
   const handleRankingComplete = (score: number) => {
     setRankingScore(score);
+    setPhase('matching-intro');
+  };
+
+  const handleMatchingIntroComplete = () => {
     setPhase('matching');
   };
 
@@ -38,15 +48,39 @@ export function GenreOrchestration({ onGameComplete }: GenreOrchestrationProps) 
   return (
     <div className="w-full h-full">
       <AnimatePresence mode="wait">
-        {phase === 'ranking' && (
+        {phase === 'hub-intro' && (
           <motion.div
-            key="ranking"
+            key="hub-intro"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, x: -20 }}
             className="w-full h-full"
           >
+            <GenreIntroDialogue onComplete={handleHubIntroComplete} />
+          </motion.div>
+        )}
+
+        {phase === 'ranking' && (
+          <motion.div
+            key="ranking"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="w-full h-full"
+          >
             <GenreRankingGame onGameComplete={handleRankingComplete} />
+          </motion.div>
+        )}
+
+        {phase === 'matching-intro' && (
+          <motion.div
+            key="matching-intro"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="w-full h-full"
+          >
+            <GenreMatchingIntro onComplete={handleMatchingIntroComplete} />
           </motion.div>
         )}
 

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type GenrePhase = 'ranking' | 'matching' | 'post-game';
+export type GenrePhase = 'hub-intro' | 'ranking' | 'matching-intro' | 'matching' | 'post-game';
 
 interface GenreOrchestrationState {
   phase: GenrePhase;
@@ -17,7 +17,7 @@ interface GenreOrchestrationState {
 }
 
 export const useGenreOrchestrationStore = create<GenreOrchestrationState>((set) => ({
-  phase: 'ranking',
+  phase: 'hub-intro',
   rankingScore: 0,
   matchingScore: 0,
   postGameStep: 0,
@@ -29,7 +29,7 @@ export const useGenreOrchestrationStore = create<GenreOrchestrationState>((set) 
 
   resetGenreGame: () =>
     set({
-      phase: 'ranking',
+      phase: 'hub-intro',
       rankingScore: 0,
       matchingScore: 0,
       postGameStep: 0,
