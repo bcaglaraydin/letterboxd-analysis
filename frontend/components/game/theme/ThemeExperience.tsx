@@ -6,6 +6,7 @@ import { useThemeStore } from '@/store/theme/themeStore';
 import { ThemeGuessingRound } from './ThemeGuessingRound';
 import { ThemeSortingMinigame } from './sorting/ThemeSortingMinigame';
 import { ThemeResultsScreen } from './results/ThemeResultsScreen';
+import { ThemeIntroDialogue } from './ThemeIntroDialogue';
 import { GameRoundIndicator } from '@/components/game/shared/GameRoundIndicator';
 import { ScorePanel } from '@/components/game/shared/ScorePanel';
 
@@ -14,7 +15,8 @@ interface ThemeExperienceProps {
 }
 
 export function ThemeExperience({ onComplete }: ThemeExperienceProps) {
-  const { currentRoundIndex, nextRound, score, roundScore, phase, rounds } = useThemeStore();
+  const { currentRoundIndex, nextRound, score, roundScore, phase, rounds, startThemeGuessing } =
+    useThemeStore();
   const currentRound = rounds[currentRoundIndex];
   const [flyFromPosition, setFlyFromPosition] = useState<{ x: number; y: number }>();
 
@@ -28,6 +30,22 @@ export function ThemeExperience({ onComplete }: ThemeExperienceProps) {
     setFlyFromPosition(undefined); // Reset for next round
     nextRound();
   };
+
+  if (phase === 'intro') {
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          key="intro"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="w-full h-full"
+        >
+          <ThemeIntroDialogue onComplete={startThemeGuessing} />
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
 
   if (phase === 'sorting') {
     return (

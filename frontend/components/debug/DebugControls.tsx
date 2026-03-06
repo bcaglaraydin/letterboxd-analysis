@@ -261,6 +261,57 @@ export const DebugControls = () => {
                 </div>
               </div>
             )}
+
+            {currentPhase === GAME_PHASES.THEME && (
+              <div>
+                <h3 className="text-gray-400 mb-2 font-bold uppercase mt-4 border-t border-gray-700 pt-3">
+                  Theme Phase
+                </h3>
+                <div className="flex flex-col gap-1">
+                  <div className="text-[10px] text-gray-500 mb-1">
+                    Current: {useThemeStore.getState().phase}
+                  </div>
+                  {(['intro', 'guessing', 'sorting', 'results'] as const).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => handleAction(() => useThemeStore.setState({ phase: p }))}
+                      className="px-2 py-1 rounded text-left bg-gray-800 hover:bg-gray-700"
+                    >
+                      Jump to {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {currentPhase === GAME_PHASES.HABITS && (
+              <div>
+                <h3 className="text-gray-400 mb-2 font-bold uppercase mt-4 border-t border-gray-700 pt-3">
+                  Habits Phase
+                </h3>
+                <div className="flex flex-col gap-1">
+                  <div className="text-[10px] text-gray-500 mb-1">
+                    Current: {useExperienceStore.getState().habitsPhase}
+                  </div>
+                  {(['intro', 'actor', 'duration', 'map-intro', 'map'] as const).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() =>
+                        handleAction(() =>
+                          useExperienceStore.setState({
+                            currentPhase: GAME_PHASES.HABITS,
+                            habitsPhase: p,
+                          }),
+                        )
+                      }
+                      className="px-2 py-1 rounded text-left bg-gray-800 hover:bg-gray-700"
+                    >
+                      Jump to {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

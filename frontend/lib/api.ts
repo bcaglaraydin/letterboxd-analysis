@@ -71,6 +71,7 @@ export interface UserStats {
   controversialPicks: RatingGameMovie[];
   hotTakes: RatingGameMovie[];
   skepticPicks: RatingGameMovie[];
+  comparisonMovies?: RatingGameMovie[];
   genreOverview: GenreStat[];
   genreInsights?: GenreInsight[];
   topActors?: TopActor[];

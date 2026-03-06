@@ -45,7 +45,7 @@ export function ThemeResultItem({ theme, index, isFavorite, showHint }: ThemeRes
     <div
       ref={containerRef}
       className={cn(
-        'relative w-full h-[7rem] md:h-[8.5rem] lg:h-[10rem] rounded-2xl overflow-hidden shadow-sm border border-border/50 cursor-pointer overflow-x-hidden shrink-0',
+        'relative w-full h-[7rem] md:h-[8.5rem] lg:h-[10rem] rounded-2xl overflow-hidden shadow-sm border border-primary/10 cursor-pointer overflow-x-hidden shrink-0 transition-shadow hover:shadow-md',
         isFavorite ? 'bg-card' : 'bg-card opacity-90',
       )}
       onClick={toggleOpen}
@@ -104,7 +104,7 @@ export function ThemeResultItem({ theme, index, isFavorite, showHint }: ThemeRes
         <div
           className={cn(
             'w-10 h-10 md:w-14 md:h-14 lg:w-16 lg:h-16 shrink-0 rounded-full flex items-center justify-center font-bold font-serif text-lg md:text-xl lg:text-2xl',
-            isFavorite ? 'bg-green-500/10 text-green-500' : 'bg-destructive/10 text-destructive',
+            isFavorite ? 'bg-primary/10 text-primary' : 'bg-muted/50 text-muted-foreground',
           )}
         >
           {index + 1}

@@ -5,15 +5,18 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { FavoriteActorRound } from './FavoriteActorRound';
 import { DurationBatchRound } from './DurationBatchRound';
 import { WorldMapRound } from './WorldMapRound';
+import { HabitsIntroDialogue } from './HabitsIntroDialogue';
 import { useUserStore } from '@/store/core/userStore';
+import { useExperienceStore } from '@/store/core/experienceStore';
 import { mockActors, mockActorWaitlist } from '@/mocks/data';
 import type { TopActor } from '@/lib/api';
+import { MapIntroDialogue } from './MapIntroDialogue';
 
 interface ViewingHabitsOrchestrationProps {
   onGameComplete: (totalScore: number) => void;
 }
 
-export type HabitsPhase = 'actor' | 'duration' | 'map';
+export type HabitsPhase = 'intro' | 'actor' | 'duration' | 'map-intro' | 'map';
 
 // Convert backend TopActor[] to the shape FavoriteActorRound expects
 function buildActorData(topActors: TopActor[]) {
@@ -46,15 +49,19 @@ function buildActorData(topActors: TopActor[]) {
 }
 
 export function ViewingHabitsOrchestration({ onGameComplete }: ViewingHabitsOrchestrationProps) {
-  const [phase, setPhase] = useState<HabitsPhase>('actor');
   const [score, setScore] = useState(0);
   const userStats = useUserStore((s) => s.userStats);
+  const { habitsPhase: phase, setHabitsPhase: setPhase } = useExperienceStore();
 
   // Use real data if available, otherwise fall back to mocks
   const hasRealActors = userStats?.topActors && userStats.topActors.length > 0;
   const actorData = hasRealActors
     ? buildActorData(userStats.topActors!)
     : { top8: mockActors, waitlist: mockActorWaitlist };
+
+  const handleLevelComplete = () => {
+    setPhase('actor');
+  };
 
   const handleActorComplete = (roundScore: number) => {
     setScore((prev) => prev + roundScore);
@@ -69,10 +76,14 @@ export function ViewingHabitsOrchestration({ onGameComplete }: ViewingHabitsOrch
     const newScore = score + roundScore;
     setScore(newScore);
     if (hasCountryData) {
-      setPhase('map');
+      setPhase('map-intro');
     } else {
       onGameComplete(newScore);
     }
+  };
+
+  const handleMapIntroComplete = () => {
+    setPhase('map');
   };
 
   const handleMapComplete = () => {
@@ -82,6 +93,19 @@ export function ViewingHabitsOrchestration({ onGameComplete }: ViewingHabitsOrch
   return (
     <div className="w-full h-full bg-background relative overflow-hidden">
       <AnimatePresence mode="wait">
+        {phase === 'intro' && (
+          <motion.div
+            key="intro-round"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.4 }}
+            className="w-full h-full flex flex-col items-center justify-center relative z-10"
+          >
+            <HabitsIntroDialogue onComplete={handleLevelComplete} />
+          </motion.div>
+        )}
+
         {phase === 'actor' && (
           <motion.div
             key="actor-round"
@@ -121,6 +145,19 @@ export function ViewingHabitsOrchestration({ onGameComplete }: ViewingHabitsOrch
           </motion.div>
         )}
 
+        {phase === 'map-intro' && hasCountryData && (
+          <motion.div
+            key="map-intro"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.4 }}
+            className="w-full h-full flex flex-col items-center justify-center relative z-10"
+          >
+            <MapIntroDialogue onComplete={handleMapIntroComplete} />
+          </motion.div>
+        )}
+
         {phase === 'map' && hasCountryData && (
           <motion.div
             key="map-round"
@@ -140,30 +177,6 @@ export function ViewingHabitsOrchestration({ onGameComplete }: ViewingHabitsOrch
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Debug Controls - Absolute bottom left */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="absolute bottom-4 left-4 flex gap-2 z-50">
-          <button
-            onClick={() => setPhase('actor')}
-            className="px-3 py-1 bg-black/50 text-white text-xs rounded hover:bg-black/80"
-          >
-            Debug: Actor
-          </button>
-          <button
-            onClick={() => setPhase('duration')}
-            className="px-3 py-1 bg-black/50 text-white text-xs rounded hover:bg-black/80"
-          >
-            Debug: Duration
-          </button>
-          <button
-            onClick={() => setPhase('map')}
-            className="px-3 py-1 bg-black/50 text-white text-xs rounded hover:bg-black/80"
-          >
-            Debug: Map
-          </button>
-        </div>
-      )}
     </div>
   );
 }
