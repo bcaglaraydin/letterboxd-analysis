@@ -4,7 +4,7 @@ import React from 'react';
 import { motion, Variants } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useThemeStore } from '@/store/theme/themeStore';
-import { Heart, ThumbsDown } from 'lucide-react';
+import { Sparkles, CloudRain } from 'lucide-react';
 import { GAME_TEXT } from '@/lib/content';
 import { ThemeResultItem } from './ThemeResultItem';
 
@@ -51,8 +51,9 @@ export function ThemeResultsScreen({ onComplete }: ThemeResultsScreenProps) {
                 className="flex flex-col"
               >
                 <div className="flex items-center gap-4 mb-8 px-2">
-                  <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 shrink-0">
-                    <Heart className="w-6 h-6 fill-current" />
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0 relative">
+                    <div className="absolute inset-0 bg-primary/5 rounded-full blur-sm" />
+                    <Sparkles className="w-5 h-5 relative z-10" />
                   </div>
                   <h3 className="text-3xl sm:text-4xl font-serif text-foreground">Your Top 5</h3>
                 </div>
@@ -83,10 +84,13 @@ export function ThemeResultsScreen({ onComplete }: ThemeResultsScreenProps) {
                 className="flex flex-col"
               >
                 <div className="flex items-center gap-4 mb-8 px-2">
-                  <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center text-destructive shrink-0">
-                    <ThumbsDown className="w-6 h-6 fill-current" />
+                  <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center text-muted-foreground shrink-0 relative">
+                    <div className="absolute inset-0 bg-muted/30 rounded-full blur-sm" />
+                    <CloudRain className="w-5 h-5 relative z-10" />
                   </div>
-                  <h3 className="text-3xl sm:text-4xl font-serif text-foreground">Your Bottom 5</h3>
+                  <h3 className="text-3xl sm:text-4xl font-serif text-muted-foreground/80">
+                    Your Bottom 5
+                  </h3>
                 </div>
 
                 <div className="grid auto-rows-[1fr] gap-4">

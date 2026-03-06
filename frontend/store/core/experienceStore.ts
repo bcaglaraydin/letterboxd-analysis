@@ -17,8 +17,12 @@ interface ExperienceState {
   };
   unlockedGames: string[];
   completedGames: string[];
+  userEnjoymentChoice: 'fun' | 'dk' | null;
+  habitsPhase: 'intro' | 'actor' | 'duration' | 'map-intro' | 'map';
 
   // Actions
+  setUserEnjoymentChoice: (choice: 'fun' | 'dk') => void;
+  setHabitsPhase: (phase: 'intro' | 'actor' | 'duration' | 'map-intro' | 'map') => void;
   completeRatingGame: (score: number) => void;
   startGenreGame: () => void;
   startRatingGame: () => void;
@@ -40,6 +44,11 @@ export const useExperienceStore = create<ExperienceState>((set) => ({
   },
   unlockedGames: [GAME_PHASES.RATING],
   completedGames: [],
+  userEnjoymentChoice: null,
+  habitsPhase: 'intro',
+
+  setUserEnjoymentChoice: (choice) => set({ userEnjoymentChoice: choice }),
+  setHabitsPhase: (phase) => set({ habitsPhase: phase }),
 
   completeRatingGame: (score) =>
     set((state) => ({

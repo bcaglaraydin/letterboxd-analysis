@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type ThemePhase = 'guessing' | 'revealed' | 'sorting' | 'results';
+export type ThemePhase = 'intro' | 'guessing' | 'revealed' | 'sorting' | 'results';
 
 /**
  * Progressive hint levels (driven by wrong guesses):
@@ -44,6 +44,7 @@ interface ThemeStoreState {
 
   // Actions
   initThemeGame: (rounds: ThemeRound[], sortingRounds: ThemeSortingRound[]) => void;
+  startThemeGuessing: () => void;
   setUserGuess: (guess: string) => void;
   submitGuess: (correctTitle: string) => void;
   nextRound: () => 'next' | 'complete';
@@ -56,7 +57,7 @@ import { isFuzzyMatch } from '@/lib/fuzzyMatch';
 export const useThemeStore = create<ThemeStoreState>((set, get) => ({
   rounds: [],
   sortingRounds: [],
-  phase: 'guessing',
+  phase: 'intro',
   currentRoundIndex: 0,
   currentSortingIndex: 0,
   userGuess: '',
@@ -75,8 +76,10 @@ export const useThemeStore = create<ThemeStoreState>((set, get) => ({
       currentSortingIndex: 0,
       score: 0,
       sortingScore: 0,
-      phase: 'guessing',
+      phase: 'intro',
     }),
+
+  startThemeGuessing: () => set({ phase: 'guessing' }),
 
   setUserGuess: (guess) => set({ userGuess: guess }),
 

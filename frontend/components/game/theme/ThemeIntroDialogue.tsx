@@ -5,19 +5,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { GameBackground } from '@/components/game/shared/GameBackground';
 import { GameLayout } from '@/components/game/shared/GameLayout';
-import { ScorePanel } from '@/components/game/shared/ScorePanel';
-import { useExperienceStore } from '@/store/core/experienceStore';
 
-interface GenreIntroDialogueProps {
+interface ThemeIntroDialogueProps {
   onComplete: () => void;
 }
 
-type DialogueKey = 'start' | 'fun' | 'dk';
+type DialogueKey = 'start' | 'known' | 'unknown';
 
-export const GenreIntroDialogue: React.FC<GenreIntroDialogueProps> = ({ onComplete }) => {
+export const ThemeIntroDialogue: React.FC<ThemeIntroDialogueProps> = ({ onComplete }) => {
   const [dialogueKey, setDialogueKey] = useState<DialogueKey>('start');
   const [isAnimationComplete, setIsAnimationComplete] = useState(false);
-  const setUserEnjoymentChoice = useExperienceStore((state) => state.setUserEnjoymentChoice);
 
   React.useEffect(() => {
     setIsAnimationComplete(false);
@@ -51,23 +48,35 @@ export const GenreIntroDialogue: React.FC<GenreIntroDialogueProps> = ({ onComple
       case 'start':
         return (
           <>
+            <div className="space-y-6 text-center max-w-3xl mb-12">
+              <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
+                <motion.span variants={sequentialFade} custom={0}>
+                  We all know what an Action or Comedy movie is.{' '}
+                </motion.span>
+                <motion.span variants={sequentialFade} custom={1}>
+                  That&apos;s basic cinema stuff.{' '}
+                </motion.span>
+              </div>
+              <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
+                <motion.span variants={sequentialFade} custom={2}>
+                  But... did you know Letterboxd assigns <span className="font-bold">themes</span>{' '}
+                  to movies?
+                </motion.span>
+              </div>
+            </div>
+
             <motion.div
               variants={sequentialFade}
-              custom={0}
+              custom={3}
               onAnimationComplete={() => setIsAnimationComplete(true)}
-              className="text-xl md:text-3xl font-serif text-primary leading-relaxed text-center mb-12"
-            >
-              What do you think of the game and our analysis so far?
-            </motion.div>
+              className="w-full"
+            />
 
             <div className="flex flex-col gap-4 w-full max-w-sm shrink-0">
-              <motion.div variants={sequentialSlide} custom={1.2}>
+              <motion.div variants={sequentialSlide} custom={3}>
                 <Button
                   variant="outline"
-                  onClick={() => {
-                    setDialogueKey('fun');
-                    setUserEnjoymentChoice('fun');
-                  }}
+                  onClick={() => setDialogueKey('known')}
                   disabled={!isAnimationComplete}
                   className={`w-full text-lg py-6 border-primary/20 bg-background/50 transition-all duration-300 ${
                     !isAnimationComplete
@@ -75,16 +84,13 @@ export const GenreIntroDialogue: React.FC<GenreIntroDialogueProps> = ({ onComple
                       : 'hover:bg-primary/10 hover:text-primary hover:border-primary/50'
                   }`}
                 >
-                  It&apos;s actually really fun!
+                  Of course I am
                 </Button>
               </motion.div>
-              <motion.div variants={sequentialSlide} custom={1.4}>
+              <motion.div variants={sequentialSlide} custom={3.2}>
                 <Button
                   variant="outline"
-                  onClick={() => {
-                    setDialogueKey('dk');
-                    setUserEnjoymentChoice('dk');
-                  }}
+                  onClick={() => setDialogueKey('unknown')}
                   disabled={!isAnimationComplete}
                   className={`w-full text-lg py-6 border-primary/20 bg-background/50 transition-all duration-300 ${
                     !isAnimationComplete
@@ -92,54 +98,45 @@ export const GenreIntroDialogue: React.FC<GenreIntroDialogueProps> = ({ onComple
                       : 'hover:bg-primary/10 hover:text-primary hover:border-primary/50'
                   }`}
                 >
-                  I don&apos;t know yet.
+                  Wait, what themes?
                 </Button>
               </motion.div>
             </div>
           </>
         );
 
-      case 'fun':
+      case 'known':
         return (
           <>
             <div className="space-y-6 text-center max-w-3xl mb-12">
               <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
                 <motion.span variants={sequentialFade} custom={0}>
-                  <span className="font-bold">Glad to hear that!</span>{' '}
+                  Ah, so you&apos;re familiar with themes like{' '}
+                  <span className="font-bold">
+                    &lsquo;Intense violence and sexual transgression&rsquo;
+                  </span>{' '}
+                  or{' '}
+                  <span className="font-bold">
+                    &lsquo;Surreal and thought-provoking visions of life and death&rsquo;
+                  </span>
+                  .
                 </motion.span>
+              </div>
+              <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
                 <motion.span variants={sequentialFade} custom={1}>
-                  Let&apos;s move on to the next stage then.
+                  In this next round, I want you to guess movies based on their themes.
                 </motion.span>
               </div>
               <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
                 <motion.span variants={sequentialFade} custom={2}>
-                  Our next game is all about <span className="font-bold">Genres</span>.{' '}
-                </motion.span>
-                <motion.span variants={sequentialFade} custom={3}>
-                  I&apos;ll ask you to rank your highest scoring genres.
-                </motion.span>
-              </div>
-              <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
-                <motion.span variants={sequentialFade} custom={4}>
-                  And yes{' '}
-                </motion.span>
-                <motion.span variants={sequentialFade} custom={5}>
-                  if you score over{' '}
-                  <span className="font-bold text-3xl ml-1 text-green-500">150</span>
-                  <span className="font-bold text-3xl mr-1">/200</span>{' '}
-                </motion.span>
-                <motion.span variants={sequentialFade} custom={6}>
-                  again{' '}
-                </motion.span>
-                <motion.span variants={sequentialFade} custom={7}>
-                  we&apos;ll unlock a<span className="font-bold"> deeper analysis</span>.
+                  If you can&apos;t, we will reveal more clues, but you will get fewer points.
                 </motion.span>
               </div>
             </div>
 
             <motion.div
               variants={sequentialSlide}
-              custom={8}
+              custom={3}
               onAnimationComplete={() => setIsAnimationComplete(true)}
               className="w-full flex justify-center shrink-0"
             >
@@ -159,44 +156,43 @@ export const GenreIntroDialogue: React.FC<GenreIntroDialogueProps> = ({ onComple
           </>
         );
 
-      case 'dk':
+      case 'unknown':
         return (
           <>
             <div className="space-y-6 text-center max-w-3xl mb-12">
               <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
                 <motion.span variants={sequentialFade} custom={0}>
-                  Let&apos;s keep going to see what awaits you.
+                  Like{' '}
+                  <span className="font-bold">
+                    &lsquo;Intense violence and sexual transgression&rsquo;
+                  </span>{' '}
+                  or{' '}
+                  <span className="font-bold">
+                    &lsquo;Surreal and thought-provoking visions of life and death&rsquo;
+                  </span>
+                  .
                 </motion.span>
               </div>
               <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
                 <motion.span variants={sequentialFade} custom={1}>
-                  Our next game is all about <span className="font-bold">Genres</span>.{' '}
+                  Yes, these are real, you are going to see more of them now.
                 </motion.span>
+              </div>
+              <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
                 <motion.span variants={sequentialFade} custom={2}>
-                  I&apos;ll ask you to rank your highest scoring genres.
+                  In this next round, I want you to guess movies based on their themes.
                 </motion.span>
               </div>
               <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
                 <motion.span variants={sequentialFade} custom={3}>
-                  And yes,{' '}
-                </motion.span>
-                <motion.span variants={sequentialFade} custom={4}>
-                  if you score over{' '}
-                  <span className="font-bold text-3xl ml-1 text-green-500">150</span>
-                  <span className="font-bold text-3xl mr-1">/200</span>,{' '}
-                </motion.span>
-                <motion.span variants={sequentialFade} custom={5}>
-                  again,{' '}
-                </motion.span>
-                <motion.span variants={sequentialFade} custom={6}>
-                  we&apos;ll unlock a<span className="font-bold"> deeper analysis</span>.
+                  If you can&apos;t, we will reveal more clues, but you will get fewer points.
                 </motion.span>
               </div>
             </div>
 
             <motion.div
               variants={sequentialSlide}
-              custom={7}
+              custom={4}
               onAnimationComplete={() => setIsAnimationComplete(true)}
               className="w-full flex justify-center shrink-0"
             >
@@ -222,18 +218,7 @@ export const GenreIntroDialogue: React.FC<GenreIntroDialogueProps> = ({ onComple
     <GameBackground>
       <GameLayout
         className="w-full max-w-4xl mx-auto"
-        top={
-          <div className="flex justify-end items-start p-4 md:p-8 w-full relative z-[60]">
-            <ScorePanel
-              score={0}
-              maxScore={200}
-              showMaxScore={true}
-              size="md"
-              label="Current Score"
-              className="mb-0"
-            />
-          </div>
-        }
+        top={<div />}
         middle={
           <div className="flex flex-col items-center justify-center w-full px-6 min-h-[50vh]">
             <AnimatePresence mode="wait">
