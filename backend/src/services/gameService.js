@@ -11,6 +11,7 @@ import {
   calculateTopActors,
   calculateDurationDistribution,
   calculateCountryStats,
+  calculateComparisonMovies,
 } from './statsService.js';
 
 export const GameService = {
@@ -100,6 +101,9 @@ export const GameService = {
     // Calculate Country Stats
     const countryStats = calculateCountryStats(allFilmsWithMeta);
 
+    // Calculate 5 Comparison Movies for Habits Game
+    const comparisonMovies = calculateComparisonMovies(allFilmsWithMeta);
+
     const userStats = {
       totalMovies: userFilms.length,
       averageRating: basicStats.average,
@@ -115,6 +119,7 @@ export const GameService = {
       controversialPicks: ratingDeviations.controversialPicks.slice(0, 5),
       hotTakes: ratingDeviations.hotTakes.slice(0, 5),
       skepticPicks: ratingDeviations.skepticPicks.slice(0, 5),
+      comparisonMovies,
       genreOverview,
       topActors,
       durationDistribution: durationData.graphs,
