@@ -193,6 +193,51 @@ export function findRatingDeviations(movies) {
 }
 
 /**
+ * Calculates 5 comparison movies representing the user's rating spectrum
+ * from their highest rated to lowest rated.
+ * @param {Array} movies - Array of movie objects with userRating, title, poster.
+ * @returns {Array} - Array of exactly 5 movies.
+ */
+export function calculateComparisonMovies(movies) {
+  // 1. Filter only movies the user rated
+  const ratedMovies = movies.filter((m) => m.userRating != null);
+
+  // 2. Sort descending by highest user rating first
+  ratedMovies.sort((a, b) => b.userRating - a.userRating);
+
+  // 3. Fallback if fewer than 5 rated movies
+  if (ratedMovies.length <= 5) {
+    return ratedMovies.map((m) => ({
+      movieId: m.slug,
+      title: m.title,
+      poster: m.poster || '',
+      userRating: m.userRating,
+    }));
+  }
+
+  // 4. Select exactly 5 representative indices
+  // We want the absolute best (0), the 25% mark, the median, the 75% mark, and the absolute worst (length-1)
+  const indices = [
+    0, // Favorite
+    Math.floor((ratedMovies.length - 1) * 0.25), // Good
+    Math.floor((ratedMovies.length - 1) * 0.5), // Average
+    Math.floor((ratedMovies.length - 1) * 0.75), // Bad
+    ratedMovies.length - 1, // Lowest
+  ];
+
+  // Map to the required format
+  return indices.map((index) => {
+    const m = ratedMovies[index];
+    return {
+      movieId: m.slug,
+      title: m.title,
+      poster: m.poster || '',
+      userRating: m.userRating,
+    };
+  });
+}
+
+/**
  * Calculates per-genre statistics (User vs Community).
  * @param {Array} films - Array of film objects with { genres, userRating, averageRating, poster, title, slug }.
  * @returns {Array} - Array of genre stats sorted by userWatchCount desc.
