@@ -91,7 +91,7 @@ export function generateThemeGame(allFilms, options = {}) {
     }
   });
 
-  const validThemes = Object.keys(themeStats)
+  let validThemes = Object.keys(themeStats)
     .map((theme) => {
       const stats = themeStats[theme];
       const avg = stats.totalRating / stats.count;
@@ -111,6 +111,62 @@ export function generateThemeGame(allFilms, options = {}) {
     // Only include themes with enough data points to be somewhat interesting
     .filter((t) => t.count >= 2);
 
+  const usedThemes = new Set(validThemes.map((t) => t.theme));
+
+  // If we don't have exactly 10 valid themes, fill the rest with generic themes.
+  if (validThemes.length < 10) {
+    const singleCountThemes = Object.keys(themeStats)
+      .filter((t) => themeStats[t].count === 1)
+      .map((theme) => {
+        const m = themeStats[theme].movies[0];
+        return {
+          theme,
+          averageRating: m.userRating,
+          count: 1,
+          topMovies: [{ title: m.title, posterUrl: m.posterUrl }],
+        };
+      });
+
+    for (const t of singleCountThemes) {
+      if (!usedThemes.has(t.theme)) {
+        validThemes.push(t);
+        usedThemes.add(t.theme);
+        if (validThemes.length >= 10) break;
+      }
+    }
+  }
+
+  if (validThemes.length < 10) {
+    const FALLBACKS = [
+      'Love, romance, and relationships',
+      'Crude humor and satire',
+      'Graphic violence and brutal revenge',
+      'Humanity and the world around us',
+      'Politics and human rights',
+      'Surreal and thought-provoking visions',
+      'Intense violence and sexual transgression',
+      'High speed and special ops',
+      'Nazis and World War II',
+      'Military combat and heroic soldiers',
+      'Intense thriller',
+      'Science fiction visions',
+      'Coming of age stories',
+    ];
+
+    for (const f of FALLBACKS) {
+      if (!usedThemes.has(f)) {
+        validThemes.push({
+          theme: f,
+          averageRating: 5.0,
+          count: 0,
+          topMovies: [],
+        });
+        usedThemes.add(f);
+        if (validThemes.length >= 10) break;
+      }
+    }
+  }
+
   validThemes.sort((a, b) => b.averageRating - a.averageRating); // highest to lowest
 
   // Top 5 and Bottom 5 (ensuring no overlap if very few themes exist)
@@ -123,9 +179,13 @@ export function generateThemeGame(allFilms, options = {}) {
     topMovies: t.topMovies,
   }));
 
+  // Take from bottom, avoiding overlap with favorites
+  const remainingThemes = validThemes.slice(topCut);
+  const bottomCut = Math.min(5, remainingThemes.length);
+
   // Take from bottom, invert to standard order (lowest to highest? Or keep Descending order?)
   // Let's keep descending order, so the absolute worst is at the very bottom
-  const leastFavorites = validThemes.slice(-5).map((t, i) => ({
+  const leastFavorites = remainingThemes.slice(-bottomCut).map((t, i) => ({
     id: `least-${i}`,
     theme: t.theme,
     averageRating: t.averageRating,

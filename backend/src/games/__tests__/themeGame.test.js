@@ -65,10 +65,8 @@ describe('ThemeGame Generator', () => {
     // Only 4 themes meet count >= 2.
 
     expect(sortingRounds).toBeDefined();
-    expect(sortingRounds.length).toBe(8); // Since top 5 + bottom 5 overlap when there are less than 10 themes.
+    expect(sortingRounds.length).toBe(10); // Now always padded to 10 distinct themes
 
-    // The top 5 logic takes 5, bottom takes 5. If we have 4, favorites gets 4, least_favorites gets 4.
-    // They will overlap. That's fine for simple lists, but let's check what defaults are returned.
     const favorites = sortingRounds.filter((r) => r.type === 'favorite');
     const leastFavorites = sortingRounds.filter((r) => r.type === 'least_favorite');
 
