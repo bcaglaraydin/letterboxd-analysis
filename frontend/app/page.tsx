@@ -3,9 +3,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { GameBackground } from '@/components/game/shared/GameBackground';
-import { Loader2, ArrowRight } from 'lucide-react';
+import { Loader2, ArrowRight, Github } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import Image from 'next/image';
 import { PreAnalysisFlow } from '@/components/game/pre-analysis/PreAnalysisFlow';
 import { ExperienceOrchestrator } from '@/components/game/core/ExperienceOrchestrator';
 import { useUserStore } from '@/store/core/userStore';
@@ -15,96 +14,78 @@ import { triggerMetrics } from '@/lib/api';
 import { MIN_LOADING_TIME_MS } from '@/lib/gameTypes';
 import { API_ERRORS, ERROR_MESSAGES } from '@/lib/content';
 
-export default function LandingPage() {
+export default function HomePage() {
   const [usernameInput, setUsernameInput] = useState('');
   const [showPreAnalysis, setShowPreAnalysis] = useState(false);
   const [localLoading, setLocalLoading] = useState(false);
-  const [localError, setLocalError] = useState<string | null>(null);
+  const [localError, setLocalError] = useState('');
 
   const { hasStartedGame, setStartedGame, backgroundStatus, setProcessing, setUsername } =
     useUserStore();
+
   const startPolling = usePollingStore((state) => state.start);
   const ratingGameReset = useRatingGameStore((state) => state.resetGame);
 
-  // Computed status for PreAnalysis flow
   const isBackendReady = backgroundStatus === 'partial_ready' || backgroundStatus === 'ready';
 
   const handleStart = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!usernameInput.trim()) return;
+
+    const finalUsername = usernameInput.trim() || 'bcaglaraydin';
 
     setLocalLoading(true);
-    setLocalError(null);
+    setLocalError('');
+
     const startTime = Date.now();
 
     try {
-      const data = await triggerMetrics(usernameInput.trim());
+      const data = await triggerMetrics(finalUsername);
 
       if (data.status === 'error') {
         throw new Error(data.message || 'Analysis failed');
       }
 
-      // Smooth loading experience
       const elapsed = Date.now() - startTime;
+
       if (elapsed < MIN_LOADING_TIME_MS) {
         await new Promise((r) => setTimeout(r, MIN_LOADING_TIME_MS - elapsed));
       }
 
-      setUsername(usernameInput.trim());
+      setUsername(finalUsername);
       ratingGameReset();
 
-      // If already ready (cached user), hydrate stores directly — no polling needed
       if (data.status === 'ready' && data.ratingGame?.movies) {
-        setProcessing(usernameInput.trim());
-        // Hydrate all game stores directly from the triggerMetrics response
+        setProcessing(finalUsername);
+
         const { setReady, setUserStats: setStats } = useUserStore.getState();
+
         setReady();
+
         if (data.userStats) setStats(data.userStats);
+
         if (data.ratingGame?.movies?.length > 0) {
           useRatingGameStore.getState().startGame({
             movies: data.ratingGame.movies,
             userStats: data.userStats || null,
           });
         }
-        // Hydrate remaining game stores via pollingStore's hydration
-        // (pollingStore.start won't be called, but we need to push data)
-        if (data.genreGame) {
-          const { useGenreRankingStore } = await import('@/store/genre/rankingStore');
-          const currentGenres = useGenreRankingStore.getState().genres;
-          if (currentGenres.length === 0) {
-            useGenreRankingStore.getState().startGame({ ...data.genreGame, previousScore: 0 });
-          }
-        }
-        if (data.genreMatchingGame) {
-          const { useGenreMatchingStore } = await import('@/store/genre/matchingStore');
-          if (!useGenreMatchingStore.getState().isActive) {
-            useGenreMatchingStore.getState().initGame(data.genreMatchingGame);
-          }
-        }
-        if (data.themeGame) {
-          const { useThemeStore } = await import('@/store/theme/themeStore');
-          if (useThemeStore.getState().rounds.length === 0) {
-            useThemeStore
-              .getState()
-              .initThemeGame(data.themeGame.rounds, data.themeGame.sortingRounds || []);
-          }
-        }
+
         setShowPreAnalysis(true);
         return;
       }
 
-      // Processing/accepted/partial_ready — start polling
       if (
         data.status === 'processing' ||
         data.status === 'accepted' ||
         data.status === 'partial_ready'
       ) {
-        setProcessing(usernameInput.trim());
-        startPolling(usernameInput.trim());
+        setProcessing(finalUsername);
+        startPolling(finalUsername);
         setShowPreAnalysis(true);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+
       if (
         errorMessage.includes(API_ERRORS.USER_NOT_FOUND) ||
         errorMessage.includes(API_ERRORS.PROFILE_PRIVATE) ||
@@ -120,104 +101,156 @@ export default function LandingPage() {
   };
 
   const handlePreAnalysisComplete = () => {
-    // We only transition when the user chooses to (or finishes dialog)
-    // The Game Orchestrator will show a loading wall if backgroundStatus isn't ready when RatingGame finishes
     setStartedGame(true);
   };
 
-  // 1. If Game is fully running
   if (hasStartedGame) {
     return <ExperienceOrchestrator />;
   }
 
-  // 2. Pre-Analysis Waiting Room
   if (showPreAnalysis) {
     return (
       <GameBackground>
-        <div className="relative z-10 flex flex-col items-center justify-center h-[100dvh] w-full overflow-hidden">
+        <div className="relative z-10 flex items-center justify-center min-h-[100dvh] px-5">
           <PreAnalysisFlow onComplete={handlePreAnalysisComplete} isBackendReady={isBackendReady} />
         </div>
       </GameBackground>
     );
   }
 
+  const heroSection = (
+    <div className="flex flex-col items-center text-center max-w-2xl mx-auto gap-7">
+      <h1 className="font-serif leading-none flex flex-col items-center">
+        <motion.div
+          initial={{ scale: 0.92, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.15 }}
+          className="mb-4 rotate-2"
+        >
+          <span className="bg-primary text-white px-5 py-2 rounded-full text-xs tracking-[0.3em] uppercase font-black">
+            THE
+          </span>
+        </motion.div>
+
+        <motion.span
+          initial={{ y: 12, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.25 }}
+          className="text-[3.8rem] sm:text-[5.5rem] md:text-[7.5rem] lg:text-[8.5rem] whitespace-nowrap text-accent font-black tracking-[-0.035em] leading-[0.9] mb-8 rotate-[1.5deg] transition-transform hover:rotate-0"
+          style={{
+            textShadow: '3px 3px 0 var(--primary)',
+          }}
+        >
+          Ultimate
+        </motion.span>
+        <motion.span
+          initial={{ y: 12, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.35 }}
+          className="text-lg sm:text-2xl md:text-[2.2rem] text-white bg-primary px-6 py-3.5 rounded-xl font-extrabold tracking-tight"
+        >
+          Letterboxd Taste Test
+        </motion.span>
+      </h1>
+
+      <motion.p
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="text-muted-foreground text-base font-medium leading-relaxed max-w-[380px]"
+      >
+        No account? No problem! Use <span className="font-bold text-primary">bcaglaraydin</span> and{' '}
+        <strong className="text-primary bg-primary/10 px-2 py-0.5 rounded-md hover:bg-primary hover:text-white transition-all cursor-pointer">
+          impersonate me
+        </strong>{' '}
+        to explore.
+      </motion.p>
+    </div>
+  );
+
+  const formElement = (
+    <form onSubmit={handleStart} className="w-full max-w-lg mx-auto space-y-4">
+      <div>
+        <input
+          type="text"
+          value={usernameInput}
+          onChange={(e) => setUsernameInput(e.target.value)}
+          placeholder="Enter your Letterboxd username"
+          className="w-full h-14 px-6 bg-white/50 border-2 border-primary/10 rounded-xl text-lg text-center placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/50 focus:bg-white/80 transition-all duration-300 text-primary font-serif"
+          disabled={localLoading}
+        />
+      </div>
+
+      {localError && (
+        <motion.p
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          className="text-destructive text-sm font-medium text-center"
+        >
+          {localError}
+        </motion.p>
+      )}
+
+      <Button
+        type="submit"
+        disabled={localLoading}
+        size="lg"
+        className="w-full h-14 text-lg font-bold tracking-wide rounded-xl shadow-lg shadow-primary/10 flex items-center justify-center gap-2 group"
+      >
+        {localLoading ? (
+          <>
+            <Loader2 className="animate-spin" />
+            <span>Analyzing Profile...</span>
+          </>
+        ) : (
+          <>
+            <span>Start</span>
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </>
+        )}
+      </Button>
+    </form>
+  );
+
+  const footerElement = (
+    <footer className="mt-6 flex flex-col items-center gap-3 text-muted-foreground/80 text-xs w-full">
+      <div className="flex items-center gap-5 tracking-wide font-sans">
+        <a
+          href="https://github.com/bcaglaraydin/letterboxd-analysis"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 hover:text-primary hover:underline"
+        >
+          <Github className="w-4 h-4" />
+          <span>GitHub</span>
+        </a>
+
+        <span className="opacity-40">•</span>
+
+        <a
+          href="https://letterboxd.com/bcaglaraydin"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 hover:text-primary hover:underline"
+        >
+          <span>Letterboxd</span>
+        </a>
+      </div>
+    </footer>
+  );
+
   return (
     <GameBackground>
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-6">
+      <div className="relative z-10 flex items-center justify-center min-h-[100dvh] px-5 py-14">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-          className="w-full max-w-md space-y-8 text-center"
+          transition={{ duration: 0.55 }}
+          className="w-full max-w-2xl flex flex-col items-center gap-9"
         >
-          <div className="space-y-8">
-            <div className="flex justify-center">
-              <Image
-                src="/logo.svg"
-                alt="Letterboxd Analysis Logo"
-                width={1150}
-                height={1200}
-                className="w-auto h-24 md:h-36 drop-shadow-2xl"
-                priority
-              />
-            </div>
-            <h1 className="text-6xl font-serif tracking-tight text-primary">
-              Letterboxd
-              <br />
-              <span className="text-accent italic">Guessing Game</span>
-            </h1>
-            <p className="text-muted-foreground text-lg font-sans">
-              How well do you know your own taste?
-            </p>
-          </div>
-
-          <form onSubmit={handleStart} className="space-y-6">
-            <div className="relative group">
-              <input
-                type="text"
-                value={usernameInput}
-                onChange={(e) => setUsernameInput(e.target.value)}
-                placeholder="Enter your Letterboxd username"
-                className="w-full px-6 py-4 bg-white/50 border-2 border-primary/10 rounded-xl text-xl text-center placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 focus:bg-white/80 transition-all duration-300 text-primary font-serif"
-                disabled={localLoading}
-              />
-            </div>
-
-            {localError && (
-              <motion.p
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                className="text-destructive text-sm font-medium"
-              >
-                {localError}
-              </motion.p>
-            )}
-
-            <Button
-              type="submit"
-              disabled={localLoading || !usernameInput}
-              size="lg"
-              className="w-full py-4 h-auto text-lg font-bold tracking-wide rounded-xl shadow-lg shadow-primary/10 flex items-center justify-center gap-2 group overflow-hidden"
-            >
-              {localLoading ? (
-                <>
-                  <Loader2 className="animate-spin" />
-                  <span>Analyzing Profile...</span>
-                </>
-              ) : (
-                <>
-                  <span>Start Game</span>
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </>
-              )}
-            </Button>
-          </form>
-
-          <div className="pt-8 flex justify-center gap-4 text-muted-foreground/60 text-xs uppercase tracking-widest font-medium">
-            <span>Powered by Letterboxd</span>
-            <span>•</span>
-            <span>Made for Film Lovers</span>
-          </div>
+          {heroSection}
+          {formElement}
+          {footerElement}
         </motion.div>
       </div>
     </GameBackground>
