@@ -125,7 +125,7 @@ export default function HomePage() {
           initial={{ scale: 0.92, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.15 }}
-          className="mb-4 rotate-2"
+          className="mb-2 rotate-2"
         >
           <span className="bg-primary text-white px-5 py-2 rounded-full text-xs tracking-[0.3em] uppercase font-black">
             THE
@@ -136,18 +136,19 @@ export default function HomePage() {
           initial={{ y: 12, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.25 }}
-          className="text-[3.8rem] sm:text-[5.5rem] md:text-[7.5rem] lg:text-[8.5rem] whitespace-nowrap text-accent font-black tracking-[-0.035em] leading-[0.9] mb-8 rotate-[1.5deg] transition-transform hover:rotate-0"
+          className="text-[5.8rem] sm:text-[6.5rem] md:text-[8.5rem] lg:text-[10rem] whitespace-nowrap text-accent font-black tracking-[-0.04em] leading-[0.85] mb-6 rotate-[1.5deg] transition-transform hover:rotate-0"
           style={{
             textShadow: '3px 3px 0 var(--primary)',
           }}
         >
           Ultimate
         </motion.span>
+
         <motion.span
           initial={{ y: 12, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.35 }}
-          className="text-lg sm:text-2xl md:text-[2.2rem] text-white bg-primary px-6 py-3.5 rounded-xl font-extrabold tracking-tight"
+          className="text-base sm:text-xl md:text-[1.9rem] text-white bg-primary px-5 py-3 rounded-xl font-extrabold tracking-tight"
         >
           Letterboxd Taste Test
         </motion.span>
@@ -246,7 +247,7 @@ export default function HomePage() {
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55 }}
-          className="w-full max-w-2xl flex flex-col items-center gap-9"
+          className="w-full max-w-2xl flex flex-col items-center gap-12"
         >
           {heroSection}
           {formElement}
