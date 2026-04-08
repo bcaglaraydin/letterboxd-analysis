@@ -1,8 +1,9 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Playfair_Display, DM_Sans } from 'next/font/google';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { DebugControls } from '@/components/debug/DebugControls';
+import { StateBridge } from '@/components/debug/StateBridge';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -24,6 +25,13 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -33,13 +41,14 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={cn(
-          'min-h-screen bg-background font-sans antialiased',
+          'h-[100dvh] overflow-hidden bg-background font-sans antialiased',
           playfair.variable,
           dmSans.variable,
         )}
       >
         {children}
         <DebugControls />
+        <StateBridge />
       </body>
     </html>
   );

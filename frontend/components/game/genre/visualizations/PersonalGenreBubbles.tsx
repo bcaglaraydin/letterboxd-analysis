@@ -473,6 +473,7 @@ export function PersonalGenreBubbles({ data, insights }: PersonalGenreBubblesPro
       >
         <svg
           ref={svgRef}
+          data-testid="bubble-visualization"
           width="100%"
           height="100%"
           className="touch-none absolute inset-0"

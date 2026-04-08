@@ -112,6 +112,7 @@ export const useRatingGameStore = create<GameState>((set, get) => ({
       history: [],
       currentMovieIndex: 0,
       isGameOver: false,
+      totalRounds: data.movies.length,
     });
   },
 

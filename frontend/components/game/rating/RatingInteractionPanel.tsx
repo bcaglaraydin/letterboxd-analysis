@@ -38,6 +38,7 @@ export function RatingInteractionPanel({
         <Button
           onClick={onSubmit}
           disabled={currentRating === 0}
+          data-testid="reveal-rating-button"
           className="w-full md:w-auto h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-bold tracking-widest uppercase shadow-lg md:shadow-xl hover:shadow-xl md:hover:shadow-2xl hover:-translate-y-0.5 md:hover:-translate-y-1 transform duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {GAME_TEXT.RATING_GAME.INTERACTION.BUTTON_REVEAL}
