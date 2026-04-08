@@ -4,7 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useUserStore } from '@/store/core/userStore';
 import { useGenreOrchestrationStore } from '@/store/genre/genreOrchestrationStore';
-import { Loader2, ArrowRight } from 'lucide-react';
+import { Loader2, ArrowRight, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { PersonalGenreBubbles } from './visualizations/PersonalGenreBubbles';
@@ -32,16 +32,19 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) =>
   const [error, setError] = useState<string | null>(null);
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const [isAtBottom, setIsAtBottom] = useState(false);
+  const [hasScrolledTasteGap, setHasScrolledTasteGap] = useState(false);
 
   const handleScroll = () => {
     if (scrollRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+      setHasScrolledTasteGap(scrollTop > 8);
       setIsAtBottom(scrollTop + clientHeight >= scrollHeight - 20);
     }
   };
 
   React.useEffect(() => {
     setIsAtBottom(false);
+    setHasScrolledTasteGap(false);
   }, [postGameStep]);
 
   React.useEffect(() => {
@@ -144,6 +147,32 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) =>
                 <TasteGapLine data={genreData.slice(0, 10)} />
               </div>
             </div>
+            <motion.div
+              initial={false}
+              animate={
+                hasScrolledTasteGap || isAtBottom
+                  ? { opacity: 0, y: 8, scale: 0.96 }
+                  : { opacity: 1, y: 0, scale: 1 }
+              }
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              className="absolute bottom-7 left-1/2 z-10 -translate-x-1/2 pointer-events-none"
+            >
+              <div className="flex flex-col items-center gap-2">
+                <motion.div
+                  animate={{ y: [0, 3, 0] }}
+                  transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+                  className="h-1.5 w-12 rounded-full bg-[#2D2D2D]/18 shadow-[0_1px_4px_rgba(45,45,45,0.08)]"
+                />
+                <motion.div
+                  animate={{ y: [0, 4, 0] }}
+                  transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+                  className="inline-flex items-center gap-2.5 rounded-full border border-[#2D2D2D]/14 bg-[#F8F5F2]/96 px-4 py-2 text-xs md:text-sm font-bold uppercase tracking-[0.24em] text-[#4E4E4E] shadow-[0_10px_28px_rgba(45,45,45,0.12)] backdrop-blur-md"
+                >
+                  <span>Scroll</span>
+                  <ChevronDown className="h-4 w-4 md:h-4.5 md:w-4.5" strokeWidth={2.4} />
+                </motion.div>
+              </div>
+            </motion.div>
             <div
               className={cn(
                 'absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#F8F5F2] to-transparent pointer-events-none transition-opacity duration-500',

@@ -18,6 +18,17 @@ interface ViewingHabitsOrchestrationProps {
 
 export type HabitsPhase = 'intro' | 'actor' | 'duration' | 'map-intro' | 'map';
 
+function shuffleActors<T>(actors: T[]) {
+  const shuffled = [...actors];
+
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  return shuffled;
+}
+
 // Convert backend TopActor[] to the shape FavoriteActorRound expects
 function buildActorData(topActors: TopActor[]) {
   const top8 = topActors.slice(0, 8).map((actor, idx) => ({
@@ -45,7 +56,7 @@ function buildActorData(topActors: TopActor[]) {
         }))
       : mockActorWaitlist.slice(8, 11); // fallback decoys from mocks
 
-  return { top8, waitlist: [...top8, ...decoys] };
+  return { top8, waitlist: shuffleActors([...top8, ...decoys]) };
 }
 
 export function ViewingHabitsOrchestration({ onGameComplete }: ViewingHabitsOrchestrationProps) {

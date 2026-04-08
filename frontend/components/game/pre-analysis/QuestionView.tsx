@@ -20,6 +20,9 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
   onAnswer,
   onScoreUpdate,
 }) => {
+  const SLOW_PRANK_DELAY_MS = 17000;
+  const FAST_PRANK_THRESHOLD_MS = 3000;
+  const EARLY_EXIT_OPTION_ID = 'early-exit';
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [flyFrom, setFlyFrom] = useState<{ x: number; y: number } | undefined>(undefined);
   const [lastPoints, setLastPoints] = useState<number | null>(null);
@@ -35,7 +38,7 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
     setLastPoints(null);
     prankTriggeredRef.current = false;
 
-    // Auto-trigger "slow" prank after 8 seconds of inactivity
+    // Auto-trigger the "slow" prank if the user lingers too long.
     const slowTimeout = setTimeout(() => {
       // Guard: only trigger once and only if no answer/prank yet
       if (prankTriggeredRef.current) return;
@@ -54,7 +57,7 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
       setTimeout(() => {
         onAnswer(0); // score already applied, just advance
       }, 900);
-    }, 15000);
+    }, SLOW_PRANK_DELAY_MS);
 
     return () => clearTimeout(slowTimeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -66,7 +69,9 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
     const elapsed = performance.now() - startTimeRef.current;
 
     // Check speed penalties first
-    if (elapsed < 3000) {
+    const shouldSkipFastPenalty = option.id === EARLY_EXIT_OPTION_ID;
+
+    if (!shouldSkipFastPenalty && elapsed < FAST_PRANK_THRESHOLD_MS) {
       prankTriggeredRef.current = true;
       setPrankPhase('fast');
       setFlyFrom({ x: e.clientX, y: e.clientY });
@@ -126,25 +131,30 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0 }}
-                  className="absolute inset-0 z-10 flex items-center justify-center bg-background/95 backdrop-blur-sm rounded-xl border-2 border-primary/20 p-4 md:p-6 shadow-2xl"
+                  className="absolute inset-0 z-10 flex items-center justify-center p-4 md:p-6"
                   data-testid="prank-popup"
                 >
-                  <p className="text-base sm:text-lg md:text-3xl font-serif text-primary text-center leading-relaxed font-bold">
-                    {prankPhase === 'fast' && (
-                      <>
-                        Did you even read the question?
-                        <br />
-                        <span className="text-red-500">-5 points</span> for not taking me seriously.
-                      </>
-                    )}
-                    {prankPhase === 'slow' && (
-                      <>
-                        Are you Googling the answers?
-                        <br />
-                        I&apos;m deducting <span className="text-red-500">points</span> for lag.
-                      </>
-                    )}
-                  </p>
+                  <div className="relative w-full overflow-hidden rounded-[1.75rem] border border-primary/12 bg-background px-5 py-6 shadow-[0_18px_45px_rgba(15,23,42,0.12)] ring-1 ring-black/5 md:px-8 md:py-8 dark:ring-white/10">
+                    <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-primary/8 via-primary/3 to-transparent" />
+                    <div className="pointer-events-none absolute inset-[1px] rounded-[calc(1.75rem-1px)] border border-white/40 dark:border-white/6" />
+                    <p className="relative text-base sm:text-lg md:text-3xl font-serif text-primary text-center leading-relaxed font-bold">
+                      {prankPhase === 'fast' && (
+                        <>
+                          Did you even read the question?
+                          <br />
+                          <span className="text-red-500">-5 points</span> for not taking me
+                          seriously.
+                        </>
+                      )}
+                      {prankPhase === 'slow' && (
+                        <>
+                          Are you Googling the answers?
+                          <br />
+                          I&apos;m deducting <span className="text-red-500">points</span> for lag.
+                        </>
+                      )}
+                    </p>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
