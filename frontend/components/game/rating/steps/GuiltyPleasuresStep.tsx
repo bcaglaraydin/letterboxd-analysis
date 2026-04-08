@@ -31,6 +31,29 @@ export const GuiltyPleasuresStep: React.FC<GuiltyPleasuresStepProps> = ({
 }) => {
   if (!currentMovie) return null;
 
+  const anotherLabel =
+    categoryKey === 'guiltyPleasures'
+      ? 'guilty pleasure'
+      : categoryKey === 'controversialPicks'
+        ? 'controversial pick'
+        : categoryKey === 'hotTakes'
+          ? 'hot take'
+          : "skeptic's pick";
+  const anotherButtonClasses = cn(
+    'text-xs md:text-sm font-medium text-foreground/85 hover:text-foreground px-4 py-2 mt-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 shadow-md transition-all active:scale-95 hover:-translate-y-0.5 flex items-center gap-2',
+    categoryKey === 'guiltyPleasures' && 'shadow-rose-500/10',
+    categoryKey === 'controversialPicks' && 'shadow-amber-600/10',
+    categoryKey === 'hotTakes' && 'shadow-orange-500/10',
+    categoryKey === 'skepticPicks' && 'shadow-red-500/10',
+  );
+  const anotherLabelClasses = cn(
+    'font-semibold',
+    categoryKey === 'guiltyPleasures' && 'text-rose-400',
+    categoryKey === 'controversialPicks' && 'text-amber-600',
+    categoryKey === 'hotTakes' && 'text-orange-400',
+    categoryKey === 'skepticPicks' && 'text-red-400',
+  );
+
   return (
     <div
       key="guilty"
@@ -191,11 +214,10 @@ export const GuiltyPleasuresStep: React.FC<GuiltyPleasuresStepProps> = ({
       <div className="pt-6 md:pt-8 z-20 shrink-0 flex flex-col items-center gap-3">
         {currentListLength > 1 &&
           (hasMoreInCurrentList ? (
-            <button
-              onClick={onShowAnother}
-              className="text-xs md:text-sm text-foreground/80 hover:text-foreground bg-white/5 hover:bg-white/10 px-4 py-2 mt-2 rounded-full border border-white/10 transition-all active:scale-95 flex items-center gap-2"
-            >
-              Do you want to see another one?
+            <button onClick={onShowAnother} className={anotherButtonClasses}>
+              <span>Do you want to see another</span>
+              <span className={anotherLabelClasses}>{anotherLabel}</span>
+              <span>?</span>
             </button>
           ) : (
             <motion.div

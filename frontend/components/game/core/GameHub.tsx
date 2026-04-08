@@ -47,12 +47,12 @@ export const GameHub = () => {
         className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-12"
         top={null}
         middle={
-          <div className="flex flex-col h-[calc(100vh-8rem)] justify-center gap-12 w-full max-w-6xl mx-auto items-center">
+          <div className="flex flex-col h-[calc(100vh-8rem)] justify-center gap-8 md:gap-12 w-full max-w-6xl mx-auto items-center">
             <motion.div
               variants={container}
               initial="hidden"
               animate="show"
-              className="flex flex-wrap justify-center gap-3 md:gap-6 w-full max-w-6xl mx-auto"
+              className="grid w-full max-w-3xl grid-cols-1 gap-3 sm:grid-cols-2 md:gap-6"
             >
               {/* Rating Game Card */}
               {ratingGameStatus === 'COMPLETED' && (
