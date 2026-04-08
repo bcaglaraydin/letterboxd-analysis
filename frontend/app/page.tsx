@@ -187,6 +187,7 @@ export default function HomePage() {
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           className="text-destructive text-sm font-medium text-center"
+          data-testid="error-message"
         >
           {localError}
         </motion.p>

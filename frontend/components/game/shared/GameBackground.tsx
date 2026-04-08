@@ -15,7 +15,7 @@ export const GameBackground: React.FC<GameBackgroundProps> = ({ className, child
   return (
     <div
       className={cn(
-        'min-h-screen w-full flex flex-col relative overflow-hidden transition-colors duration-700',
+        'h-[100dvh] w-screen flex flex-col relative overflow-hidden transition-colors duration-700',
         className,
       )}
     >

@@ -54,7 +54,7 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
       setTimeout(() => {
         onAnswer(0); // score already applied, just advance
       }, 900);
-    }, 8000);
+    }, 15000);
 
     return () => clearTimeout(slowTimeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -66,7 +66,7 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
     const elapsed = performance.now() - startTimeRef.current;
 
     // Check speed penalties first
-    if (elapsed < 1000) {
+    if (elapsed < 3000) {
       prankTriggeredRef.current = true;
       setPrankPhase('fast');
       setFlyFrom({ x: e.clientX, y: e.clientY });
@@ -127,6 +127,7 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0 }}
                   className="absolute inset-0 z-10 flex items-center justify-center bg-background/95 backdrop-blur-sm rounded-xl border-2 border-primary/20 p-4 md:p-6 shadow-2xl"
+                  data-testid="prank-popup"
                 >
                   <p className="text-base sm:text-lg md:text-3xl font-serif text-primary text-center leading-relaxed font-bold">
                     {prankPhase === 'fast' && (

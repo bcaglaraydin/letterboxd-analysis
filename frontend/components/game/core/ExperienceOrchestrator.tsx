@@ -11,6 +11,7 @@ import { ViewingHabitsOrchestration } from '@/components/game/habits/ViewingHabi
 import { useUserStore } from '@/store/core/userStore';
 import { Loader2 } from 'lucide-react';
 import { GAME_PHASES } from '@/lib/gameTypes';
+import { DebugControls } from '../../debug/DebugControls';
 
 export const ExperienceOrchestrator = () => {
   const { currentPhase, completeRatingGame, completeGenreGame, completeThemeExperience } =
@@ -34,7 +35,7 @@ export const ExperienceOrchestrator = () => {
   };
 
   return (
-    <div className="w-full h-full min-h-screen bg-background overflow-hidden relative">
+    <div className="w-full h-[100dvh] overflow-hidden relative bg-background">
       <AnimatePresence mode="wait">
         {currentPhase === GAME_PHASES.RATING && (
           <motion.div
@@ -105,6 +106,7 @@ export const ExperienceOrchestrator = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      <DebugControls />
     </div>
   );
 };

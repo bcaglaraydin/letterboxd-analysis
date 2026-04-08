@@ -12,10 +12,21 @@ import { useRouter } from 'next/navigation';
 import { MOCK_METRICS_RESPONSE, MOCK_RATING_MOVIES } from '@/mocks/data';
 
 export const DebugControls = () => {
-  const [isOpen, setIsOpen] = useState(process.env.NODE_ENV === 'development');
+  const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { currentPhase, startRatingGame, startGenreGame, resetExperience } = useExperienceStore();
   const { phase: genrePhase, setPhase: setGenrePhase } = useGenreOrchestrationStore();
   const router = useRouter();
+
+  // Fix hydration mismatch
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isEnabled = React.useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return process.env.NODE_ENV === 'development' || window.location.search.includes('debug=true');
+  }, []);
 
   const handleAction = (action: () => void) => {
     ensureDebugState();
@@ -35,10 +46,18 @@ export const DebugControls = () => {
     }
   };
 
-  if (process.env.NODE_ENV === 'production') return null;
+  if (
+    process.env.NODE_ENV === 'production' &&
+    typeof window !== 'undefined' &&
+    !window.location.search.includes('debug=true')
+  ) {
+    return null;
+  }
+
+  if (!mounted || !isEnabled) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 z-[100] font-mono text-xs">
+    <div id="debug-controls" className="fixed bottom-4 left-4 z-[100] font-mono text-xs">
       <div
         className="bg-black/80 text-white rounded-md overflow-hidden shadow-xl border border-white/10 backdrop-blur-sm transition-all duration-300"
         style={{ width: isOpen ? '280px' : '40px', height: isOpen ? 'auto' : '40px' }}
