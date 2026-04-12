@@ -33,7 +33,9 @@ base_image:
 start:
   - 'backend/src/handlers/startAnalysisHandler.js'
   - 'backend/src/handlers/authHandler.js'
-  - 'backend/src/services/auth.js'
+  - 'backend/src/handlers/apiRouterHandler.js'
+  - 'backend/src/services/configService.js'
+  - 'backend/src/services/quotaService.js'
   - 'backend/src/services/sqsQueueService.js'
   - 'backend/src/services/userJobService.js'
   - 'backend/src/services/dynamoDbService.js'
