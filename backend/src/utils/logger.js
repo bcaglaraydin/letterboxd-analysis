@@ -2,6 +2,7 @@
 import pino from 'pino';
 
 const isDev = process.env.NODE_ENV !== 'production';
+const isLambda = !!process.env.AWS_LAMBDA_FUNCTION_NAME;
 
 // Base logger
 const pinoLogger = pino({
@@ -11,14 +12,15 @@ const pinoLogger = pino({
       return { level: label.toUpperCase() };
     },
   },
-  ...(isDev && {
-    transport: {
-      target: 'pino-pretty',
-      options: {
-        colorize: true,
+  ...(isDev &&
+    !isLambda && {
+      transport: {
+        target: 'pino-pretty',
+        options: {
+          colorize: true,
+        },
       },
-    },
-  }),
+    }),
 });
 
 export class Logger {

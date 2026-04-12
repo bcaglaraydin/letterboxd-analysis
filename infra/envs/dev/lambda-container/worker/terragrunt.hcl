@@ -26,7 +26,7 @@ inputs = {
   timeout       = 300
 
   environment_variables = {
-    NODE_ENV            = "development"
+    NODE_ENV            = "production"
     FILMS_TABLE         = dependency.films.outputs.table_name
     SQS_QUEUE_URL       = dependency.sqs.outputs.queue_url
     BROWSER_MAX_PAGES   = "10"
