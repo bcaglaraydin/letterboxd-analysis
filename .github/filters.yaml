@@ -12,6 +12,8 @@ core_infra:
   - 'infra/envs/dev/sqs-list/**'
   - 'infra/modules/dynamodb/**'
   - 'infra/modules/sqs/**'
+  - 'infra/envs/dev/cost-protection/**'
+  - 'infra/modules/cost-protection/**'
 
 ecr_infra:
   - 'infra/envs/dev/ecr/**'
@@ -30,6 +32,8 @@ base_image:
 
 start:
   - 'backend/src/handlers/startAnalysisHandler.js'
+  - 'backend/src/handlers/authHandler.js'
+  - 'backend/src/services/auth.js'
   - 'backend/src/services/sqsQueueService.js'
   - 'backend/src/services/userJobService.js'
   - 'backend/src/services/dynamoDbService.js'

@@ -230,8 +230,11 @@ jobs:
         component: 
           - dynamodb/films
           - dynamodb/user-jobs
+          - dynamodb/quotas
+          - dynamodb/global-usage
           - sqs
           - sqs-list
+          - cost-protection
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/dev/${{ matrix.component }}
@@ -257,6 +260,7 @@ jobs:
       working_directory: infra/envs/dev/lambda-container/${{ matrix.lambda }}
       env_vars: |
         IMAGE_TAG=${{ github.sha }}
+        SIGNING_SECRET=${{ secrets.SIGNING_SECRET }}
     secrets: inherit
 
   # ============================================================================

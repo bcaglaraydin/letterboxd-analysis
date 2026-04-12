@@ -58,12 +58,15 @@ flowchart TD
     subgraph CLIENT["Client Layer"]
         direction TB
         USER_INPUT["User enters username"]
-        POST_REQ["POST /analysis<br/><b>Body:</b> {username}"]
-        USER_INPUT --> POST_REQ
+        GET_TOKEN["GET /auth/token<br/><i>(Handshake)</i>"]
+        POST_REQ["POST /analysis<br/><b>Headers:</b> Bearer {token}<br/><b>Body:</b> {username}"]
+        USER_INPUT --> GET_TOKEN
+        GET_TOKEN --> POST_REQ
     end
 
-    APIGW{{"API Gateway<br/>HTTP API v2 | 30s timeout"}}
+    APIGW{{"API Gateway<br/>Throttling: 5 req/s"}}
     POST_REQ --> APIGW
+    GET_TOKEN --> APIGW
 
     %% ═══════════════════════════════════════════
     %% START LAMBDA — Decision Tree
@@ -306,3 +309,31 @@ flowchart TD
   - Validates formatting (`make format`, `make lint`) and runs 50+ backend E2E/Unit tests using Vitest (`npm run test`).
   - Uses `dorny/paths-filter` to trigger selective matrix builds to only compile Lambdas whose dependencies change.
   - Automatically pushes ARM64 Docker images to Amazon ECR and deploys via Terragrunt `apply`.
+
+---
+
+## 🛡️ Security & Cost Protection
+
+The application implements several layers of protection to ensure resource stability and cost predictability:
+
+### 1. Authenticated Handshake
+To prevent external bots from exhausting scraping resources, all `POST /analysis` requests require a short-lived JSON Web Token (JWT).
+- **Endpoint**: `GET /auth/token` performs the handshake and returns an IP-bound JWT.
+* **Binding**: Tokens are cryptographically bound to the requester's IP address.
+
+### 2. Tiered Quotas
+- **Per-IP Quota**: Limited to **5 successful analyses per 24 hours**.
+- **Global Quota**: The entire system is capped at **100 analyses per 24 hours**.
+- **Throttling**: API Gateway enforces a 5 req/sec steady-state rate.
+
+### 3. Cost Kill-Switch
+- **Hard Budget**: An AWS Budget is set at **$15/month**.
+- **Automatic Shutdown**: If the budget is exceeded, an SNS alert triggers a Lambda that flips the global kill-switch in **AWS SSM Parameter Store** (`/app/analysis_enabled`), gracefully disabling the scraper.
+
+## ⚙️ Environment Variables
+
+| Variable | Description | Required |
+| --- | --- | --- |
+| `SIGNING_SECRET` | Secret key for JWT signing (32+ chars) | **Yes** |
+| `API_READ_ACCESS_TOKEN` | Letterboxd internal API token (v1) | **Yes** |
+| `NEXT_PUBLIC_API_URL` | API Gateway endpoint | **Yes** |

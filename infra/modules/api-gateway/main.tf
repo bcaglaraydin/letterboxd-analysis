@@ -2,9 +2,9 @@ resource "aws_apigatewayv2_api" "this" {
   name          = var.api_name
   protocol_type = "HTTP"
   cors_configuration {
-    allow_origins = ["*"]
+    allow_origins = var.allow_origins
     allow_methods = ["GET", "POST", "OPTIONS"]
-    allow_headers = ["Content-Type"]
+    allow_headers = ["Content-Type", "Authorization"] # Added Authorization for JWT
   }
 }
 
@@ -32,6 +32,11 @@ resource "aws_apigatewayv2_stage" "this" {
       responseLength          = "$context.responseLength"
       integrationErrorMessage = "$context.integrationErrorMessage"
     })
+  }
+
+  default_route_settings {
+    throttling_burst_limit = var.throttling_burst_limit
+    throttling_rate_limit  = var.throttling_rate_limit
   }
 }
 

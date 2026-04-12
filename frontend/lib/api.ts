@@ -202,9 +202,25 @@ interface DataProvider {
 // Real API Implementation
 const RealApiProvider: DataProvider = {
   async triggerMetrics(username: string) {
+    // 1. Handshake: Get short-lived token
+    let token = '';
+    try {
+      const authResponse = await fetch(`${getApiUrl()}/auth/token`);
+      if (authResponse.ok) {
+        const authData = await authResponse.json();
+        token = authData.token;
+      }
+    } catch (err) {
+      console.warn('Auth handshake failed, proceeding without token...', err);
+    }
+
+    // 2. Main Request: POST /analysis with token
     const response = await fetch(`${getApiUrl()}/analysis`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
       body: JSON.stringify({ username: username.trim() }),
     });
 

@@ -26,6 +26,18 @@ dependency "ecr" {
   config_path = "../../ecr/start"
 }
 
+dependency "quotas" {
+  config_path = "../../dynamodb/quotas"
+}
+
+dependency "global_usage" {
+  config_path = "../../dynamodb/global-usage"
+}
+
+dependency "cost_protection" {
+  config_path = "../../cost-protection"
+}
+
 inputs = {
   function_name = "letterboxd-analysis-start-dev"
   image_uri     = "${dependency.ecr.outputs.repository_url}:${get_env("IMAGE_TAG", "latest")}"
@@ -37,8 +49,11 @@ inputs = {
     NODE_ENV           = "development"
     FILMS_TABLE        = dependency.films.outputs.table_name
     USER_JOBS_TABLE    = dependency.user_jobs.outputs.table_name
+    QUOTAS_TABLE       = dependency.quotas.outputs.table_name
+    GLOBAL_USAGE_TABLE = dependency.global_usage.outputs.table_name
     SQS_QUEUE_URL      = dependency.sqs.outputs.queue_url
     SQS_LIST_QUEUE_URL = dependency.sqs_list.outputs.queue_url
+    SIGNING_SECRET     = get_env("SIGNING_SECRET", "dev_secret_only")
     BROWSER_MAX_PAGES  = "5"
     SCRAPING_CONCURRENCY_LIST = "2"
     SCRAPING_CONCURRENCY_FILM = "5"
@@ -69,7 +84,11 @@ inputs = {
           "dynamodb:UpdateItem"
         ]
         Effect   = "Allow"
-        Resource = dependency.user_jobs.outputs.table_arn
+        Resource = [
+          dependency.user_jobs.outputs.table_arn,
+          dependency.quotas.outputs.table_arn,
+          dependency.global_usage.outputs.table_arn
+        ]
       },
       {
         Action   = "sqs:SendMessage"
@@ -78,6 +97,13 @@ inputs = {
           dependency.sqs.outputs.queue_arn,
           dependency.sqs_list.outputs.queue_arn
         ]
+      },
+      {
+        Action = [
+          "ssm:GetParameter"
+        ]
+        Effect   = "Allow"
+        Resource = dependency.cost_protection.outputs.ssm_parameter_arn
       }
     ]
   })

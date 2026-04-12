@@ -30,10 +30,21 @@ const shouldRun = !!API_URL;
 // Helpers
 // ============================================================================
 
+async function getAuthToken() {
+  const response = await fetch(`${API_URL}/auth/token`);
+  if (!response.ok) throw new Error(`Handshake failed: ${response.status}`);
+  const data = await response.json();
+  return data.token;
+}
+
 async function postAnalysis(username) {
+  const token = await getAuthToken();
   const response = await fetch(`${API_URL}/analysis`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
     body: JSON.stringify({ username }),
   });
   const data = await response.json();
@@ -240,9 +251,13 @@ describe.runIf(shouldRun)('E2E: Full Backend Flow', () => {
   // ============================================================================
   describe('Scenario 5: Missing Username', () => {
     it('POST /analysis returns 400 with no body', async () => {
+      const token = await getAuthToken();
       const response = await fetch(`${API_URL}/analysis`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({}),
       });
       const data = await response.json();
