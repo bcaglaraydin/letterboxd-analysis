@@ -9,8 +9,8 @@ import {
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 
-const client = new DynamoDBClient();
-const docClient = DynamoDBDocumentClient.from(client);
+export const client = new DynamoDBClient();
+export const docClient = DynamoDBDocumentClient.from(client);
 
 export async function putItem(tableName, item, options = {}) {
   const commandInput = {

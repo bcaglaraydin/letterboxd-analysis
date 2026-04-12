@@ -4,8 +4,11 @@ import { batchGet } from '../services/dynamoDbService.js';
 import { GameService } from '../services/gameService.js';
 import { fetchWithRetry } from '../utils/http.js';
 import { Logger } from '../utils/logger.js';
+import middy from '@middy/core';
+import cors from '@middy/http-cors';
+import { authMiddleware, quotaMiddleware, killSwitchMiddleware } from '../utils/middyMiddleware.js';
 
-export const handler = async (event, context) => {
+const baseHandler = async (event, context) => {
   Logger.init(event, context);
   Logger.info('StartAnalysis invoked');
 
@@ -55,7 +58,7 @@ export const handler = async (event, context) => {
       Logger.info(`Previous job failed for ${username}. Restarting.`, { username });
     }
 
-    // 2. Quick Existence Check (fire-and-forget style — proceed on non-404)
+    // 2. Quick Existence Check (FIXED: Return 503 on upstream failure)
     try {
       await fetchWithRetry(`https://letterboxd.com/${username}/`, {}, 1);
     } catch (err) {
@@ -66,7 +69,17 @@ export const handler = async (event, context) => {
           body: JSON.stringify({ error: `User not found: ${username}` }),
         };
       }
-      Logger.error(`Existence check failed (non-404) for ${username}`, err, { username });
+
+      // Critical Security/Resource fix: FAIL CLOSED on upstream mystery errors
+      Logger.error(`Existence check failed (non-404) for ${username} - ABORTING`, err, {
+        username,
+      });
+      return {
+        statusCode: 503,
+        body: JSON.stringify({
+          error: 'Letterboxd is currently unavailable. Please try again later.',
+        }),
+      };
     }
 
     // 3. Create new job state (PENDING) with conditional write
@@ -132,6 +145,12 @@ export const handler = async (event, context) => {
     };
   }
 };
+
+export const handler = middy(baseHandler)
+  .use(killSwitchMiddleware()) // Check SSM Kill-switch first
+  .use(authMiddleware()) // Verify JWT and IP binding
+  .use(quotaMiddleware()) // Enforce Per-IP and Global Quotas
+  .use(cors()); // Handle CORS headers
 
 /**
  * Builds a full "ready" response by fetching film metadata and generating all game data.

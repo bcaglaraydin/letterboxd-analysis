@@ -17,3 +17,21 @@ variable "log_retention_days" {
   type        = number
   default     = 7
 }
+
+variable "allow_origins" {
+  description = "List of allowed origins for CORS"
+  type        = list(string)
+  default     = ["*"]
+}
+
+variable "throttling_rate_limit" {
+  description = "Throttling rate limit (steady-state)"
+  type        = number
+  default     = 5
+}
+
+variable "throttling_burst_limit" {
+  description = "Throttling burst limit"
+  type        = number
+  default     = 10
+}

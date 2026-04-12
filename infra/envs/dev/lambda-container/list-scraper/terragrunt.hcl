@@ -32,6 +32,7 @@ inputs = {
   environment   = "dev"
   memory_size   = 3008
   timeout       = 900 # 15 minutes max
+  reserved_concurrent_executions = 2
 
   environment_variables = {
     NODE_ENV                  = "development"
