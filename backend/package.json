@@ -27,6 +27,7 @@
     "@aws-sdk/client-cloudwatch": "^3.998.0",
     "@aws-sdk/client-dynamodb": "^3.940.0",
     "@aws-sdk/client-sqs": "^3.940.0",
+    "@aws-sdk/client-ssm": "^3.940.0",
     "@aws-sdk/lib-dynamodb": "^3.940.0",
     "@middy/core": "^7.2.2",
     "@middy/http-cors": "^7.2.2",
