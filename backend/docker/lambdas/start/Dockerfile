@@ -22,4 +22,4 @@ COPY package*.json ${LAMBDA_TASK_ROOT}/
 COPY src/ ${LAMBDA_TASK_ROOT}/src/
 
 # Handler configuration
-CMD ["src/handlers/startAnalysisHandler.handler"]
+CMD ["src/handlers/apiRouterHandler.handler"]
