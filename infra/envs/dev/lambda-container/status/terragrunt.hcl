@@ -26,7 +26,7 @@ inputs = {
   timeout       = 30
 
   environment_variables = {
-    NODE_ENV        = "development"
+    NODE_ENV        = "production"
     FILMS_TABLE     = dependency.films.outputs.table_name
     USER_JOBS_TABLE = dependency.user_jobs.outputs.table_name
     API_READ_ACCESS_TOKEN = get_env("API_READ_ACCESS_TOKEN", "")

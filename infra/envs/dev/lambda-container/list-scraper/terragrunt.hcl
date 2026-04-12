@@ -35,7 +35,7 @@ inputs = {
   reserved_concurrent_executions = 2
 
   environment_variables = {
-    NODE_ENV                  = "development"
+    NODE_ENV                  = "production"
     FILMS_TABLE               = dependency.films.outputs.table_name
     USER_JOBS_TABLE           = dependency.user_jobs.outputs.table_name
     SQS_QUEUE_URL             = dependency.sqs_film.outputs.queue_url
