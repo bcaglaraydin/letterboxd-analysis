@@ -15,6 +15,11 @@ resource "aws_cloudfront_response_headers_policy" "security" {
   comment = "Security headers for ${var.s3_origin_id}"
 
   security_headers_config {
+    content_security_policy {
+      # Baseline CSP to allow SPA functionality while enforcing HTTPS
+      content_security_policy = "default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval';"
+      override                = true
+    }
     strict_transport_security {
       access_control_max_age_sec = 63072000
       include_subdomains         = true
@@ -56,18 +61,9 @@ resource "aws_cloudfront_distribution" "this" {
     cached_methods             = ["GET", "HEAD"]
     target_origin_id           = var.s3_origin_id
     response_headers_policy_id = aws_cloudfront_response_headers_policy.security.id
-
-    forwarded_values {
-      query_string = false
-      cookies {
-        forward = "none"
-      }
-    }
+    cache_policy_id            = "658327ea-f89d-4fab-a63d-7e88639e58f6" # Managed-CachingOptimized
 
     viewer_protocol_policy = "redirect-to-https"
-    min_ttl                = 0
-    default_ttl            = 3600
-    max_ttl                = 86400
 
     function_association {
       event_type   = "viewer-request"
