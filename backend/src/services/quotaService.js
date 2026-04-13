@@ -19,7 +19,7 @@ const WINDOW_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 export async function checkQuotas(ip) {
   const now = Date.now();
   // Round to the current 24h window start
-  const windowId = Math.floor(now / WINDOW_DURATION_MS);
+  const windowId = Math.floor(now / WINDOW_DURATION_MS).toString();
 
   try {
     // 1. Check Global Limit (Fail fast)
