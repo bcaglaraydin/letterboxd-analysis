@@ -47,8 +47,8 @@ export default function RootLayout({
         )}
       >
         {children}
-        <DebugControls />
-        <StateBridge />
+        {process.env.NODE_ENV === 'development' && <DebugControls />}
+        {process.env.NODE_ENV === 'development' && <StateBridge />}
       </body>
     </html>
   );

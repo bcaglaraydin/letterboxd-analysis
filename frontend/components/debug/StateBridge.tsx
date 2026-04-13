@@ -19,11 +19,7 @@ import { MOCK_RATING_MOVIES, MOCK_METRICS_RESPONSE } from '@/mocks/data';
  */
 export const StateBridge = () => {
   useEffect(() => {
-    const isDebugMode =
-      typeof window !== 'undefined' && window.location.search.includes('debug=true');
-    const isDevOrTest = process.env.NODE_ENV !== 'production';
-
-    if ((isDevOrTest || isDebugMode) && typeof window !== 'undefined') {
+    if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
       console.log('🧪 TEST HARNESS: Initialized');
 
       // Locally define the augmented window type to satisfy linter without global pollution if possible,

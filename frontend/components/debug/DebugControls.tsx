@@ -25,7 +25,7 @@ export const DebugControls = () => {
 
   const isEnabled = React.useMemo(() => {
     if (typeof window === 'undefined') return false;
-    return process.env.NODE_ENV === 'development' || window.location.search.includes('debug=true');
+    return process.env.NODE_ENV === 'development';
   }, []);
 
   const handleAction = (action: () => void) => {
@@ -45,14 +45,6 @@ export const DebugControls = () => {
       });
     }
   };
-
-  if (
-    process.env.NODE_ENV === 'production' &&
-    typeof window !== 'undefined' &&
-    !window.location.search.includes('debug=true')
-  ) {
-    return null;
-  }
 
   if (!mounted || !isEnabled) return null;
 
