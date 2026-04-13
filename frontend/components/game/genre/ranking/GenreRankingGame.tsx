@@ -77,6 +77,19 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
   // Ranking Phase OR Reveal Phase
   const getGenre = (id: string) => genres.find((g) => g.id === id);
 
+  if (genres.length === 0) {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center gap-4 min-h-[60vh]">
+        <p className="text-muted-foreground text-sm">
+          Failed to load genre data. Please try starting the game again.
+        </p>
+        <Button variant="outline" onClick={() => window.location.reload()} className="mt-4">
+          Reload Page
+        </Button>
+      </div>
+    );
+  }
+
   if (phase === 'ranking' || phase === 'reveal' || phase === 'complete') {
     const isRevealing = phase === 'reveal' || phase === 'complete';
     const showTwoColumns = isRevealing && revealStage !== 'ranking';

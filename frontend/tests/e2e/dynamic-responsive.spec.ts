@@ -16,6 +16,7 @@ declare global {
       teleportToHub: (mode: 'empty' | 'partial' | 'full') => void;
       teleportToRating: (round?: number) => void;
       teleportToGenreResults: (step?: number) => void;
+      teleportToGenreRanking: () => void;
     };
   }
 }
