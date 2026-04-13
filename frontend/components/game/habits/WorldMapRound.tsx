@@ -10,7 +10,6 @@ import {
   Graticule,
   ZoomableGroup,
 } from 'react-simple-maps';
-import { scalePow } from 'd3-scale';
 import { interpolateRgb } from 'd3-interpolate';
 import { GameRoundIndicator } from '@/components/game/shared/GameRoundIndicator';
 import { ScorePanel } from '@/components/game/shared/ScorePanel';
@@ -18,6 +17,13 @@ import { Button } from '@/components/ui/button';
 import type { CountryStat } from '@/lib/api';
 
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
+
+// Power scale for color mapping (replaces d3-scale dependency for simplicity)
+function powerScale(value: number, max: number, exponent: number): number {
+  if (max <= 0) return 0;
+  const normalized = Math.min(Math.max(value / max, 0), 1);
+  return Math.pow(normalized, exponent);
+}
 
 // Letterboxd country name → Natural Earth / TopoJSON NAME mapping
 // This handles mismatches between how Letterboxd labels countries vs. how
@@ -125,28 +131,8 @@ export function WorldMapRound({
     [countryStats],
   );
 
-  // Watch count: soft power curve (exponent 0.4) — even low values show noticeable color
-  const watchColorScale = useMemo(
-    () =>
-      scalePow()
-        .exponent(0.4)
-        .domain([0, maxWatch])
-        .range([0, 1] as unknown as [number, number])
-        .clamp(true),
-    [maxWatch],
-  );
+  // Interpolators for color mapping
   const watchInterpolator = interpolateRgb('#F0EBE4', '#E76F51');
-
-  // Avg rating: sharp power curve (exponent 2.5) — only high ratings get strong color
-  const ratingColorScale = useMemo(
-    () =>
-      scalePow()
-        .exponent(2.5)
-        .domain([0, maxRating])
-        .range([0, 1] as unknown as [number, number])
-        .clamp(true),
-    [maxRating],
-  );
   const ratingInterpolator = interpolateRgb('#F0EBE4', '#4b5e4e');
 
   const findCountryStat = (geoName: string): CountryStat | null => {
@@ -170,11 +156,13 @@ export function WorldMapRound({
     if (!stat) return '#E8E4DF'; // Unvisited — warm muted grey
 
     if (mode === 'watchCount') {
-      const t = watchColorScale(stat.watchCount) as number;
+      // Soft power curve (exponent 0.4) — even low values show noticeable color
+      const t = powerScale(stat.watchCount, maxWatch, 0.4);
       return watchInterpolator(t);
     } else {
       if (stat.avgRating <= 0) return '#E8E4DF';
-      const t = ratingColorScale(stat.avgRating) as number;
+      // Sharp power curve (exponent 2.5) — only high ratings get strong color
+      const t = powerScale(stat.avgRating, maxRating, 2.5);
       return ratingInterpolator(t);
     }
   };
@@ -268,7 +256,7 @@ export function WorldMapRound({
         className="flex-1 min-h-0 relative w-full flex items-center justify-center overflow-hidden"
       >
         <ComposableMap
-          projection="geoNaturalEarth1"
+          projection="geoEqualEarth"
           projectionConfig={{
             scale: 155,
             center: [10, 0],
