@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion, Reorder, AnimatePresence } from 'framer-motion';
+import { Reorder } from 'framer-motion';
 import { type Genre } from '@/store/genre/rankingStore';
 import { RankingItem } from './RankingItem';
 
@@ -31,39 +31,32 @@ export const DraggableRankingList: React.FC<DraggableRankingListProps> = ({
       onReorder={onReorder}
       className="flex flex-col justify-center gap-1.5 md:gap-3 w-full"
     >
-      <AnimatePresence>
-        {userRanking.map((genreId, index) => {
-          const genre = getGenre(genreId);
-          if (!genre) return null;
+      {/* Removed AnimatePresence wrapper to prevent items from disappearing during reordering/drag. Reorder.Group handles its own enter/exit logic anyway. */}
+      {userRanking.map((genreId, index) => {
+        const genre = getGenre(genreId);
+        if (!genre) return null;
 
-          return (
-            <Reorder.Item
-              key={genreId}
-              value={genreId}
-              onDragStart={() => onDragStart(genreId)}
-              onDragEnd={onDragEnd}
-              whileDrag={{ scale: 1.02, zIndex: 50 }}
-              className="touch-none w-full"
-            >
-              <motion.div
-                layout
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.03 }}
-                className="w-full"
-              >
-                <RankingItem
-                  genre={genre}
-                  index={index}
-                  variant="draggable"
-                  isDragging={isDragging === genreId}
-                  showDragHandle
-                />
-              </motion.div>
-            </Reorder.Item>
-          );
-        })}
-      </AnimatePresence>
+        return (
+          <Reorder.Item
+            key={genreId}
+            value={genreId}
+            onDragStart={() => onDragStart(genreId)}
+            onDragEnd={onDragEnd}
+            whileDrag={{ scale: 1.02, zIndex: 50 }}
+            className="touch-none w-full"
+          >
+            <div className="w-full">
+              <RankingItem
+                genre={genre}
+                index={index}
+                variant="draggable"
+                isDragging={isDragging === genreId}
+                showDragHandle
+              />
+            </div>
+          </Reorder.Item>
+        );
+      })}
     </Reorder.Group>
   );
 };

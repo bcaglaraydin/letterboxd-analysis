@@ -5,6 +5,7 @@ import { useExperienceStore } from '@/store/core/experienceStore';
 import { useRatingGameStore } from '@/store/rating/ratingStore';
 import { useUserStore } from '@/store/core/userStore';
 import { useGenreOrchestrationStore, GenrePhase } from '@/store/genre/genreOrchestrationStore';
+import { useGenreRankingStore } from '@/store/genre/rankingStore';
 import { useThemeStore } from '@/store/theme/themeStore';
 import { GAME_PHASES } from '@/lib/gameTypes';
 import { Bug, ChevronDown } from 'lucide-react';
@@ -145,6 +146,14 @@ export const DebugControls = () => {
                     onClick={() =>
                       handleAction(() => {
                         useGenreOrchestrationStore.getState().resetGenreGame();
+                        const rankingStore = useGenreRankingStore.getState();
+                        if (rankingStore.genres.length === 0) {
+                          rankingStore.startGame({
+                            genres: MOCK_METRICS_RESPONSE.genreGame?.genres || [],
+                            actualRanking: MOCK_METRICS_RESPONSE.genreGame?.actualRanking || [],
+                            previousScore: 0,
+                          });
+                        }
                         startGenreGame();
                       })
                     }

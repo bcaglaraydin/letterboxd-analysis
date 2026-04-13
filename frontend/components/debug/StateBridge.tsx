@@ -5,6 +5,7 @@ import { useExperienceStore } from '@/store/core/experienceStore';
 import { useUserStore } from '@/store/core/userStore';
 import { useRatingGameStore } from '@/store/rating/ratingStore';
 import { useGenreOrchestrationStore } from '@/store/genre/genreOrchestrationStore';
+import { useGenreRankingStore } from '@/store/genre/rankingStore';
 import { useThemeStore } from '@/store/theme/themeStore';
 import { GAME_PHASES } from '@/lib/gameTypes';
 import { MOCK_RATING_MOVIES, MOCK_METRICS_RESPONSE } from '@/mocks/data';
@@ -35,6 +36,7 @@ export const StateBridge = () => {
           teleportToHub: (mode: 'empty' | 'partial' | 'full') => void;
           teleportToRating: (round?: number) => void;
           teleportToGenreResults: (step?: number) => void;
+          teleportToGenreRanking: () => void;
         };
       };
 
@@ -128,6 +130,34 @@ export const StateBridge = () => {
           useGenreOrchestrationStore.setState({
             phase: 'post-game',
             postGameStep: step,
+          });
+
+          useExperienceStore.setState({ currentPhase: GAME_PHASES.GENRE });
+        },
+
+        /**
+         * Jumps directly to Genre Ranking phase
+         */
+        teleportToGenreRanking: () => {
+          useUserStore.setState({
+            username: 'test-harness-user',
+            backgroundStatus: 'ready',
+            hasStartedGame: true,
+          });
+          useGenreRankingStore.getState().startGame({
+            genres: [
+              { id: '1', name: 'Action' },
+              { id: '2', name: 'Comedy' },
+              { id: '3', name: 'Drama' },
+              { id: '4', name: 'Horror' },
+              { id: '5', name: 'Sci-Fi' },
+            ],
+            actualRanking: ['1', '2', '3', '4', '5'],
+            previousScore: 0,
+          });
+
+          useGenreOrchestrationStore.setState({
+            phase: 'ranking',
           });
 
           useExperienceStore.setState({ currentPhase: GAME_PHASES.GENRE });
