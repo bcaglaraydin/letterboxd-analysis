@@ -59,29 +59,9 @@ export const handler = async (event, context) => {
         };
       }
 
+      // 1. Process current film list
       userFilms = job.films; // [{ slug, userRating }]
       Logger.info(`Loaded ${userFilms.length} films from cache`, { username });
-
-      // SELF-HEALING: Check for Stuck Jobs (Processing > 3 mins)
-      if (job.status === 'processing') {
-        const MAX_PROCESSING_TIME = 900; // 15 minutes in seconds (aligns with Lambda max timeout)
-        const now = Math.floor(Date.now() / 1000);
-        const lastUpdated = job.updatedAt || job.createdAt;
-
-        if (now - lastUpdated > MAX_PROCESSING_TIME) {
-          Logger.warn(`Job is STUCK (last update: ${now - lastUpdated}s ago). Auto-deleting.`, {
-            username,
-          });
-          await deleteUserJob(username);
-          return {
-            statusCode: 200,
-            body: JSON.stringify({
-              status: 'not_found',
-              message: 'Previous analysis timed out. Please restart.',
-            }),
-          };
-        }
-      }
 
       // If job is pending (just started) or processing but list is not yet saved
       if (job.status === 'pending' || (job.status === 'processing' && userFilms.length === 0)) {
@@ -128,27 +108,6 @@ export const handler = async (event, context) => {
     const dbItems = await batchGet(FILMS_TABLE, uniqueSlugs);
     const metadataMap = new Map();
     dbItems.forEach((item) => metadataMap.set(item.slug, item));
-
-    // SELF-HEALING: Check for Data Inconsistency
-    // If we have many films in the job list, but very few in the DB, something is wrong (cleaned DB etc)
-    const foundCount = dbItems.length;
-    const expectedCount = uniqueSlugs.length;
-
-    // Threshold: If we expect > 10 films but found < 5% of them, and job says it has films...
-    if (expectedCount > 10 && foundCount < expectedCount * 0.05) {
-      Logger.warn(
-        `DATA INCONSISTENCY! Expected ${expectedCount} films, found ${foundCount}. Auto-deleting job.`,
-        { username }
-      );
-      await deleteUserJob(username);
-      return {
-        statusCode: 200,
-        body: JSON.stringify({
-          status: 'not_found',
-          message: 'Data inconsistency detected. Please restart analysis.',
-        }),
-      };
-    }
 
     // 3. Count rated films with valid metadata
     let ratedFilmsWithMetadata = 0;

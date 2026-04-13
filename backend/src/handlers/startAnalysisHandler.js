@@ -56,19 +56,33 @@ const baseHandler = async (event, context) => {
         }
       }
 
-      // PROCESSING/PENDING: Already being worked on — tell frontend to poll
+      // PROCESSING/PENDING: Already being worked on
       if (cachedJob.status === 'pending' || cachedJob.status === 'processing') {
-        Logger.info(`Job is ${cachedJob.status} for ${username}. Frontend should poll.`, {
-          username,
-        });
-        return {
-          statusCode: 200,
-          body: JSON.stringify({
-            status: 'processing',
+        const MAX_STALE_TIME = 1200; // 20 minutes in seconds
+        const now = Math.floor(Date.now() / 1000);
+        const lastUpdated = cachedJob.updatedAt || cachedJob.createdAt;
+
+        if (now - lastUpdated > MAX_STALE_TIME) {
+          Logger.warn(
+            `Job is ${cachedJob.status} but STALE (last update: ${now - lastUpdated}s ago). Forcing restart.`,
+            { username }
+          );
+          // Delete stale job to allow the conditional write in putUserJob to succeed
+          await deleteUserJob(username);
+          // Let it fall through to create a new job!
+        } else {
+          Logger.info(`Job is ${cachedJob.status} for ${username}. Frontend should poll.`, {
             username,
-            message: 'Analysis is in progress. Poll /analysis/status for updates.',
-          }),
-        };
+          });
+          return {
+            statusCode: 200,
+            body: JSON.stringify({
+              status: 'processing',
+              username,
+              message: 'Analysis is in progress. Poll /analysis/status for updates.',
+            }),
+          };
+        }
       }
 
       // FAILED: Fall through to create a new job
