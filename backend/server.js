@@ -5,6 +5,7 @@ import { handler as startHandler } from './src/handlers/startAnalysisHandler.js'
 import { handler as statusHandler } from './src/handlers/getAnalysisStatusHandler.js';
 import { handler as listScraperHandler } from './src/handlers/listScraperHandler.js';
 import { handler as workerHandler } from './src/handlers/filmScraperWorker.js';
+import { handler as authHandler } from './src/handlers/authHandler.js';
 
 const app = express();
 const PORT = 4000;
@@ -22,6 +23,12 @@ const wrapLambda = (handler) => async (req, res) => {
   const event = {
     body: typeof req.body === 'string' ? req.body : JSON.stringify(req.body),
     queryStringParameters: req.query,
+    headers: req.headers,
+    requestContext: {
+      http: {
+        sourceIp: req.ip || '127.0.0.1',
+      },
+    },
   };
   try {
     const result = await handler(event);
@@ -36,6 +43,7 @@ const wrapLambda = (handler) => async (req, res) => {
 // ==============================================================================
 // PRODUCTION-LIKE ENDPOINTS (use real SQS)
 // ==============================================================================
+app.get('/auth/token', wrapLambda(authHandler));
 app.post('/analysis', wrapLambda(startHandler));
 app.get('/analysis/status', wrapLambda(statusHandler));
 
