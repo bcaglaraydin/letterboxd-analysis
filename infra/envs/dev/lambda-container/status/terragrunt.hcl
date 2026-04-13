@@ -18,6 +18,10 @@ dependency "ecr" {
   config_path = "../../ecr/status"
 }
 
+dependency "cost_protection" {
+  config_path = "../../cost-protection"
+}
+
 inputs = {
   function_name = "letterboxd-analysis-status-dev"
   image_uri     = "${dependency.ecr.outputs.repository_url}:${get_env("IMAGE_TAG", "latest")}"
@@ -55,6 +59,13 @@ inputs = {
         ]
         Effect   = "Allow"
         Resource = dependency.user_jobs.outputs.table_arn
+      },
+      {
+        Action = [
+          "ssm:GetParameter"
+        ]
+        Effect   = "Allow"
+        Resource = dependency.cost_protection.outputs.ssm_parameter_arn
       }
     ]
   })
