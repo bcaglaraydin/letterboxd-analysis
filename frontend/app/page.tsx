@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { PreAnalysisFlow } from '@/components/game/pre-analysis/PreAnalysisFlow';
 import { ExperienceOrchestrator } from '@/components/game/core/ExperienceOrchestrator';
 import { useUserStore } from '@/store/core/userStore';
-import { usePollingStore } from '@/store/core/pollingStore';
+import { usePollingStore, hydrateStoresGlobal } from '@/store/core/pollingStore';
 import { useRatingGameStore } from '@/store/rating/ratingStore';
 import { triggerMetrics } from '@/lib/api';
 import { MIN_LOADING_TIME_MS } from '@/lib/gameTypes';
@@ -57,18 +57,8 @@ export default function HomePage() {
       if (data.status === 'ready' && data.ratingGame?.movies) {
         setProcessing(finalUsername);
 
-        const { setReady, setUserStats: setStats } = useUserStore.getState();
-
-        setReady();
-
-        if (data.userStats) setStats(data.userStats);
-
-        if (data.ratingGame?.movies?.length > 0) {
-          useRatingGameStore.getState().startGame({
-            movies: data.ratingGame.movies,
-            userStats: data.userStats || null,
-          });
-        }
+        // Hydrate ALL stores (rating, genre, theme, matching) in one shot
+        hydrateStoresGlobal(data);
 
         setShowPreAnalysis(true);
         return;

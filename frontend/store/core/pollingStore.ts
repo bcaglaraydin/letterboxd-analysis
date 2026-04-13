@@ -21,7 +21,8 @@ interface PollingState {
 }
 
 // Global hydration function (Moved from useStoreHydration hook for global use)
-const hydrateStoresGlobal = (data: Awaited<ReturnType<typeof pollMetricsStatus>>) => {
+// Exported so page.tsx can call it directly when triggerMetrics returns 'ready'
+export const hydrateStoresGlobal = (data: Awaited<ReturnType<typeof pollMetricsStatus>>) => {
   console.log('[pollingStore] Hydrating stores', {
     status: data.status,
     hasRating: !!data.ratingGame,
