@@ -1,5 +1,5 @@
 import { sendMessage } from '../services/sqsQueueService.js';
-import { putUserJob, getUserJob } from '../services/userJobService.js';
+import { putUserJob, getUserJob, deleteUserJob } from '../services/userJobService.js';
 import { batchGet } from '../services/dynamoDbService.js';
 import { GameService } from '../services/gameService.js';
 import { fetchWithRetry } from '../utils/http.js';

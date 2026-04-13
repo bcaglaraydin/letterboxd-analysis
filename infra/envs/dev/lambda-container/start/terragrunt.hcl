@@ -81,7 +81,8 @@ inputs = {
         Action = [
           "dynamodb:PutItem",
           "dynamodb:GetItem",
-          "dynamodb:UpdateItem"
+          "dynamodb:UpdateItem",
+          "dynamodb:DeleteItem"
         ]
         Effect   = "Allow"
         Resource = [

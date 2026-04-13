@@ -1,5 +1,5 @@
 import { batchGet } from '../services/dynamoDbService.js';
-import { getUserJob, updateUserJob, deleteUserJob } from '../services/userJobService.js';
+import { getUserJob, updateUserJob } from '../services/userJobService.js';
 import { GameService } from '../services/gameService.js';
 import { Logger } from '../utils/logger.js';
 import { isAnalysisEnabled } from '../services/configService.js';

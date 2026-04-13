@@ -54,7 +54,6 @@ inputs = {
       {
         Action = [
           "dynamodb:GetItem",
-          "dynamodb:DeleteItem",
           "dynamodb:UpdateItem"
         ]
         Effect   = "Allow"
