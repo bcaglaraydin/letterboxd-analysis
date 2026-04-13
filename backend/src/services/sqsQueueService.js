@@ -1,4 +1,5 @@
 import { SQSClient, SendMessageCommand, SendMessageBatchCommand } from '@aws-sdk/client-sqs';
+import { Logger } from '../utils/logger.js';
 
 const sqsClient = new SQSClient({ region: process.env.AWS_REGION || 'us-east-1' });
 
@@ -16,10 +17,10 @@ export async function sendMessage(queueUrl, message, attributes = {}) {
 
   try {
     const result = await sqsClient.send(command);
-    console.log(`Sent message to SQS: ${result.MessageId}`);
+    Logger.info(`Sent message to SQS: ${result.MessageId}`);
     return result;
   } catch (error) {
-    console.error('Error sending SQS message:', error);
+    Logger.error('Error sending SQS message', error);
     throw error;
   }
 }
@@ -49,9 +50,9 @@ export async function sendMessageBatch(queueUrl, messages, attributes = {}) {
 
     try {
       await sqsClient.send(command);
-      console.log(`Sent batch of ${batch.length} messages to SQS.`);
+      Logger.info(`Sent batch of ${batch.length} messages to SQS.`);
     } catch (error) {
-      console.error('Error sending SQS batch:', error);
+      Logger.error('Error sending SQS batch', error);
       throw error;
     }
   }

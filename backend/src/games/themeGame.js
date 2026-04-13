@@ -1,3 +1,5 @@
+import { Logger } from '../utils/logger.js';
+
 /**
  * Generates the Theme Guessing Game data.
  *
@@ -28,7 +30,7 @@ export function generateThemeGame(allFilms, options = {}) {
   });
 
   if (candidates.length < limit) {
-    console.warn(
+    Logger.warn(
       `[ThemeGame] Not enough candidates with themes. Found ${candidates.length}, need ${limit}.`
     );
     // Fallback: If we have at least 1, just use what we have. If 0, return empty.

@@ -130,8 +130,6 @@ class BrowserSession {
       // Use /tmp for shared memory (Lambda has limited /dev/shm)
       '--disable-dev-shm-usage',
 
-      // NOTE: --single-process removed as it causes instability with newContext()
-
       // Disable GPU (not available in Lambda)
       '--disable-gpu',
       '--disable-software-rasterizer',

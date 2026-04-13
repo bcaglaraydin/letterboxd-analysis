@@ -1,4 +1,5 @@
 import { putItem, getItem, updateItem, deleteItem } from './dynamoDbService.js';
+import { Logger } from '../utils/logger.js';
 
 const TABLE_NAME = process.env.USER_JOBS_TABLE;
 const JOB_TTL_HOURS = 24;
@@ -12,7 +13,7 @@ const JOB_TTL_HOURS = 24;
  */
 export async function putUserJob(username, films = [], options = {}) {
   if (!TABLE_NAME) {
-    console.warn('[UserJobService] USER_JOBS_TABLE not set.');
+    Logger.warn('[UserJobService] USER_JOBS_TABLE not set.');
     return false;
   }
 
@@ -41,15 +42,15 @@ export async function putUserJob(username, films = [], options = {}) {
 
   try {
     await putItem(TABLE_NAME, item, { conditionExpression: 'attribute_not_exists(username)' });
-    console.log(`[UserJobService] Created job for ${username} (Status: ${item.status})`);
+    Logger.info(`[UserJobService] Created job for ${username} (Status: ${item.status})`);
     return true;
   } catch (error) {
     // ConditionalCheckFailedException means job already exists — not an error
     if (error.name === 'ConditionalCheckFailedException') {
-      console.log(`[UserJobService] Job already exists for ${username}, skipping creation.`);
+      Logger.info(`[UserJobService] Job already exists for ${username}, skipping creation.`);
       return false;
     }
-    console.error(`[UserJobService] Failed to put job for ${username}:`, error);
+    Logger.error(`[UserJobService] Failed to put job for ${username}`, error);
     throw error;
   }
 }
@@ -104,11 +105,11 @@ export async function updateUserJob(username, updates) {
       expressionAttributeValues,
       expressionAttributeNames
     );
-    console.log(
+    Logger.info(
       `[UserJobService] Updated job for ${username} with ${Object.keys(updates).join(', ')}`
     );
   } catch (error) {
-    console.error(`[UserJobService] Failed to update job for ${username}:`, error);
+    Logger.error(`[UserJobService] Failed to update job for ${username}`, error);
     throw error;
   }
 }
@@ -131,7 +132,7 @@ export async function getUserJob(username) {
       films,
     };
   } catch (error) {
-    console.error(`[UserJobService] Failed to get job for ${username}:`, error);
+    Logger.error(`[UserJobService] Failed to get job for ${username}`, error);
     return null;
   }
 }
@@ -140,9 +141,9 @@ export async function deleteUserJob(username) {
   if (!TABLE_NAME) return;
   try {
     await deleteItem(TABLE_NAME, { username });
-    console.log(`[UserJobService] Deleted job for ${username}`);
+    Logger.info(`[UserJobService] Deleted job for ${username}`);
   } catch (error) {
-    console.error(`[UserJobService] Failed to delete job for ${username}:`, error);
+    Logger.error(`[UserJobService] Failed to delete job for ${username}`, error);
     throw error;
   }
 }

@@ -27,6 +27,16 @@ const baseHandler = async (event, context) => {
       };
     }
 
+    // Validate username format (Letterboxd allows alphanumeric, underscore, hyphen)
+    const USERNAME_REGEX = /^[a-zA-Z0-9_-]{1,40}$/;
+    if (!USERNAME_REGEX.test(username)) {
+      Logger.warn(`Invalid username format: ${username}`);
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Invalid username format' }),
+      };
+    }
+
     Logger.info(`Starting analysis for user: ${username}`, { username });
 
     // 1. Check if valid job exists (TTL handles 24h expiry)
@@ -39,7 +49,9 @@ const baseHandler = async (event, context) => {
         try {
           return await buildReadyResponse(cachedJob);
         } catch (err) {
-          Logger.warn(`Failed to build ready response from cache for ${username}, falling back to new scrape: ${err.message}`);
+          Logger.warn(
+            `Failed to build ready response from cache for ${username}, falling back to new scrape: ${err.message}`
+          );
           // Let it fall through to discard the broken cache and create a new job!
         }
       }
@@ -99,7 +111,9 @@ const baseHandler = async (event, context) => {
           try {
             return await buildReadyResponse(existingJob);
           } catch (err) {
-            Logger.warn(`Failed to build ready response during race condition check, returning processing: ${err.message}`);
+            Logger.warn(
+              `Failed to build ready response during race condition check, returning processing: ${err.message}`
+            );
           }
         }
         return {
@@ -147,7 +161,7 @@ const baseHandler = async (event, context) => {
       }),
     };
   } catch (error) {
-    console.error('[StartAnalysis] Handler error:', error);
+    Logger.error('[StartAnalysis] Handler error', error);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'An unexpected error occurred' }),

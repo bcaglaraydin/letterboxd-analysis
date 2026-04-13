@@ -8,6 +8,7 @@ import {
   DeleteCommand,
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
+import { Logger } from '../utils/logger.js';
 
 export const client = new DynamoDBClient();
 export const docClient = DynamoDBDocumentClient.from(client);
@@ -92,7 +93,7 @@ export async function batchWrite(tableName, items) {
 
         if (response.UnprocessedItems && response.UnprocessedItems[tableName]) {
           const unprocessed = response.UnprocessedItems[tableName];
-          console.warn(`BatchWrite: ${unprocessed.length} items unprocessed. Retrying...`);
+          Logger.warn(`BatchWrite: ${unprocessed.length} items unprocessed. Retrying...`);
           // Extract the original items from the PutRequest objects to retry
           batch = unprocessed.map((req) => req.PutRequest.Item);
           attempt++;
@@ -102,16 +103,16 @@ export async function batchWrite(tableName, items) {
         }
 
         if (attempt === 0) {
-          console.log(`Wrote batch of ${putRequests.length} items to ${tableName}.`);
+          Logger.info(`Wrote batch of ${putRequests.length} items to ${tableName}.`);
         }
       } catch (error) {
-        console.error(`Error batch writing to ${tableName}:`, error);
+        Logger.error(`Error batch writing to ${tableName}`, error);
         throw error;
       }
     }
 
     if (batch.length > 0) {
-      console.error(`Failed to write ${batch.length} items to ${tableName} after 3 attempts.`);
+      Logger.error(`Failed to write ${batch.length} items to ${tableName} after 3 attempts.`);
     }
   }
 }
@@ -142,19 +143,19 @@ export async function batchGet(tableName, keys) {
       });
 
       try {
-        console.log(`[BatchGet] Requesting ${currentKeys.length} keys from ${tableName}`);
+        Logger.info(`[BatchGet] Requesting ${currentKeys.length} keys from ${tableName}`);
         const response = await docClient.send(command);
         if (response.Responses && response.Responses[tableName]) {
           const found = response.Responses[tableName].length;
-          console.log(`[BatchGet] Got ${found} items from ${tableName}`);
+          Logger.info(`[BatchGet] Got ${found} items from ${tableName}`);
           items = items.concat(response.Responses[tableName]);
         } else {
-          console.warn(`[BatchGet] Response empty for ${tableName}`);
+          Logger.warn(`[BatchGet] Response empty for ${tableName}`);
         }
 
         if (response.UnprocessedKeys && response.UnprocessedKeys[tableName]) {
           const unprocessed = response.UnprocessedKeys[tableName];
-          console.warn(
+          Logger.warn(
             `BatchGet: ${unprocessed.Keys.length} keys unprocessed. Retrying (attempt ${attempt + 1})...`
           );
           currentKeys = unprocessed.Keys;
@@ -165,7 +166,7 @@ export async function batchGet(tableName, keys) {
           currentKeys = [];
         }
       } catch (error) {
-        console.error(`Error batch getting from ${tableName}:`, error);
+        Logger.error(`Error batch getting from ${tableName}`, error);
         // If it's a throughput error, wait and retry. Else throw?
         // For simplicity, we define general retry logic above, but catching error here might break the loop.
         // Let's assume transient errors can be retried if we had logic, but here we just log and throw to be safe or maybe continue?
@@ -175,7 +176,7 @@ export async function batchGet(tableName, keys) {
     }
 
     if (currentKeys.length > 0) {
-      console.error(
+      Logger.error(
         `Failed to get batch from ${tableName} after 5 attempts. Missing ${currentKeys.length} items.`
       );
     }

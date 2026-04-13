@@ -2,6 +2,7 @@ import { load } from 'cheerio';
 import pLimit from 'p-limit';
 import { fetchWithRetry } from '../utils/http.js';
 import { fetchHtmlWithBrowser } from '../utils/browser.js';
+import { Logger } from '../utils/logger.js';
 
 const BASE_URL = 'https://letterboxd.com';
 
@@ -15,7 +16,7 @@ async function fetchHtmlWithFallback(url) {
     return await fetchWithRetry(url);
   } catch (err) {
     if (err.response?.status === 403) {
-      console.warn(`[Scraper] 403 Forbidden on ${url}. Failing over to headless browser...`);
+      Logger.warn(`[Scraper] 403 Forbidden on ${url}. Failing over to headless browser...`);
       // Use browser limit to control concurrency of browser requests
       return await fetchHtmlWithBrowser(url);
     }
@@ -28,7 +29,7 @@ async function fetchHtmlWithFallback(url) {
  * @param {string} filmSlug - The slug of the film.
  * @returns {Promise<object>} - Object containing stats like watchedCount.
  */
-async function fetchFilmStats(filmSlug) {
+export async function fetchFilmStats(filmSlug) {
   const statsUrl = `${BASE_URL}/csi/film/${filmSlug}/stats/`;
   try {
     const html = await fetchHtmlWithFallback(statsUrl);
@@ -49,7 +50,7 @@ async function fetchFilmStats(filmSlug) {
 
     return { watchedCount };
   } catch (err) {
-    console.error(`Failed to fetch stats for ${filmSlug}:`, err.message);
+    Logger.error(`Failed to fetch stats for ${filmSlug}`, err);
     return { watchedCount: 0 };
   }
 }
@@ -77,7 +78,7 @@ async function fetchPaginatedFilmsList(username) {
   if (pagination.length > 0) {
     totalPages = parseInt(pagination.text().trim(), 10);
   }
-  console.log(`Found ${totalPages} pages of films.`);
+  Logger.info(`Found ${totalPages} pages of films.`);
 
   // 2. Build page URLs
   const pageUrls = [];
@@ -87,7 +88,7 @@ async function fetchPaginatedFilmsList(username) {
 
   // 3. Fetch All List Pages Concurrently with retry logic
   const concurrency = parseInt(process.env.SCRAPING_CONCURRENCY_LIST || '5', 10);
-  console.log(
+  Logger.info(
     `[Scraper] SCRAPING_CONCURRENCY_LIST: ${process.env.SCRAPING_CONCURRENCY_LIST}, Parsed: ${concurrency}`
   );
   const listLimit = pLimit(concurrency);
@@ -134,12 +135,12 @@ async function fetchPaginatedFilmsList(username) {
             return pageFilms;
           } catch (err) {
             attempts++;
-            console.warn(
+            Logger.warn(
               `Failed to fetch list page ${url} (Attempt ${attempts}/${MAX_RETRIES}):`,
               err.message
             );
             if (attempts >= MAX_RETRIES) {
-              console.error(`Giving up on ${url} after ${MAX_RETRIES} attempts.`);
+              Logger.error(`Giving up on ${url} after ${MAX_RETRIES} attempts.`);
               return [];
             }
             // Wait a bit before retrying
@@ -161,127 +162,14 @@ async function fetchPaginatedFilmsList(username) {
  * @returns {Promise<Array>} - Array of film objects (slug, userRating).
  */
 export async function scrapeUserFilmsList(username) {
-  console.log(`Starting list scrape for user: ${username}`);
+  Logger.info(`Starting list scrape for user: ${username}`);
   const allFilmsBasic = await fetchPaginatedFilmsList(username);
-  console.log(`Extracted ${allFilmsBasic.length} films from list pages.`);
+  Logger.info(`Extracted ${allFilmsBasic.length} films from list pages.`);
 
   // Note: Browser session is NOT closed here to allow reuse for metadata scraping
   // It will be closed at the handler level after all scraping is complete
 
   return allFilmsBasic;
-}
-
-/**
- * Scrapes all films from a user's Letterboxd films page with full details.
- * @param {string} username - The Letterboxd username.
- * @returns {Promise<Array>} - Array of film objects with full metadata.
- */
-export async function scrapeUserFilms(username) {
-  console.log(`Starting full scrape for user: ${username}`);
-
-  // Use shared helper for list fetching
-  const allFilmsBasic = await fetchPaginatedFilmsList(username);
-  console.log(`Extracted ${allFilmsBasic.length} films from list pages.`);
-
-  if (allFilmsBasic.length === 0) {
-    return [];
-  }
-
-  // Fetch Film Details & Stats Concurrently
-  const filmLimit = pLimit(parseInt(process.env.SCRAPING_CONCURRENCY_FILM || '15', 10));
-  const films = await Promise.all(
-    allFilmsBasic.map((film) =>
-      filmLimit(async () => {
-        try {
-          const filmUrl = `${BASE_URL}/film/${film.slug}/`;
-          // Fetch Details Page
-          const html = await fetchHtmlWithFallback(filmUrl);
-          const $film = load(html);
-
-          // --- JSON-LD Extraction ---
-          const jsonLd = parseJsonLd($film, film.slug);
-
-          const title =
-            jsonLd.name || $film('meta[property="og:title"]').attr('content') || film.slug;
-          const year =
-            jsonLd.releasedEvent?.startDate ||
-            $film('meta[property="og:title"]')
-              .attr('content')
-              ?.match(/\((\d{4})\)$/)?.[1] ||
-            '';
-          const director = jsonLd.director?.map((d) => d.name).join(', ') || '';
-          const cast = jsonLd.actors?.map((a) => a.name) || [];
-          const studios = jsonLd.productionCompany?.map((c) => c.name) || [];
-          const genres = jsonLd.genre || [];
-          const ratingCount = jsonLd.aggregateRating?.ratingCount || 0;
-          const averageRating = jsonLd.aggregateRating?.ratingValue || 0;
-
-          // --- HTML Extraction ---
-          // Runtime
-          let runtime = null;
-          const footerText = $film('.text-link.text-footer').text();
-          const runtimeMatch = footerText.match(/(\d+)\s*mins/);
-          if (runtimeMatch) {
-            runtime = parseInt(runtimeMatch[1], 10);
-          }
-
-          // Backdrop
-          const backdropUrl = $film('#backdrop').attr('data-backdrop');
-
-          // Plot
-          const plot =
-            $film('.review.body-text .truncate').text().trim() ||
-            $film('.review.body-text').text().trim();
-
-          // Themes
-          const themes = [];
-          $film('a[href^="/films/theme/"], a[href^="/films/mini-theme/"]').each((_, el) => {
-            const themeName = $film(el).text().trim();
-            if (themeName && themeName !== 'Show All…') {
-              themes.push(themeName);
-            }
-          });
-
-          // Countries of origin (from the same detail page)
-          const countries = [];
-          $film('a[href^="/films/country/"]').each((_, el) => {
-            const countryName = $film(el).text().trim();
-            if (countryName) countries.push(countryName);
-          });
-
-          // Fetch Stats (Watched Count)
-          const stats = await fetchFilmStats(film.slug);
-
-          return {
-            slug: film.slug,
-            url: filmUrl,
-            title,
-            year,
-            director,
-            cast,
-            studios,
-            genres,
-            themes,
-            countries,
-            runtime,
-            backdropUrl,
-            plot,
-            posterUrl: film.posterUrl,
-            userRating: film.userRating,
-            averageRating,
-            ratingCount,
-            watchedCount: stats.watchedCount,
-          };
-        } catch (err) {
-          console.error(`Failed to fetch film details for ${film.slug}:`, err);
-          return { error: true, slug: film.slug };
-        }
-      })
-    )
-  );
-
-  const successfulFilms = films.filter((f) => !f.error);
-  return successfulFilms;
 }
 
 /**
@@ -307,7 +195,7 @@ function parseJsonLd($film, slug) {
         : (parsed.find && parsed.find((i) => i['@type'] === 'Movie')) || {};
     }
   } catch (e) {
-    console.warn(`Failed to parse JSON-LD for ${slug}:`, e.message);
+    Logger.warn(`Failed to parse JSON-LD for ${slug}:`, e.message);
   }
   return {};
 }
@@ -400,7 +288,7 @@ export async function scrapeFilmDetails(slug, url) {
       scrapedAt: new Date().toISOString(),
     };
   } catch (err) {
-    console.error(`Failed to fetch film details for ${url}:`, err);
+    Logger.error(`Failed to fetch film details for ${url}`, err);
     throw err;
   }
 }

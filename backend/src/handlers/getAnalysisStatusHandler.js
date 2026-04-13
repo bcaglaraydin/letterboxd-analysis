@@ -2,18 +2,38 @@ import { batchGet } from '../services/dynamoDbService.js';
 import { getUserJob, updateUserJob, deleteUserJob } from '../services/userJobService.js';
 import { GameService } from '../services/gameService.js';
 import { Logger } from '../utils/logger.js';
+import { isAnalysisEnabled } from '../services/configService.js';
 
 export const handler = async (event, context) => {
   Logger.init(event, context);
   try {
+    // Check kill-switch
+    const enabled = await isAnalysisEnabled();
+    if (!enabled) {
+      return {
+        statusCode: 503,
+        body: JSON.stringify({ error: 'Service is currently disabled for maintenance.' }),
+      };
+    }
+
     const FILMS_TABLE = process.env.FILMS_TABLE;
     const username = event.queryStringParameters?.username;
-    const minFilms = parseInt(event.queryStringParameters?.minFilms || '5', 10);
+    const rawMinFilms = parseInt(event.queryStringParameters?.minFilms || '5', 10);
+    const minFilms = Math.max(1, Math.min(100, rawMinFilms || 5));
 
     if (!username) {
       return {
         statusCode: 400,
         body: JSON.stringify({ error: 'Username is required' }),
+      };
+    }
+
+    // Validate username format
+    const USERNAME_REGEX = /^[a-zA-Z0-9_-]{1,40}$/;
+    if (!USERNAME_REGEX.test(username)) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Invalid username format' }),
       };
     }
 

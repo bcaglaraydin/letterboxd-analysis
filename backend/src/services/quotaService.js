@@ -32,8 +32,11 @@ export async function checkQuotas(ip) {
   } catch (error) {
     if (error.statusCode === 429) throw error;
 
-    // Fail-open for transient DynamoDB errors to prevent blocking real users
-    Logger.error('[Quota] DynamoDB error during quota check. Failing open.', error);
+    // Fail-closed: reject request if quota check fails to prevent abuse
+    Logger.error('[Quota] DynamoDB error during quota check. Failing closed.', error);
+    const failError = new Error('Service temporarily unavailable. Please try again.');
+    failError.statusCode = 429;
+    throw failError;
   }
 }
 
