@@ -19,9 +19,9 @@ variable "log_retention_days" {
 }
 
 variable "allow_origins" {
-  description = "List of allowed origins for CORS"
+  description = "List of allowed origins for CORS. Must be set per-environment."
   type        = list(string)
-  default     = ["*"]
+  default     = []
 }
 
 variable "throttling_rate_limit" {
