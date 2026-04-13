@@ -1,4 +1,5 @@
 import { SSMClient, GetParameterCommand } from '@aws-sdk/client-ssm';
+import { Logger } from '../utils/logger.js';
 
 const client = new SSMClient();
 const PARAM_NAME = '/app/analysis_enabled';
@@ -10,6 +11,7 @@ const CACHE_TTL = 60000; // 1 minute cache to avoid excessive SSM calls
 /**
  * Checks if the analysis system is globally enabled via SSM.
  * Returns true if enabled, false otherwise.
+ * Fail-closed: returns false if SSM is unreachable to protect costs.
  */
 export async function isAnalysisEnabled() {
   const now = Date.now();
@@ -24,8 +26,8 @@ export async function isAnalysisEnabled() {
     lastCheck = now;
     return cachedValue;
   } catch (err) {
-    console.error(`[Config] Failed to fetch SSM parameter ${PARAM_NAME}:`, err);
-    // Fail-safe: assume enabled if SSM is down, but log heavily
-    return true;
+    Logger.error(`[Config] Failed to fetch SSM parameter ${PARAM_NAME}`, err);
+    // Fail-closed: disable system if SSM is unreachable to protect costs
+    return false;
   }
 }

@@ -1,4 +1,5 @@
 import { shuffle } from '../utils/array.js';
+import { Logger } from '../utils/logger.js';
 
 const MIN_RATED_FILMS = 5;
 const GAME_MOVIE_COUNT = 5;
@@ -40,12 +41,12 @@ export const generateRatingGame = async (userFilms, metadataMap, options = {}) =
           let meta = metadataMap.get(film.slug);
           // Skip if valid metadata is missing (do not scrape synchronously!)
           if (!meta || !meta.year || meta.year === '????') {
-            console.warn(`Skipping game movie due to missing metadata: ${film.slug}`);
+            Logger.warn(`Skipping game movie due to missing metadata: ${film.slug}`);
             return null;
           }
           return { film, meta };
         } catch (err) {
-          console.error(`Error processing ${film.slug}`, err);
+          Logger.error(`Error processing ${film.slug}`, err);
           return null;
         }
       })

@@ -1,6 +1,7 @@
 // src/services/tmdbService.js
 import axios from 'axios';
 import 'dotenv/config';
+import { Logger } from '../utils/logger.js';
 
 const TMDB_HEADERS = {
   accept: 'application/json',
@@ -9,7 +10,7 @@ const TMDB_HEADERS = {
 
 export async function getActorPhotoUrl(actorName) {
   if (!process.env.API_READ_ACCESS_TOKEN) {
-    console.warn('TMDB API_READ_ACCESS_TOKEN not set. Skipping photo fetch.');
+    Logger.warn('TMDB API_READ_ACCESS_TOKEN not set. Skipping photo fetch.');
     return null; // fallback
   }
 
@@ -32,7 +33,7 @@ export async function getActorPhotoUrl(actorName) {
     }
     return null;
   } catch (err) {
-    console.error(`Failed to fetch TMDB data for "${actorName}":`, err.message);
+    Logger.error(`Failed to fetch TMDB data for "${actorName}"`, err);
     return null;
   }
 }

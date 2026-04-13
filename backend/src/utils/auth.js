@@ -1,6 +1,10 @@
 import jwt from 'jsonwebtoken';
+import { Logger } from './logger.js';
 
-const SIGNING_SECRET = process.env.SIGNING_SECRET || 'dev_secret_only';
+const SIGNING_SECRET = process.env.SIGNING_SECRET;
+if (!SIGNING_SECRET) {
+  throw new Error('FATAL: SIGNING_SECRET environment variable is not set.');
+}
 const ISSUER = 'letterboxd-analysis-backend';
 const ALGORITHM = 'HS256';
 
@@ -31,7 +35,7 @@ export function verifyAnalysisToken(token, currentIp) {
     });
 
     if (decoded.ip !== currentIp) {
-      console.warn(`[Auth] IP Mismatch. Token IP: ${decoded.ip}, Request IP: ${currentIp}`);
+      Logger.warn(`[Auth] IP Mismatch. Token IP: ${decoded.ip}, Request IP: ${currentIp}`);
       throw new Error('Unauthorized: IP address mismatch');
     }
 
