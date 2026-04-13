@@ -64,7 +64,7 @@ export const handler = async (event, context) => {
 
       // SELF-HEALING: Check for Stuck Jobs (Processing > 3 mins)
       if (job.status === 'processing') {
-        const MAX_PROCESSING_TIME = 180; // 3 minutes in seconds
+        const MAX_PROCESSING_TIME = 900; // 15 minutes in seconds (aligns with Lambda max timeout)
         const now = Math.floor(Date.now() / 1000);
         const lastUpdated = job.updatedAt || job.createdAt;
 
