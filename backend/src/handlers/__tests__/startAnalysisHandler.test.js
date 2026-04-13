@@ -5,6 +5,16 @@ import { putUserJob, getUserJob } from '../../services/userJobService.js';
 import { batchGet } from '../../services/dynamoDbService.js';
 import { GameService } from '../../services/gameService.js';
 
+vi.mock('../../utils/middyMiddleware.js', () => ({
+  authMiddleware: vi.fn(() => ({ before: vi.fn() })),
+  quotaMiddleware: vi.fn(() => ({ before: vi.fn() })),
+  killSwitchMiddleware: vi.fn(() => ({ before: vi.fn() })),
+}));
+
+vi.mock('../../utils/http.js', () => ({
+  fetchWithRetry: vi.fn().mockResolvedValue({}),
+}));
+
 vi.mock('../../services/sqsQueueService.js', () => ({
   sendMessage: vi.fn().mockResolvedValue({}),
   sendMessageBatch: vi.fn().mockResolvedValue({}),
