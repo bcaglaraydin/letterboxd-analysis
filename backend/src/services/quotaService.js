@@ -46,7 +46,7 @@ async function consumeQuota(tableName, key, limit, label) {
       TableName: tableName,
       Key: key,
       UpdateExpression: 'SET points = if_not_exists(points, :zero) + :one',
-      ConditionExpression: 'if_not_exists(points, :zero) < :limit',
+      ConditionExpression: 'attribute_not_exists(points) OR points < :limit',
       ExpressionAttributeValues: {
         ':zero': 0,
         ':one': 1,

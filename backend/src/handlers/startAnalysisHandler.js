@@ -36,7 +36,12 @@ const baseHandler = async (event, context) => {
       // READY: Return full game data immediately — no polling needed
       if (cachedJob.status === 'ready') {
         Logger.info(`Job is READY for ${username}. Returning full data.`, { username });
-        return await buildReadyResponse(cachedJob);
+        try {
+          return await buildReadyResponse(cachedJob);
+        } catch (err) {
+          Logger.warn(`Failed to build ready response from cache for ${username}, falling back to new scrape: ${err.message}`);
+          // Let it fall through to discard the broken cache and create a new job!
+        }
       }
 
       // PROCESSING/PENDING: Already being worked on — tell frontend to poll
@@ -91,7 +96,11 @@ const baseHandler = async (event, context) => {
       const existingJob = await getUserJob(username);
       if (existingJob) {
         if (existingJob.status === 'ready') {
-          return await buildReadyResponse(existingJob);
+          try {
+            return await buildReadyResponse(existingJob);
+          } catch (err) {
+            Logger.warn(`Failed to build ready response during race condition check, returning processing: ${err.message}`);
+          }
         }
         return {
           statusCode: 200,
