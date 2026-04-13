@@ -53,6 +53,9 @@ jobs:
       - name: Setup Terragrunt
         run: |
           wget -q https://github.com/gruntwork-io/terragrunt/releases/download/v${{ env.TERRAGRUNT_VERSION }}/terragrunt_linux_amd64
+          wget -q https://github.com/gruntwork-io/terragrunt/releases/download/v${{ env.TERRAGRUNT_VERSION }}/SHA256SUMS
+          grep terragrunt_linux_amd64 SHA256SUMS > terragrunt_SHA256SUM
+          sha256sum -c terragrunt_SHA256SUM
           chmod +x terragrunt_linux_amd64
           sudo mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
 
