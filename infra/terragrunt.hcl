@@ -15,9 +15,6 @@ remote_state {
     encrypt        = true
     dynamodb_table = "terraform-lock-table"
 
-    # Prevent Terragrunt from auto-managing S3 bucket security.
-    # These are controlled explicitly via IaC / AWS Console — not via
-    # Terragrunt's opinionated auto-init, which fails when no policy exists.
     skip_bucket_root_access        = true
     skip_bucket_enforced_tls       = true
     skip_bucket_ssencryption       = true
