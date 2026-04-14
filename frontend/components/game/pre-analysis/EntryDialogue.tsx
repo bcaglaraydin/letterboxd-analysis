@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { DIALOGUE_TIMING } from '@/lib/dialogueConfig';
 
 interface EntryDialogueProps {
   onStart: () => void;
@@ -21,28 +22,34 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1 },
-    exit: { opacity: 0, transition: { duration: 0.2 } },
+    exit: { opacity: 0, transition: { duration: DIALOGUE_TIMING.EXIT_DURATION } },
   };
 
   const sequentialFade = {
     hidden: { opacity: 0 },
     visible: (i: number) => ({
       opacity: 1,
-      transition: { delay: i * 1.4, duration: 0.8 },
+      transition: {
+        delay: i * DIALOGUE_TIMING.STEP_DELAY,
+        duration: DIALOGUE_TIMING.FADE_DURATION,
+      },
     }),
   };
 
   const sequentialSlide = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: DIALOGUE_TIMING.SLIDE_Y_OFFSET },
     visible: (i: number) => ({
       opacity: 1,
       y: 0,
-      transition: { delay: i * 1.4, duration: 0.8 },
+      transition: {
+        delay: i * DIALOGUE_TIMING.STEP_DELAY,
+        duration: DIALOGUE_TIMING.FADE_DURATION,
+      },
     }),
   };
 
   const fastSequentialSlide = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: DIALOGUE_TIMING.SLIDE_Y_OFFSET },
     visible: (i: number) => ({
       opacity: 1,
       y: 0,
@@ -73,7 +80,7 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
                 </motion.span>
               </p>
               <motion.p variants={sequentialFade} custom={4}>
-                Please answer them <span className="font-bold">calmly and honestly</span> Your
+                Please answer them <span className="font-bold">calmly and honestly.</span> Your
                 responses will not be stored or shared
               </motion.p>
             </div>
@@ -214,7 +221,7 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
               custom={0}
               className="text-xl md:text-3xl font-serif text-primary leading-relaxed mb-8 text-center"
             >
-              I don&apos;t really care about you too
+              I do not care about you either.
             </motion.p>
             <motion.div
               variants={sequentialSlide}

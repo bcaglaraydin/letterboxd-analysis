@@ -10,7 +10,7 @@ export const GAME_TEXT = {
     },
     INTERACTION: {
       PROMPT: 'What did you rate this movie?',
-      BUTTON_REVEAL: 'Reveal Rating',
+      BUTTON_REVEAL: 'REVEAL RATING',
     },
   },
   THEME_EXPERIENCE: {

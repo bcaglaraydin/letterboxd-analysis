@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { GameBackground } from '@/components/game/shared/GameBackground';
 import { GameLayout } from '@/components/game/shared/GameLayout';
+import { DIALOGUE_TIMING } from '@/lib/dialogueConfig';
 
 interface GameDialogueProps {
   messages: React.ReactNode[];
@@ -72,16 +73,22 @@ export const GameDialogue: React.FC<GameDialogueProps> = ({
     hidden: { opacity: 0 },
     show: (i: number) => ({
       opacity: 1,
-      transition: { delay: i * 1.4, duration: 0.8 },
+      transition: {
+        delay: i * DIALOGUE_TIMING.STEP_DELAY,
+        duration: DIALOGUE_TIMING.FADE_DURATION,
+      },
     }),
   };
 
   const sequentialSlide = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: DIALOGUE_TIMING.SLIDE_Y_OFFSET },
     show: (i: number) => ({
       opacity: 1,
       y: 0,
-      transition: { delay: i * 1.4, duration: 0.8 },
+      transition: {
+        delay: i * DIALOGUE_TIMING.STEP_DELAY,
+        duration: DIALOGUE_TIMING.FADE_DURATION,
+      },
     }),
   };
 

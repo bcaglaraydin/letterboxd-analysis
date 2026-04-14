@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { GameBackground } from '@/components/game/shared/GameBackground';
 import { GameLayout } from '@/components/game/shared/GameLayout';
+import { DIALOGUE_TIMING } from '@/lib/dialogueConfig';
 
 interface ThemeIntroDialogueProps {
   onComplete: () => void;
@@ -17,22 +18,23 @@ type DialogueKey = 'start' | 'known' | 'unknown';
 const DIALOGUE_ANIMATIONS = {
   // Dialogue container: wraps every screen transition
   container: {
-    exitDuration: 0.2,
+    exitDuration: DIALOGUE_TIMING.EXIT_DURATION,
   },
 
   // Regular sentences that fade in one after another (custom = step index)
   sequentialFade: {
-    stepInterval: 1.4, // seconds between each step
-    duration: 0.9, // fade-in duration per sentence
+    stepInterval: DIALOGUE_TIMING.STEP_DELAY, // seconds between each step
+    duration: DIALOGUE_TIMING.FADE_DURATION, // fade-in duration per sentence
   },
 
   // CTA buttons slide up after the sentences
   sequentialSlide: {
-    stepInterval: 1.4,
-    duration: 0.9,
-    yOffset: 20, // starting vertical offset (px)
+    stepInterval: DIALOGUE_TIMING.STEP_DELAY,
+    duration: DIALOGUE_TIMING.FADE_DURATION,
+    yOffset: DIALOGUE_TIMING.SLIDE_Y_OFFSET, // starting vertical offset (px)
   },
 } as const;
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const ThemeIntroDialogue: React.FC<ThemeIntroDialogueProps> = ({ onComplete }) => {
@@ -88,8 +90,8 @@ export const ThemeIntroDialogue: React.FC<ThemeIntroDialogueProps> = ({ onComple
               </div>
               <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
                 <motion.span variants={sequentialFade} custom={2}>
-                  But... did you know Letterboxd assigns <span className="font-bold">themes</span>{' '}
-                  to movies?
+                  However... are you aware that Letterboxd assigns{' '}
+                  <span className="font-bold">specific themes</span> to films?
                 </motion.span>
               </div>
             </div>
