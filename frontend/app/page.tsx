@@ -109,15 +109,25 @@ export default function HomePage() {
   }
 
   const heroSection = (
-    <div className="flex flex-col items-center text-center max-w-2xl mx-auto gap-7">
-      <h1 className="font-serif leading-none flex flex-col items-center">
+    <div
+      className="flex flex-col items-center text-center w-full max-w-2xl mx-auto overflow-hidden"
+      style={{ gap: 'clamp(1.25rem, 4vw, 1.75rem)' }}
+    >
+      <h1 className="font-serif leading-none flex flex-col items-center w-full min-w-0 overflow-hidden">
         <motion.div
           initial={{ scale: 0.92, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.15 }}
           className="mb-2 rotate-2"
         >
-          <span className="bg-primary text-white px-5 py-2 rounded-full text-xs tracking-[0.3em] uppercase font-black">
+          <span
+            className="bg-primary text-white rounded-full uppercase font-black inline-block"
+            style={{
+              fontSize: 'clamp(0.625rem, 2vw, 0.75rem)',
+              padding: 'clamp(0.375rem, 1.5vw, 0.5rem) clamp(0.875rem, 3vw, 1.25rem)',
+              letterSpacing: '0.3em',
+            }}
+          >
             THE
           </span>
         </motion.div>
@@ -126,8 +136,10 @@ export default function HomePage() {
           initial={{ y: 12, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.25 }}
-          className="text-[5.8rem] sm:text-[6.5rem] md:text-[8.5rem] lg:text-[10rem] whitespace-nowrap text-accent font-black tracking-[-0.04em] leading-[0.85] mb-6 rotate-[1.5deg] transition-transform hover:rotate-0"
+          className="text-accent font-black tracking-[-0.04em] leading-[0.85] rotate-[1.5deg] transition-transform hover:rotate-0 block w-full"
           style={{
+            fontSize: 'clamp(3rem, 18vw, 10rem)',
+            marginBottom: 'clamp(0.75rem, 3vw, 1.5rem)',
             textShadow: '3px 3px 0 var(--primary)',
           }}
         >
@@ -138,7 +150,11 @@ export default function HomePage() {
           initial={{ y: 12, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.35 }}
-          className="text-base sm:text-xl md:text-[1.9rem] text-white bg-primary px-5 py-3 rounded-xl font-extrabold tracking-tight"
+          className="text-white bg-primary rounded-xl font-extrabold tracking-tight inline-block max-w-full"
+          style={{
+            fontSize: 'clamp(0.875rem, 3.5vw, 1.9rem)',
+            padding: 'clamp(0.5rem, 1.5vw, 0.75rem) clamp(0.875rem, 3vw, 1.25rem)',
+          }}
         >
           Letterboxd Taste Test
         </motion.span>
@@ -148,7 +164,11 @@ export default function HomePage() {
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="text-muted-foreground text-base font-medium leading-relaxed max-w-[380px]"
+        className="text-muted-foreground font-medium leading-relaxed w-full"
+        style={{
+          fontSize: 'clamp(0.8125rem, 2.5vw, 1rem)',
+          maxWidth: 'min(380px, 100%)',
+        }}
       >
         No account? No problem! Use <span className="font-bold text-primary">bcaglaraydin</span> and{' '}
         <strong className="text-primary bg-primary/10 px-2 py-0.5 rounded-md hover:bg-primary hover:text-white transition-all cursor-pointer">
@@ -167,7 +187,11 @@ export default function HomePage() {
           value={usernameInput}
           onChange={(e) => setUsernameInput(e.target.value)}
           placeholder="Enter your Letterboxd username"
-          className="w-full h-14 px-6 bg-white/50 border-2 border-primary/10 rounded-xl text-lg text-center placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/50 focus:bg-white/80 transition-all duration-300 text-primary font-serif"
+          className="w-full px-4 bg-white/50 border-2 border-primary/10 rounded-xl text-center placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/50 focus:bg-white/80 transition-all duration-300 text-primary font-serif"
+          style={{
+            height: 'clamp(2.75rem, 8vw, 3.5rem)',
+            fontSize: 'clamp(0.875rem, 3vw, 1.125rem)',
+          }}
           disabled={localLoading}
         />
       </div>
@@ -187,7 +211,11 @@ export default function HomePage() {
         type="submit"
         disabled={localLoading}
         size="lg"
-        className="w-full h-14 text-lg font-bold tracking-wide rounded-xl shadow-lg shadow-primary/10 flex items-center justify-center gap-2 group"
+        className="w-full text-lg font-bold tracking-wide rounded-xl shadow-lg shadow-primary/10 flex items-center justify-center gap-2 group"
+        style={{
+          height: 'clamp(2.75rem, 8vw, 3.5rem)',
+          fontSize: 'clamp(0.875rem, 3vw, 1.125rem)',
+        }}
       >
         {localLoading ? (
           <>
@@ -205,7 +233,7 @@ export default function HomePage() {
   );
 
   const footerElement = (
-    <footer className="mt-6 flex flex-col items-center gap-3 text-muted-foreground/80 text-xs w-full">
+    <footer className="flex flex-col items-center gap-3 text-muted-foreground/80 text-xs w-full">
       <div className="flex items-center gap-5 tracking-wide font-sans">
         <a
           href="https://github.com/bcaglaraydin/letterboxd-analysis"
@@ -233,12 +261,18 @@ export default function HomePage() {
 
   return (
     <GameBackground>
-      <div className="relative z-10 flex items-center justify-center min-h-[100dvh] px-5 py-14">
+      <div
+        className="relative z-10 flex items-center justify-center min-h-[100dvh] overflow-x-hidden"
+        style={{
+          padding: 'clamp(1.5rem, 5vw, 3.5rem) clamp(1rem, 5vw, 1.25rem)',
+        }}
+      >
         <motion.div
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55 }}
-          className="w-full max-w-2xl flex flex-col items-center gap-12"
+          className="w-full max-w-2xl flex flex-col items-center min-w-0"
+          style={{ gap: 'clamp(2rem, 6vw, 3rem)' }}
         >
           {heroSection}
           {formElement}
