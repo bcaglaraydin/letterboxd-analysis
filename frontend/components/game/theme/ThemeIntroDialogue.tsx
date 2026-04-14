@@ -12,6 +12,29 @@ interface ThemeIntroDialogueProps {
 
 type DialogueKey = 'start' | 'known' | 'unknown';
 
+// ─── Animation Config ────────────────────────────────────────────────────────
+// All timing and motion values live here. Tune freely without touching JSX.
+const DIALOGUE_ANIMATIONS = {
+  // Dialogue container: wraps every screen transition
+  container: {
+    exitDuration: 0.2,
+  },
+
+  // Regular sentences that fade in one after another (custom = step index)
+  sequentialFade: {
+    stepInterval: 1.4, // seconds between each step
+    duration: 0.9, // fade-in duration per sentence
+  },
+
+  // CTA buttons slide up after the sentences
+  sequentialSlide: {
+    stepInterval: 1.4,
+    duration: 0.9,
+    yOffset: 20, // starting vertical offset (px)
+  },
+} as const;
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const ThemeIntroDialogue: React.FC<ThemeIntroDialogueProps> = ({ onComplete }) => {
   const [dialogueKey, setDialogueKey] = useState<DialogueKey>('start');
   const [isAnimationComplete, setIsAnimationComplete] = useState(false);
@@ -23,23 +46,29 @@ export const ThemeIntroDialogue: React.FC<ThemeIntroDialogueProps> = ({ onComple
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1 },
-    exit: { opacity: 0, transition: { duration: 0.2 } },
+    exit: { opacity: 0, transition: { duration: DIALOGUE_ANIMATIONS.container.exitDuration } },
   };
 
   const sequentialFade = {
     hidden: { opacity: 0 },
     visible: (i: number) => ({
       opacity: 1,
-      transition: { delay: i * 1.4, duration: 0.8 },
+      transition: {
+        delay: i * DIALOGUE_ANIMATIONS.sequentialFade.stepInterval,
+        duration: DIALOGUE_ANIMATIONS.sequentialFade.duration,
+      },
     }),
   };
 
   const sequentialSlide = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: DIALOGUE_ANIMATIONS.sequentialSlide.yOffset },
     visible: (i: number) => ({
       opacity: 1,
       y: 0,
-      transition: { delay: i * 1.4, duration: 0.8 },
+      transition: {
+        delay: i * DIALOGUE_ANIMATIONS.sequentialFade.stepInterval,
+        duration: DIALOGUE_ANIMATIONS.sequentialSlide.duration,
+      },
     }),
   };
 
@@ -111,24 +140,35 @@ export const ThemeIntroDialogue: React.FC<ThemeIntroDialogueProps> = ({ onComple
             <div className="space-y-6 text-center max-w-3xl mb-12">
               <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
                 <motion.span variants={sequentialFade} custom={0}>
-                  Ah, so you&apos;re familiar with themes like{' '}
-                  <span className="font-bold">
-                    &lsquo;Intense violence and sexual transgression&rsquo;
-                  </span>{' '}
-                  or{' '}
-                  <span className="font-bold">
-                    &lsquo;Surreal and thought-provoking visions of life and death&rsquo;
-                  </span>
-                  .
+                  Ah, so you&apos;re familiar with themes like
                 </motion.span>
               </div>
-              <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
+
+              <div className="text-xl md:text-3xl font-serif font-bold text-primary leading-relaxed">
                 <motion.span variants={sequentialFade} custom={1}>
+                  &lsquo;Intense violence and sexual transgression&rsquo;
+                </motion.span>
+              </div>
+
+              <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
+                <motion.span variants={sequentialFade} custom={2}>
+                  or
+                </motion.span>
+              </div>
+
+              <div className="text-xl md:text-3xl font-serif font-bold text-primary leading-relaxed">
+                <motion.span variants={sequentialFade} custom={3}>
+                  &lsquo;Surreal and thought-provoking visions of life and death&rsquo;
+                </motion.span>
+              </div>
+
+              <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
+                <motion.span variants={sequentialFade} custom={4}>
                   In this next round, I want you to guess movies based on their themes.
                 </motion.span>
               </div>
               <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
-                <motion.span variants={sequentialFade} custom={2}>
+                <motion.span variants={sequentialFade} custom={5}>
                   If you can&apos;t, we will reveal more clues, but you will get fewer points.
                 </motion.span>
               </div>
@@ -136,7 +176,7 @@ export const ThemeIntroDialogue: React.FC<ThemeIntroDialogueProps> = ({ onComple
 
             <motion.div
               variants={sequentialSlide}
-              custom={3}
+              custom={6}
               onAnimationComplete={() => setIsAnimationComplete(true)}
               className="w-full flex justify-center shrink-0"
             >
@@ -162,29 +202,40 @@ export const ThemeIntroDialogue: React.FC<ThemeIntroDialogueProps> = ({ onComple
             <div className="space-y-6 text-center max-w-3xl mb-12">
               <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
                 <motion.span variants={sequentialFade} custom={0}>
-                  Like{' '}
-                  <span className="font-bold">
-                    &lsquo;Intense violence and sexual transgression&rsquo;
-                  </span>{' '}
-                  or{' '}
-                  <span className="font-bold">
-                    &lsquo;Surreal and thought-provoking visions of life and death&rsquo;
-                  </span>
-                  .
+                  Like
                 </motion.span>
               </div>
-              <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
+
+              <div className="text-xl md:text-3xl font-serif font-bold text-primary leading-relaxed">
                 <motion.span variants={sequentialFade} custom={1}>
+                  &lsquo;Intense violence and sexual transgression&rsquo;
+                </motion.span>
+              </div>
+
+              <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
+                <motion.span variants={sequentialFade} custom={2}>
+                  or
+                </motion.span>
+              </div>
+
+              <div className="text-xl md:text-3xl font-serif font-bold text-primary leading-relaxed">
+                <motion.span variants={sequentialFade} custom={3}>
+                  &lsquo;Surreal and thought-provoking visions of life and death&rsquo;
+                </motion.span>
+              </div>
+
+              <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
+                <motion.span variants={sequentialFade} custom={4}>
                   Yes, these are real, you are going to see more of them now.
                 </motion.span>
               </div>
               <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
-                <motion.span variants={sequentialFade} custom={2}>
+                <motion.span variants={sequentialFade} custom={5}>
                   In this next round, I want you to guess movies based on their themes.
                 </motion.span>
               </div>
               <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
-                <motion.span variants={sequentialFade} custom={3}>
+                <motion.span variants={sequentialFade} custom={6}>
                   If you can&apos;t, we will reveal more clues, but you will get fewer points.
                 </motion.span>
               </div>
@@ -192,7 +243,7 @@ export const ThemeIntroDialogue: React.FC<ThemeIntroDialogueProps> = ({ onComple
 
             <motion.div
               variants={sequentialSlide}
-              custom={4}
+              custom={7}
               onAnimationComplete={() => setIsAnimationComplete(true)}
               className="w-full flex justify-center shrink-0"
             >
