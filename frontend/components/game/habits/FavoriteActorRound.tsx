@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ScorePanel } from '@/components/game/shared/ScorePanel';
 import { GameRoundIndicator } from '@/components/game/shared/GameRoundIndicator';
+import { ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import type { ActorMockData } from '@/mocks/data';
 import { ActorResultAccordion } from './ActorResultAccordion';
@@ -37,6 +38,18 @@ export function FavoriteActorRound({
   const [pointsEarned, setPointsEarned] = useState<number | null>(null);
   const [localTotalScore, setLocalTotalScore] = useState(currentScore);
   const [flyPosition, setFlyPosition] = useState<{ x: number; y: number } | undefined>();
+  // Scroll tracking state resets automatically when phase changes due to key on container
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [hasScrolled, setHasScrolled] = useState(false);
+  const [isAtBottom, setIsAtBottom] = useState(false);
+
+  const handleScroll = () => {
+    if (scrollRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+      setHasScrolled(scrollTop > 8);
+      setIsAtBottom(scrollTop + clientHeight >= scrollHeight - 20);
+    }
+  };
 
   const handleSelectActor = (actorId: string, event: React.MouseEvent) => {
     setSelectedActorId(actorId);
@@ -229,7 +242,12 @@ export function FavoriteActorRound({
 
             {/* Scrollable list — hidden scrollbar, fade hint at bottom */}
             <div className="flex-1 min-h-0 relative w-full">
-              <div className="h-full flex flex-col gap-2 md:gap-3 w-full pb-8 overflow-y-auto no-scrollbar">
+              <div
+                key={phase}
+                ref={scrollRef}
+                onScroll={handleScroll}
+                className="h-full flex flex-col gap-2 md:gap-3 w-full pb-8 overflow-y-auto no-scrollbar"
+              >
                 {topActors.map((actor, index) => {
                   const isSelected = selectedActorId === actor.id;
 
@@ -244,8 +262,42 @@ export function FavoriteActorRound({
                   );
                 })}
               </div>
+
+              {/* Scroll Hint Component — inspired by Taste Gap */}
+              <motion.div
+                initial={false}
+                animate={
+                  hasScrolled || isAtBottom
+                    ? { opacity: 0, y: 8, scale: 0.96 }
+                    : { opacity: 1, y: 0, scale: 1 }
+                }
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+                className="absolute bottom-10 left-1/2 z-20 -translate-x-1/2 pointer-events-none"
+              >
+                <div className="flex flex-col items-center gap-2">
+                  <motion.div
+                    animate={{ y: [0, 3, 0] }}
+                    transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+                    className="h-1.5 w-12 rounded-full bg-foreground/18 shadow-[0_1px_4px_rgba(45,45,45,0.08)]"
+                  />
+                  <motion.div
+                    animate={{ y: [0, 4, 0] }}
+                    transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+                    className="inline-flex items-center gap-2.5 rounded-full border border-foreground/14 bg-background/96 px-4 py-2 text-[10px] md:text-xs font-bold uppercase tracking-[0.24em] text-foreground/75 shadow-[0_10px_28px_rgba(45,45,45,0.12)] backdrop-blur-md"
+                  >
+                    <span>Scroll</span>
+                    <ChevronDown className="h-4 w-4 md:h-4.5 md:w-4.5" strokeWidth={2.4} />
+                  </motion.div>
+                </div>
+              </motion.div>
+
               {/* Bottom fade gradient to hint scrollability */}
-              <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-background to-transparent pointer-events-none z-10" />
+              <div
+                className={cn(
+                  'absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent pointer-events-none z-10 transition-opacity duration-500',
+                  isAtBottom ? 'opacity-0' : 'opacity-100',
+                )}
+              />
             </div>
 
             {/* Fixed Bottom Button */}
