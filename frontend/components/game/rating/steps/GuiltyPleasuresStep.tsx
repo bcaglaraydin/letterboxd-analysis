@@ -22,7 +22,6 @@ interface GuiltyPleasuresStepProps {
 export const GuiltyPleasuresStep: React.FC<GuiltyPleasuresStepProps> = ({
   currentMovie,
   categoryKey,
-  movieIndex,
   hasMoreInCurrentList,
   isLastOfEverything,
   currentListLength,
@@ -57,7 +56,7 @@ export const GuiltyPleasuresStep: React.FC<GuiltyPleasuresStepProps> = ({
   return (
     <div
       key="guilty"
-      className="flex flex-col items-center justify-center min-h-[100dvh] w-full text-center p-4 md:p-6 relative overflow-hidden"
+      className="relative flex min-h-[100dvh] w-full flex-col items-center justify-center overflow-x-hidden px-4 py-6 text-center"
     >
       {/* Background Poster Blur */}
       <div
@@ -74,7 +73,7 @@ export const GuiltyPleasuresStep: React.FC<GuiltyPleasuresStepProps> = ({
         key={currentMovie.movieId || currentMovie.title}
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="relative z-10 max-w-4xl w-full grid md:grid-cols-2 gap-6 md:gap-12 items-center"
+        className="relative z-10 my-auto grid w-full max-w-4xl items-center gap-6 md:grid-cols-2 md:gap-12"
       >
         {/* Mobile: Poster First, then Text */}
         <div className="order-1 md:order-2 flex justify-center">
@@ -94,54 +93,13 @@ export const GuiltyPleasuresStep: React.FC<GuiltyPleasuresStepProps> = ({
           </motion.div>
         </div>
 
-        <div className="order-2 md:order-1 space-y-4 md:space-y-6 text-center md:text-left">
-          {/* Transition Message: Show ONLY on the first item of a new category */}
-          {movieIndex === 0 && categoryKey === 'guiltyPleasures' && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-sm text-muted-foreground italic"
-            >
-              Some movies you loved, even when the rest of the world disagreed...
-            </motion.p>
-          )}
-          {movieIndex === 0 && categoryKey === 'controversialPicks' && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-sm text-muted-foreground italic"
-            >
-              Sometimes, you find <span className="text-amber-400 font-bold">a masterpiece</span>{' '}
-              where others just see a &quot;good&quot; movie...
-            </motion.p>
-          )}
-          {movieIndex === 0 && categoryKey === 'hotTakes' && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-sm text-muted-foreground italic"
-            >
-              And then there are the movies that everyone seems to love...{' '}
-              <span className="text-orange-400 font-bold">except you</span>.
-            </motion.p>
-          )}
-          {movieIndex === 0 && categoryKey === 'skepticPicks' && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-sm text-muted-foreground italic"
-            >
-              Finally, the ones where the community said &quot;meh&quot;, and you said{' '}
-              <span className="text-red-500 font-bold">&quot;absolutely not&quot;</span>.
-            </motion.p>
-          )}
-
+        <div className="order-2 md:order-1 space-y-4 text-center md:space-y-6 md:text-left">
           <div
             className={cn(
               'inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] md:text-sm font-bold uppercase tracking-widest shadow-lg',
               categoryKey === 'guiltyPleasures' && 'bg-rose-600 text-white border border-rose-400',
               categoryKey === 'controversialPicks' &&
-                'bg-amber-600 text-white border border-amber-400',
+              'bg-amber-600 text-white border border-amber-400',
               categoryKey === 'hotTakes' && 'bg-orange-600 text-white border border-orange-400',
               categoryKey === 'skepticPicks' && 'bg-red-600 text-white border border-red-400',
             )}
@@ -163,22 +121,17 @@ export const GuiltyPleasuresStep: React.FC<GuiltyPleasuresStepProps> = ({
           <p className="text-sm md:text-lg text-muted-foreground">
             {categoryKey === 'guiltyPleasures' && (
               <>
-                The world gave{' '}
-                <span className="font-bold text-foreground">{currentMovie.title}</span> a low score,
-                but you saw something special they missed.
+                You saw something special they missed.
               </>
             )}
             {categoryKey === 'controversialPicks' && (
               <>
-                The community thought{' '}
-                <span className="font-bold text-foreground">{currentMovie.title}</span> was nice.
                 You knew it was incredible.
               </>
             )}
             {categoryKey === 'hotTakes' && (
               <>
-                You watched <span className="font-bold text-foreground">{currentMovie.title}</span>{' '}
-                and thought: &apos;Is this really what all the fuss is about?&apos;
+                Is this really what all the fuss is about?
               </>
             )}
             {categoryKey === 'skepticPicks' && (
@@ -211,7 +164,7 @@ export const GuiltyPleasuresStep: React.FC<GuiltyPleasuresStepProps> = ({
         </div>
       </motion.div>
 
-      <div className="pt-6 md:pt-8 z-20 shrink-0 flex flex-col items-center gap-3">
+      <div className="z-20 flex shrink-0 flex-col items-center gap-3 pt-6 md:pt-8">
         {currentListLength > 1 &&
           (hasMoreInCurrentList ? (
             <button onClick={onShowAnother} className={anotherButtonClasses}>

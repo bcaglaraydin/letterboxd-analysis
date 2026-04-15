@@ -15,5 +15,5 @@ export type GamePhase = (typeof GAME_PHASES)[keyof typeof GAME_PHASES];
 /**
  * Constants used for game initialization and polling
  */
-export const POLL_INTERVAL_MS = 2000;
+export const POLL_INTERVAL_MS = 6000;
 export const MIN_LOADING_TIME_MS = 800;

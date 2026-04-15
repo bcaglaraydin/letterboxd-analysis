@@ -127,7 +127,7 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({ score, onComplet
   ].filter(Boolean);
 
   return (
-    <div className="w-full h-full min-h-[100dvh] bg-background text-foreground overflow-hidden fixed inset-0 z-50">
+    <div className="fixed inset-0 z-50 h-full min-h-[100dvh] w-full overflow-y-auto overflow-x-hidden bg-background text-foreground">
       <AnimatePresence mode="wait">{steps[step]}</AnimatePresence>
     </div>
   );

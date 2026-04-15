@@ -4,6 +4,8 @@ import { GameService } from '../services/gameService.js';
 import { Logger } from '../utils/logger.js';
 import { isAnalysisEnabled } from '../services/configService.js';
 
+const MAX_ALLOWED_MISSING_RATED_FILMS = 5;
+
 export const handler = async (event, context) => {
   Logger.init(event, context);
   try {
@@ -126,21 +128,70 @@ export const handler = async (event, context) => {
     });
 
     const progress = totalRatedFilms > 0 ? ratedFilmsWithMetadata / totalRatedFilms : 0;
-    const isReady = progress >= 1;
+    const missingRatedFilms = Math.max(0, totalRatedFilms - ratedFilmsWithMetadata);
+    const isReady = missingRatedFilms <= MAX_ALLOWED_MISSING_RATED_FILMS;
+    const isFullyReady = missingRatedFilms === 0;
 
-    // 4. PROGRESSIVE LOADING: Return partial_ready if we have enough for game
+    const buildReadyResponse = async (gameData, progressValue = 1) => {
+      if (job.status !== 'ready') {
+        try {
+          await updateUserJob(username, {
+            status: 'ready',
+            partialRatingGame: null,
+            partialReadyMinFilms: null,
+            updatedAt: Math.floor(Date.now() / 1000),
+          });
+          Logger.info(`Job marked as ready.`, { username });
+        } catch (updateErr) {
+          Logger.error(`Failed to update job status`, updateErr, { username });
+          // Soft fail - don't block the response, but log it
+        }
+      }
+
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          status: 'ready',
+          progress: progressValue,
+          ...gameData,
+        }),
+      };
+    };
+
+    // 4. Once only a small number of rated films are missing, serve a degraded
+    // but complete response instead of waiting forever for perfect metadata.
     if (!isReady) {
       if (ratedFilmsWithMetadata >= minFilms) {
         Logger.info(`Partial Ready: has ${ratedFilmsWithMetadata}/${minFilms} min films.`, {
           username,
+          missingRatedFilms,
         });
 
-        // Generate Rating Game with available data using GameService
-        const ratingGameData = await GameService.generatePartialRatingGame(
-          userFilms,
-          metadataMap,
-          minFilms
-        );
+        let ratingGameData = job.partialRatingGame;
+        const shouldReuseCachedPartial =
+          job.status === 'partial_ready' &&
+          job.partialRatingGame &&
+          job.partialReadyMinFilms === minFilms;
+
+        if (shouldReuseCachedPartial) {
+          Logger.info(`Reusing cached partial rating game.`, { username, minFilms });
+        } else {
+          ratingGameData = await GameService.generatePartialRatingGame(userFilms, metadataMap, minFilms);
+          try {
+            await updateUserJob(username, {
+              status: 'partial_ready',
+              partialRatingGame: ratingGameData,
+              partialReadyMinFilms: minFilms,
+              updatedAt: Math.floor(Date.now() / 1000),
+            });
+            job.status = 'partial_ready';
+            job.partialRatingGame = ratingGameData;
+            job.partialReadyMinFilms = minFilms;
+            Logger.info(`Job marked as partial_ready.`, { username, minFilms });
+          } catch (updateErr) {
+            Logger.error(`Failed to cache partial rating game`, updateErr, { username });
+          }
+        }
 
         return {
           statusCode: 200,
@@ -162,35 +213,16 @@ export const handler = async (event, context) => {
     }
 
     // 5. Generate Stats & Games (100% Ready)
-    Logger.info(`READY: ${ratedFilmsWithMetadata}/${totalRatedFilms} films processed.`, {
-      username,
-    });
-
-    // PERSISTENCE FIX: Mark job as ready in DB so it doesn't get auto-deleted as "stuck"
-    if (job.status !== 'ready') {
-      try {
-        await updateUserJob(username, {
-          status: 'ready',
-          updatedAt: Math.floor(Date.now() / 1000),
-        });
-        Logger.info(`Job marked as ready.`, { username });
-      } catch (updateErr) {
-        Logger.error(`Failed to update job status`, updateErr, { username });
-        // Soft fail - don't block the response, but log it
-      }
-    }
+    Logger.info(
+      isFullyReady
+        ? `READY: ${ratedFilmsWithMetadata}/${totalRatedFilms} films processed.`
+        : `READY with tolerance: ${ratedFilmsWithMetadata}/${totalRatedFilms} films processed. ${missingRatedFilms} rated films missing metadata.`,
+      { username, missingRatedFilms }
+    );
 
     // Use GameService to generate all game data and stats
     const gameData = await GameService.generateAll(userFilms, metadataMap, minFilms);
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
-        status: 'ready',
-        progress: 1,
-        ...gameData,
-      }),
-    };
+    return buildReadyResponse(gameData, 1);
   } catch (error) {
     Logger.error('Status Handler Error', error);
     return {
