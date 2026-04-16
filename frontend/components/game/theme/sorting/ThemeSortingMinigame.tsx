@@ -9,6 +9,7 @@ import { ScorePanel } from '@/components/game/shared/ScorePanel';
 import { Check, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SORTING_POINTS } from '@/store/theme/themeStore';
+import { GAME_SECTION_TITLE_CLASS } from '@/components/game/shared/titleStyles';
 
 export function ThemeSortingMinigame() {
   const { sortingRounds, currentSortingIndex, sortingScore, sortingLastPoints, handleThemeSwipe } =
@@ -16,27 +17,35 @@ export function ThemeSortingMinigame() {
 
   const [flyFromPosition, setFlyFromPosition] = useState<{ x: number; y: number } | undefined>();
   const [bgFlash, setBgFlash] = useState<'correct' | 'incorrect' | null>(null);
+  const [visibleIndex, setVisibleIndex] = useState(currentSortingIndex);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const controls = useAnimation();
 
   useEffect(() => {
-    // Initial mount animation to make the first card visible
+    if (!sortingRounds[visibleIndex]) return;
+
+    controls.set({ x: 0, opacity: 0, scale: 0.9, y: 20 });
     controls.start({ scale: 1, opacity: 1, y: 0, transition: { duration: 0.3 } });
-  }, [controls]);
+  }, [controls, visibleIndex, sortingRounds]);
 
   // Total cards left in the unswiped deck
-  const cardsRemaining = sortingRounds.length - currentSortingIndex;
+  const cardsRemaining = Math.max(0, sortingRounds.length - visibleIndex);
 
   // The active card we're currently swiping
-  const currentCard = sortingRounds[currentSortingIndex];
+  const currentCard = sortingRounds[visibleIndex];
 
   // Extracted swipe logic for both drag and button clicks
   const triggerSwipe = async (isRightSwipe: boolean) => {
+    if (!currentCard || isTransitioning) return;
+
     const guessType = isRightSwipe ? 'favorite' : 'least_favorite';
     const isCorrect = currentCard.type === guessType;
+    const nextVisibleIndex = visibleIndex + 1;
 
     // Flash background instantly
     setBgFlash(isCorrect ? 'correct' : 'incorrect');
     setTimeout(() => setBgFlash(null), 600);
+    setIsTransitioning(true);
 
     // Capture position for the ScorePanel flying animation BEFORE animating away
     setFlyFromPosition({
@@ -44,29 +53,16 @@ export function ThemeSortingMinigame() {
       y: window.innerHeight / 2,
     });
 
-    // Award points and move logic IMMEDIATELY
-    handleThemeSwipe(guessType);
-
     // Animate card off screen based on direction
-    controls
-      .start({
-        x: isRightSwipe ? window.innerWidth : -window.innerWidth,
-        opacity: 0,
-        transition: { duration: 0.3, ease: 'easeIn' },
-      })
-      .then(() => {
-        // Reset card position instantly behind the scenes for the next card once original finishes leaving
-        controls.set({ x: 0, opacity: 0, scale: 0.9, y: 20 });
+    await controls.start({
+      x: isRightSwipe ? window.innerWidth : -window.innerWidth,
+      opacity: 0,
+      transition: { duration: 0.3, ease: 'easeIn' },
+    });
 
-        // Animate the next card in
-        controls.start({
-          scale: 1,
-          opacity: 1,
-          y: 0,
-          x: 0,
-          transition: { duration: 0.3, ease: 'easeOut' },
-        });
-      });
+    handleThemeSwipe(guessType);
+    setVisibleIndex(nextVisibleIndex);
+    setIsTransitioning(false);
   };
 
   // Drag handlers
@@ -145,7 +141,7 @@ export function ThemeSortingMinigame() {
           />
 
           <div className="text-center mb-8 sm:mb-12 z-10">
-            <h2 className="text-2xl sm:text-3xl font-serif text-foreground">
+            <h2 className={`${GAME_SECTION_TITLE_CLASS} text-foreground`}>
               Which themes are your favorites?
             </h2>
           </div>
@@ -175,7 +171,6 @@ export function ThemeSortingMinigame() {
 
             {/* Main Draggable Card */}
             <motion.div
-              drag="x"
               dragConstraints={{ left: 0, right: 0 }}
               onDragEnd={(e, info) => handleDragEnd(e, info)}
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -185,6 +180,7 @@ export function ThemeSortingMinigame() {
                 'backdrop-blur-sm',
               )}
               whileTap={{ scale: 0.95, cursor: 'grabbing' }}
+              drag={!isTransitioning ? 'x' : false}
               dragElastic={0.5}
             >
               <h3 className="text-2xl sm:text-3xl font-serif text-foreground leading-tight select-none pointer-events-none">

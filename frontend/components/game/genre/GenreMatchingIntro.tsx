@@ -19,7 +19,7 @@ export function GenreMatchingIntro({ onComplete, baseScore = 0 }: GenreMatchingI
             maxScore={200} // Global max score for entire Genre game
             showMaxScore={true}
             size="md"
-            label="Current Score"
+            label="Score"
             className="mb-0"
           />
         </div>

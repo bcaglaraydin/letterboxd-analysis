@@ -229,7 +229,7 @@ export const GenreIntroDialogue: React.FC<GenreIntroDialogueProps> = ({ onComple
               maxScore={200}
               showMaxScore={true}
               size="md"
-              label="Current Score"
+              label="Score"
               className="mb-0"
             />
           </div>

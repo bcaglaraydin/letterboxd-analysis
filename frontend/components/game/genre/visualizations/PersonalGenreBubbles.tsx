@@ -8,6 +8,7 @@ import { GenreStat, GenreInsight } from '@/lib/api';
 import { AnimatePresence, motion } from 'framer-motion';
 
 import { BubblePosterStrip } from './BubblePosterStrip';
+import { GAME_SECTION_TITLE_CLASS } from '@/components/game/shared/titleStyles';
 
 interface BubbleNode extends d3.SimulationNodeDatum {
   id: string;
@@ -421,7 +422,7 @@ export function PersonalGenreBubbles({ data, insights }: PersonalGenreBubblesPro
     >
       {/* Header / Intro Line */}
       <div className="relative shrink-0 pt-6 md:pt-10 z-10 px-4 flex flex-col items-center gap-2 md:gap-4 pointer-events-none w-full max-w-4xl mx-auto">
-        <h1 className="text-3xl md:text-5xl font-serif font-bold text-[#2D2D2D] drop-shadow-sm">
+        <h1 className={`${GAME_SECTION_TITLE_CLASS} text-[#2D2D2D] drop-shadow-sm`}>
           Your Genre Bubbles
         </h1>
         <div className="flex flex-wrap justify-center gap-4 md:gap-8 text-sm md:text-lg font-medium text-[#555]">

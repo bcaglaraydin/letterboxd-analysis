@@ -15,6 +15,7 @@ import { GameRoundIndicator } from '@/components/game/shared/GameRoundIndicator'
 import { ScorePanel } from '@/components/game/shared/ScorePanel';
 import { Button } from '@/components/ui/button';
 import type { CountryStat } from '@/lib/api';
+import { GAME_SECTION_TITLE_CLASS } from '@/components/game/shared/titleStyles';
 
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
 
@@ -213,7 +214,7 @@ export function WorldMapRound({
         <motion.h2
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-2xl md:text-4xl font-serif text-center text-primary leading-tight"
+          className={`${GAME_SECTION_TITLE_CLASS} text-center text-primary`}
         >
           Your Cinema World Map
         </motion.h2>
@@ -510,7 +511,7 @@ function CountryAnalysis({
         <motion.h2
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-2xl md:text-4xl font-serif text-primary"
+          className={`${GAME_SECTION_TITLE_CLASS} text-primary`}
         >
           Country Breakdown
         </motion.h2>

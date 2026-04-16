@@ -116,15 +116,15 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.4 }}
-          className="flex-1 flex flex-col w-full min-h-0 md:justify-center md:gap-12"
+          className="flex-1 flex flex-col justify-center w-full min-h-0 gap-6 md:gap-12"
         >
-          <div className="flex-1 flex items-center justify-center p-2 md:flex-none">
+          <div className="flex items-center justify-center p-2 md:px-6">
             <h2 className="text-lg md:text-3xl font-serif text-primary text-center leading-relaxed font-medium">
               {question.text}
             </h2>
           </div>
 
-          <div className="relative grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3 pb-2 shrink-0 w-full max-w-4xl md:pb-0">
+          <div className="relative grid grid-cols-1 md:grid-cols-2 content-center gap-2 md:gap-3 shrink-0 w-full max-w-4xl">
             <AnimatePresence>
               {prankPhase && (
                 <motion.div

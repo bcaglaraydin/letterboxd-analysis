@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { PersonalGenreBubbles } from './visualizations/PersonalGenreBubbles';
 import { TasteGapLine } from '@/components/game/genre/visualizations/TasteGapLineChart';
 import { FakeScoreInteraction } from '@/components/game/shared/FakeScoreInteraction';
+import { GAME_SECTION_TITLE_CLASS } from '@/components/game/shared/titleStyles';
 
 interface PostGameScreenProps {
   onComplete: () => void;
@@ -119,7 +120,7 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) =>
       component: (
         <div className="w-full h-full relative flex flex-col bg-[#F8F5F2]">
           <div className="shrink-0 p-4 text-center">
-            <h2 className="text-2xl md:text-3xl font-serif font-bold text-[#2D2D2D]">Taste Gap</h2>
+            <h2 className={`${GAME_SECTION_TITLE_CLASS} text-[#2D2D2D]`}>Taste Gap</h2>
             <div className="mt-2 flex justify-center items-center gap-4 md:gap-6 text-sm md:text-base font-medium text-[#666]">
               <div className="flex items-center gap-2">
                 <div className="flex -space-x-1 md:-space-x-2">

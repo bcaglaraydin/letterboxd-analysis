@@ -5,6 +5,7 @@ import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ScorePanel } from '@/components/game/shared/ScorePanel';
 import { getScoreColor } from '@/lib/scoreUtils';
+import { cn } from '@/lib/utils';
 import { useUserStore } from '@/store/core/userStore';
 
 interface FakeScoreInteractionProps {
@@ -45,6 +46,8 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
   const [phase, setPhase] = useState<InteractionPhase>(determineInitialPhase());
   const [fakeScore, setFakeScore] = useState(score);
   const [clicks, setClicks] = useState(0);
+  const showInteractiveScorePanel =
+    !isPass && (phase === 'interactive-score' || phase === 'busted' || phase === 'final-busted');
 
   // Animation variants
   const containerVariants: Variants = {
@@ -95,7 +98,12 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
   if ((hasSeenFakeScorePrank && !isPass) || (hasSeenSuccessDialog && isPass)) return null;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[100dvh] w-full text-center p-6 bg-background relative z-50 select-none">
+    <div
+      className={cn(
+        'flex flex-col items-center justify-center min-h-[100dvh] w-full text-center p-6 bg-background relative z-50 select-none',
+        showInteractiveScorePanel && 'pt-28 sm:pt-32 md:pt-10',
+      )}
+    >
       {/* Top Right Score Panel */}
       <AnimatePresence>
         {!isPass && (
@@ -103,34 +111,34 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed top-4 right-4 md:top-6 md:right-6 z-[60] flex flex-col items-center"
+            className="fixed top-3 right-3 md:top-6 md:right-6 z-[60] flex max-w-[calc(100vw-1.5rem)] flex-col items-end"
           >
             <AnimatePresence>
               {(phase === 'interactive-score' ||
                 phase === 'busted' ||
                 phase === 'final-busted') && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="cursor-pointer mb-2 opacity-50 hover:opacity-100 hover:-translate-y-1 transition-all group"
-                  onClick={handleScoreInteraction}
-                >
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="text-primary group-hover:animate-bounce"
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="cursor-pointer mb-2 opacity-50 hover:opacity-100 hover:-translate-y-1 transition-all group"
+                    onClick={handleScoreInteraction}
                   >
-                    <path d="m18 15-6-6-6 6" />
-                  </svg>
-                </motion.div>
-              )}
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="text-primary group-hover:animate-bounce"
+                    >
+                      <path d="m18 15-6-6-6 6" />
+                    </svg>
+                  </motion.div>
+                )}
             </AnimatePresence>
 
             <div className="cursor-pointer" onClick={handleScoreInteraction}>
@@ -148,28 +156,28 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
               {(phase === 'interactive-score' ||
                 phase === 'busted' ||
                 phase === 'final-busted') && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="cursor-pointer mt-2 opacity-50 hover:opacity-100 hover:translate-y-1 transition-all group"
-                  onClick={handleScoreInteraction}
-                >
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="text-primary group-hover:animate-bounce"
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="cursor-pointer mt-2 opacity-50 hover:opacity-100 hover:translate-y-1 transition-all group"
+                    onClick={handleScoreInteraction}
                   >
-                    <path d="m6 9 6 6 6-6" />
-                  </svg>
-                </motion.div>
-              )}
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="text-primary group-hover:animate-bounce"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </motion.div>
+                )}
             </AnimatePresence>
           </motion.div>
         )}
@@ -355,15 +363,12 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
             initial="hidden"
             animate="show"
             exit="exit"
-            className="flex flex-col items-center space-y-8 max-w-4xl mx-auto"
+            className="flex flex-col items-center space-y-8 max-w-4xl mx-auto pt-4 md:pt-0"
           >
             <div className="text-xl md:text-3xl text-primary font-serif leading-relaxed text-center">
               <span className="block mb-2">
-                <motion.span variants={textVariants} className="inline mr-2">
-                  What are you doing?
-                </motion.span>
                 <motion.span variants={textVariants} className="inline font-bold">
-                  Stop that.
+                  Are you serious?
                 </motion.span>
               </span>
               <motion.span variants={textVariants} className="inline">
@@ -378,7 +383,7 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
               variants={itemVariants}
               className="text-xl md:text-3xl text-primary font-serif leading-relaxed"
             >
-              By attempting these <span className="font-bold">ridiculous</span> things, you&apos;ve
+              By attempting these <span className="font-bold">ridiculous </span> things, you&apos;ve
               just lost <span className="font-bold text-red-500">{clicks}</span> points.{' '}
             </motion.p>
             <motion.p

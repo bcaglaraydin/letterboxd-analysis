@@ -15,6 +15,7 @@ import { DraggableRankingList } from './DraggableRankingList';
 import { ActualRankingColumn } from './ActualRankingColumn';
 import { useRevealAnimation } from './useRevealAnimation';
 import { Button } from '@/components/ui/button';
+import { GAME_SECTION_TITLE_CLASS } from '@/components/game/shared/titleStyles';
 // import { MOCK_GENRE_STATS } from '@/mocks/data';
 
 interface GenreRankingGameProps {
@@ -135,7 +136,7 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
               {!isRevealing && (
                 <motion.div className="text-center mb-6 md:mb-10" layout="position">
                   <motion.h2
-                    className="text-2xl md:text-4xl font-serif font-bold text-foreground drop-shadow-sm"
+                    className={`${GAME_SECTION_TITLE_CLASS} text-foreground drop-shadow-sm`}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                   >
