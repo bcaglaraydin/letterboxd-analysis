@@ -1,18 +1,40 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { GameBackground } from '@/components/game/shared/GameBackground';
 import { GameLayout } from '@/components/game/shared/GameLayout';
 import { ScorePanel } from '@/components/game/shared/ScorePanel';
 import { useExperienceStore } from '@/store/core/experienceStore';
+import { computeDialogueTiming, type DialogueLine } from '@/lib/useDialogueTiming';
 
 interface GenreIntroDialogueProps {
   onComplete: () => void;
 }
 
 type DialogueKey = 'start' | 'fun' | 'dk';
+
+const SCREEN_LINES: Record<DialogueKey, DialogueLine[]> = {
+  start: [{ text: 'What do you think of the game and our analysis so far?' }],
+  fun: [
+    { text: 'Glad to hear that!' },
+    { text: "Let's move on to the next stage then." },
+    { text: 'Our next game is all about Genres.' },
+    { text: "I'll ask you to rank your highest scoring genres." },
+    { text: 'And yes ' },
+    { text: 'if you score over 150/200 ' },
+    { text: "we'll unlock a deeper analysis." },
+  ],
+  dk: [
+    { text: "Let's keep going to see what awaits you." },
+    { text: 'Our next game is all about Genres.' },
+    { text: "I'll ask you to rank your highest scoring genres." },
+    { text: 'And yes, ' },
+    { text: 'if you score over 150/200, ' },
+    { text: "we'll unlock a deeper analysis." },
+  ],
+};
 
 export const GenreIntroDialogue: React.FC<GenreIntroDialogueProps> = ({ onComplete }) => {
   const [dialogueKey, setDialogueKey] = useState<DialogueKey>('start');
@@ -23,27 +45,20 @@ export const GenreIntroDialogue: React.FC<GenreIntroDialogueProps> = ({ onComple
     setIsAnimationComplete(false);
   }, [dialogueKey]);
 
+  // ── Dynamic timing for current screen ──
+  const { delays, fadeVariants, slideVariants, totalSequenceDuration } = useMemo(
+    () => computeDialogueTiming(SCREEN_LINES[dialogueKey]),
+    [dialogueKey],
+  );
+
+  // Buttons appear exactly after the dialogue finishes sequentially
+  const buttonDelay = totalSequenceDuration;
+  const secondButtonDelay = totalSequenceDuration + 0.2;
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1 },
     exit: { opacity: 0, transition: { duration: 0.2 } },
-  };
-
-  const sequentialFade = {
-    hidden: { opacity: 0 },
-    visible: (i: number) => ({
-      opacity: 1,
-      transition: { delay: i * 1.4, duration: 0.8 },
-    }),
-  };
-
-  const sequentialSlide = {
-    hidden: { opacity: 0, y: 20 },
-    visible: (i: number) => ({
-      opacity: 1,
-      y: 0,
-      transition: { delay: i * 1.4, duration: 0.8 },
-    }),
   };
 
   const renderContent = () => {
@@ -52,8 +67,8 @@ export const GenreIntroDialogue: React.FC<GenreIntroDialogueProps> = ({ onComple
         return (
           <>
             <motion.div
-              variants={sequentialFade}
-              custom={0}
+              variants={fadeVariants}
+              custom={delays[0]}
               onAnimationComplete={() => setIsAnimationComplete(true)}
               className="text-xl md:text-3xl font-serif text-primary leading-relaxed text-center mb-12"
             >
@@ -61,7 +76,7 @@ export const GenreIntroDialogue: React.FC<GenreIntroDialogueProps> = ({ onComple
             </motion.div>
 
             <div className="flex flex-col gap-4 w-full max-w-sm shrink-0">
-              <motion.div variants={sequentialSlide} custom={1.2}>
+              <motion.div variants={slideVariants} custom={buttonDelay}>
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -78,7 +93,7 @@ export const GenreIntroDialogue: React.FC<GenreIntroDialogueProps> = ({ onComple
                   It&apos;s actually really fun!
                 </Button>
               </motion.div>
-              <motion.div variants={sequentialSlide} custom={1.4}>
+              <motion.div variants={slideVariants} custom={secondButtonDelay}>
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -104,39 +119,39 @@ export const GenreIntroDialogue: React.FC<GenreIntroDialogueProps> = ({ onComple
           <>
             <div className="space-y-6 text-center max-w-3xl mb-12">
               <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
-                <motion.span variants={sequentialFade} custom={0}>
+                <motion.span variants={fadeVariants} custom={delays[0]}>
                   <span className="font-bold">Glad to hear that!</span>{' '}
                 </motion.span>
-                <motion.span variants={sequentialFade} custom={1}>
+                <motion.span variants={fadeVariants} custom={delays[1]}>
                   Let&apos;s move on to the next stage then.
                 </motion.span>
               </div>
               <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
-                <motion.span variants={sequentialFade} custom={2}>
+                <motion.span variants={fadeVariants} custom={delays[2]}>
                   Our next game is all about <span className="font-bold">Genres</span>.{' '}
                 </motion.span>
-                <motion.span variants={sequentialFade} custom={3}>
+                <motion.span variants={fadeVariants} custom={delays[3]}>
                   I&apos;ll ask you to rank your highest scoring genres.
                 </motion.span>
               </div>
               <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
-                <motion.span variants={sequentialFade} custom={4}>
+                <motion.span variants={fadeVariants} custom={delays[4]}>
                   And yes{' '}
                 </motion.span>
-                <motion.span variants={sequentialFade} custom={5}>
+                <motion.span variants={fadeVariants} custom={delays[5]}>
                   if you score over{' '}
                   <span className="font-bold text-3xl ml-1 text-green-500">150</span>
                   <span className="font-bold text-3xl mr-1">/200</span>{' '}
                 </motion.span>
-                <motion.span variants={sequentialFade} custom={6}>
+                <motion.span variants={fadeVariants} custom={delays[6]}>
                   we&apos;ll unlock a<span className="font-bold"> deeper analysis</span>.
                 </motion.span>
               </div>
             </div>
 
             <motion.div
-              variants={sequentialSlide}
-              custom={8}
+              variants={slideVariants}
+              custom={buttonDelay}
               onAnimationComplete={() => setIsAnimationComplete(true)}
               className="w-full flex justify-center shrink-0"
             >
@@ -161,36 +176,36 @@ export const GenreIntroDialogue: React.FC<GenreIntroDialogueProps> = ({ onComple
           <>
             <div className="space-y-6 text-center max-w-3xl mb-12">
               <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
-                <motion.span variants={sequentialFade} custom={0}>
+                <motion.span variants={fadeVariants} custom={delays[0]}>
                   Let&apos;s keep going to see what awaits you.
                 </motion.span>
               </div>
               <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
-                <motion.span variants={sequentialFade} custom={1}>
+                <motion.span variants={fadeVariants} custom={delays[1]}>
                   Our next game is all about <span className="font-bold">Genres</span>.{' '}
                 </motion.span>
-                <motion.span variants={sequentialFade} custom={2}>
+                <motion.span variants={fadeVariants} custom={delays[2]}>
                   I&apos;ll ask you to rank your highest scoring genres.
                 </motion.span>
               </div>
               <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
-                <motion.span variants={sequentialFade} custom={3}>
+                <motion.span variants={fadeVariants} custom={delays[3]}>
                   And yes,{' '}
                 </motion.span>
-                <motion.span variants={sequentialFade} custom={4}>
+                <motion.span variants={fadeVariants} custom={delays[4]}>
                   if you score over{' '}
                   <span className="font-bold text-3xl ml-1 text-green-500">150</span>
                   <span className="font-bold text-3xl mr-1">/200</span>,{' '}
                 </motion.span>
-                <motion.span variants={sequentialFade} custom={5}>
+                <motion.span variants={fadeVariants} custom={delays[5]}>
                   we&apos;ll unlock a<span className="font-bold"> deeper analysis</span>.
                 </motion.span>
               </div>
             </div>
 
             <motion.div
-              variants={sequentialSlide}
-              custom={7}
+              variants={slideVariants}
+              custom={buttonDelay}
               onAnimationComplete={() => setIsAnimationComplete(true)}
               className="w-full flex justify-center shrink-0"
             >

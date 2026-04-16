@@ -98,7 +98,9 @@ export function useDialogueTiming(lines: DialogueLine[]): DialogueTimingResult {
 
     // Convert to seconds for Framer Motion
     const delays = delaysMs.map((d) => Number((d / 1000).toFixed(3)));
-    const totalSequenceDuration = Number((cursor / 1000).toFixed(3));
+    // Subtract 200ms from the end to overlap the button reveal slightly with the end of the text reading
+    // to make the interface feel snappier.
+    const totalSequenceDuration = Math.max(0, Number((cursor / 1000 - 0.2).toFixed(3)));
 
     // ── Dynamic Framer Motion variants ──
     // `custom` is now the absolute delay in seconds (not an index)
@@ -161,7 +163,9 @@ export function computeDialogueTiming(lines: DialogueLine[]): DialogueTimingResu
   }
 
   const delays = delaysMs.map((d) => Number((d / 1000).toFixed(3)));
-  const totalSequenceDuration = Number((cursor / 1000).toFixed(3));
+  // Subtract 200ms from the end to overlap the button reveal slightly with the end of the text reading
+  // to make the interface feel snappier.
+  const totalSequenceDuration = Math.max(0, Number((cursor / 1000 - 0.2).toFixed(3)));
 
   const fadeVariants: Variants = {
     hidden: { opacity: 0 },

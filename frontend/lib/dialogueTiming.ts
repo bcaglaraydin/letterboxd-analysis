@@ -52,7 +52,7 @@ export type EmotionalWeight = 'dramatic' | 'normal' | 'casual' | 'ui';
  * This is the "anchor" — all scaling is relative to this value.
  * Tuned to feel natural at ~40 characters (a short sentence).
  */
-const BASE_CHAR_DELAY = 35;
+const BASE_CHAR_DELAY = 28; // Slightly faster base speed to compensate for closer scaling
 
 /**
  * Character count that maps to the "base" speed with no adjustment.
@@ -62,11 +62,10 @@ const ANCHOR_LENGTH = 40;
 
 /**
  * Nonlinear scaling exponent.
- * Values < 1.0 cause diminishing returns (long text doesn't get too slow).
- * 0.6 is the sweet spot: a 200-char text is only ~2.5× slower than a 40-char text
- * instead of 5× slower with linear scaling.
+ * Values closer to 1.0 mean less variation between short and long sentences.
+ * Increased to 0.8 to reduce the speed difference between short and long sentences.
  */
-const SCALING_EXPONENT = 0.6;
+const SCALING_EXPONENT = 0.8;
 
 /**
  * Absolute speed bounds (ms per character) to prevent extremes.

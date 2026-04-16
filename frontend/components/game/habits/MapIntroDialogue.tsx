@@ -1,12 +1,22 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { computeDialogueTiming } from '@/lib/useDialogueTiming';
 
 interface MapIntroDialogueProps {
   onComplete: () => void;
 }
 
 export function MapIntroDialogue({ onComplete }: MapIntroDialogueProps) {
+  // Use the timing engine to calculate standard delay
+  const { slideVariants, totalSequenceDuration } = useMemo(
+    () => computeDialogueTiming([{ text: 'The next one is my favorite.' }]),
+    [],
+  );
+
+  // The button emerges right when the dialogue read-time has lapsed
+  const buttonDelay = totalSequenceDuration;
+
   return (
     <div className="w-full h-[100dvh] flex flex-col items-center justify-center p-6 bg-background relative selection:bg-primary/20">
       <AnimatePresence mode="wait">
@@ -23,9 +33,11 @@ export function MapIntroDialogue({ onComplete }: MapIntroDialogueProps) {
           </div>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.5, duration: 0.8 }}
+            initial="hidden"
+            animate="visible"
+            // Re-using the central slide upward variants and dynamic button pacing
+            variants={slideVariants}
+            custom={buttonDelay}
           >
             <Button
               onClick={onComplete}
