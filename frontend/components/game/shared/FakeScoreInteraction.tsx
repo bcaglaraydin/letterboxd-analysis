@@ -66,6 +66,24 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
     show: { opacity: 1, transition: { duration: 0.7, ease: 'easeOut' } },
   };
 
+  // Sequential fade for line-by-line dialogue (used in final-busted)
+  const sequentialFade: Variants = {
+    hidden: { opacity: 0 },
+    show: (i: number) => ({
+      opacity: 1,
+      transition: { delay: i * 1.2, duration: 0.8 },
+    }),
+  };
+
+  const sequentialSlide: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    show: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 1.2, duration: 0.8 },
+    }),
+  };
+
   const scoreColor = getScoreColor(fakeScore);
 
   const finishPrank = () => {
@@ -117,28 +135,28 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
               {(phase === 'interactive-score' ||
                 phase === 'busted' ||
                 phase === 'final-busted') && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="cursor-pointer mb-2 opacity-50 hover:opacity-100 hover:-translate-y-1 transition-all group"
-                    onClick={handleScoreInteraction}
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="cursor-pointer mb-2 opacity-50 hover:opacity-100 hover:-translate-y-1 transition-all group"
+                  onClick={handleScoreInteraction}
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-primary group-hover:animate-bounce"
                   >
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="text-primary group-hover:animate-bounce"
-                    >
-                      <path d="m18 15-6-6-6 6" />
-                    </svg>
-                  </motion.div>
-                )}
+                    <path d="m18 15-6-6-6 6" />
+                  </svg>
+                </motion.div>
+              )}
             </AnimatePresence>
 
             <div className="cursor-pointer" onClick={handleScoreInteraction}>
@@ -156,28 +174,28 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
               {(phase === 'interactive-score' ||
                 phase === 'busted' ||
                 phase === 'final-busted') && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="cursor-pointer mt-2 opacity-50 hover:opacity-100 hover:translate-y-1 transition-all group"
-                    onClick={handleScoreInteraction}
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="cursor-pointer mt-2 opacity-50 hover:opacity-100 hover:translate-y-1 transition-all group"
+                  onClick={handleScoreInteraction}
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-primary group-hover:animate-bounce"
                   >
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="text-primary group-hover:animate-bounce"
-                    >
-                      <path d="m6 9 6 6 6-6" />
-                    </svg>
-                  </motion.div>
-                )}
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </motion.div>
+              )}
             </AnimatePresence>
           </motion.div>
         )}
@@ -411,15 +429,21 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
             initial="hidden"
             animate="show"
             exit="exit"
-            className="flex flex-col items-center space-y-8 max-w-4xl mx-auto"
+            className="flex flex-col items-center max-w-4xl mx-auto"
           >
-            <motion.p
-              variants={itemVariants}
-              className="text-xl md:text-3xl text-primary font-serif leading-relaxed"
+            <div className="text-xl md:text-3xl text-primary font-serif leading-relaxed text-center">
+              <motion.span variants={sequentialFade} custom={0} className="inline">
+                No,{' '}
+              </motion.span>
+              <motion.span variants={sequentialFade} custom={1} className="inline">
+                enjoy your <span className="font-bold">genre bubbles</span>.
+              </motion.span>
+            </div>
+            <motion.div
+              variants={sequentialSlide}
+              custom={2}
+              className="pt-12 w-full flex justify-center"
             >
-              No, enjoy your <span className="font-bold">genre bubbles</span>.
-            </motion.p>
-            <motion.div variants={itemVariants} className="pt-8 w-full flex justify-center">
               <Button size="lg" onClick={finishPrank} className="w-full max-w-sm text-xl py-6">
                 Continue
               </Button>

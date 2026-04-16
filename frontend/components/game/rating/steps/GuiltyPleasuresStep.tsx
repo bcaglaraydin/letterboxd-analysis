@@ -99,7 +99,7 @@ export const GuiltyPleasuresStep: React.FC<GuiltyPleasuresStepProps> = ({
               'inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] md:text-sm font-bold uppercase tracking-widest shadow-lg',
               categoryKey === 'guiltyPleasures' && 'bg-rose-600 text-white border border-rose-400',
               categoryKey === 'controversialPicks' &&
-              'bg-amber-600 text-white border border-amber-400',
+                'bg-amber-600 text-white border border-amber-400',
               categoryKey === 'hotTakes' && 'bg-orange-600 text-white border border-orange-400',
               categoryKey === 'skepticPicks' && 'bg-red-600 text-white border border-red-400',
             )}
@@ -119,21 +119,9 @@ export const GuiltyPleasuresStep: React.FC<GuiltyPleasuresStepProps> = ({
           </h2>
 
           <p className="text-sm md:text-lg text-muted-foreground">
-            {categoryKey === 'guiltyPleasures' && (
-              <>
-                You saw something special they missed.
-              </>
-            )}
-            {categoryKey === 'controversialPicks' && (
-              <>
-                You knew it was incredible.
-              </>
-            )}
-            {categoryKey === 'hotTakes' && (
-              <>
-                Is this really what all the fuss is about?
-              </>
-            )}
+            {categoryKey === 'guiltyPleasures' && <>You saw something special they missed.</>}
+            {categoryKey === 'controversialPicks' && <>You knew it was incredible.</>}
+            {categoryKey === 'hotTakes' && <>Is this really what all the fuss is about?</>}
             {categoryKey === 'skepticPicks' && (
               <>
                 The community already thought{' '}

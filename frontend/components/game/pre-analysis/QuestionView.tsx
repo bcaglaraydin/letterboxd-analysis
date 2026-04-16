@@ -21,7 +21,7 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
   onScoreUpdate,
 }) => {
   const SLOW_PRANK_DELAY_MS = 17000;
-  const FAST_PRANK_THRESHOLD_MS = 3000;
+  const FAST_PRANK_THRESHOLD_MS = 2000;
   const EARLY_EXIT_OPTION_ID = 'early-exit';
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [flyFrom, setFlyFrom] = useState<{ x: number; y: number } | undefined>(undefined);

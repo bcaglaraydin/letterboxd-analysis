@@ -27,22 +27,22 @@ export const GameBackground: React.FC<GameBackgroundProps> = ({ className, child
         )}
       />
 
-      {/* Organic Blobs (Watercolor effect) */}
+      {/* Organic Blobs (Watercolor effect) — offset off-screen so overflow-hidden doesn't create visible edges */}
       <div
         className={cn(
-          'absolute top-0 left-0 w-96 h-96 bg-primary/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob',
+          'absolute -top-16 -left-16 md:top-0 md:left-0 w-48 h-48 md:w-96 md:h-96 bg-primary/15 md:bg-primary/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 md:opacity-70 animate-blob',
           theme.orb1Color,
         )}
       />
       <div
         className={cn(
-          'absolute top-0 right-0 w-96 h-96 bg-accent/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000',
+          'absolute -top-16 -right-16 md:top-0 md:right-0 w-48 h-48 md:w-96 md:h-96 bg-accent/15 md:bg-accent/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 md:opacity-70 animate-blob animation-delay-2000',
           theme.orb2Color,
         )}
       />
       <div
         className={cn(
-          'absolute -bottom-32 left-20 w-96 h-96 bg-secondary/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000',
+          'absolute -bottom-48 left-10 md:-bottom-32 md:left-20 w-48 h-48 md:w-96 md:h-96 bg-secondary/20 md:bg-secondary/30 rounded-full mix-blend-multiply filter blur-3xl opacity-50 md:opacity-70 animate-blob animation-delay-4000',
         )}
       />
 

@@ -47,10 +47,10 @@ export const GameHubCard: React.FC<GameHubCardProps> = ({
   const isDisabled = isLocked;
 
   return (
-    <motion.div variants={itemVariants} className="w-full min-w-0">
+    <motion.div variants={itemVariants} className="w-full min-w-0 overflow-hidden">
       <button
         className={cn(
-          'w-full min-h-[220px] text-left bg-card border rounded-3xl p-4 sm:p-5 md:min-h-[250px] md:p-8 relative overflow-hidden transition-all duration-300 focus-visible:ring-2 focus-visible:outline-none flex flex-col',
+          'w-full min-h-[180px] text-left bg-card border rounded-3xl p-4 sm:p-5 md:min-h-[250px] md:p-8 relative overflow-hidden transition-all duration-300 focus-visible:ring-2 focus-visible:outline-none flex flex-col max-w-full',
           onHoverBorderColor,
           isUnlocked || isCompleted
             ? `border-accent/50 bg-gradient-to-br ${gradientColor} to-transparent hover:shadow-lg hover:shadow-accent/5 hover:scale-[1.02] cursor-pointer`
