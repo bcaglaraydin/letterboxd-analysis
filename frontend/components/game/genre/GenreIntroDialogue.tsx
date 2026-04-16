@@ -129,9 +129,6 @@ export const GenreIntroDialogue: React.FC<GenreIntroDialogueProps> = ({ onComple
                   <span className="font-bold text-3xl mr-1">/200</span>{' '}
                 </motion.span>
                 <motion.span variants={sequentialFade} custom={6}>
-                  again{' '}
-                </motion.span>
-                <motion.span variants={sequentialFade} custom={7}>
                   we&apos;ll unlock a<span className="font-bold"> deeper analysis</span>.
                 </motion.span>
               </div>
@@ -186,9 +183,6 @@ export const GenreIntroDialogue: React.FC<GenreIntroDialogueProps> = ({ onComple
                   <span className="font-bold text-3xl mr-1">/200</span>,{' '}
                 </motion.span>
                 <motion.span variants={sequentialFade} custom={5}>
-                  again,{' '}
-                </motion.span>
-                <motion.span variants={sequentialFade} custom={6}>
                   we&apos;ll unlock a<span className="font-bold"> deeper analysis</span>.
                 </motion.span>
               </div>

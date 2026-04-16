@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ScorePanel } from '@/components/game/shared/ScorePanel';
 import { getScoreColor } from '@/lib/scoreUtils';
 import { cn } from '@/lib/utils';
 import { useUserStore } from '@/store/core/userStore';
+import { computeDialogueTiming, type DialogueLine } from '@/lib/useDialogueTiming';
 
 interface FakeScoreInteractionProps {
   score: number;
@@ -23,6 +24,42 @@ type InteractionPhase =
   | 'busted'
   | 'final-busted'
   | 'success';
+
+// ─── Dialogue text per phase (stable references for memoization) ────────────
+
+const PHASE_LINES: Record<InteractionPhase, DialogueLine[]> = {
+  success: [
+    { text: 'Congratulations, you scored' },
+    {
+      text: "You truly have a respectable memory and attention to detail. You know yourself very well. You've earned the right to see the genre bubbles.",
+    },
+  ],
+  'initial-fail': [
+    { text: 'I see you scored' },
+    { text: 'Do you have anything to say about this?' },
+  ],
+  forgive: [
+    { text: 'Alright, alright.' },
+    { text: 'To be honest,' },
+    { text: "I'm going to show you the analysis anyway." },
+    { text: "We're here to have fun after all," },
+    { text: "aren't we?" },
+  ],
+  'interactive-score': [
+    { text: 'The score was there just to bring a bit more fun.' },
+    { text: 'In fact,' },
+    { text: "I'll even give you the chance to change your score however you like." },
+    { text: 'Try it in the top right corner.' },
+  ],
+  busted: [
+    { text: 'Are you serious?', emotion: 'dramatic' },
+    { text: "The scores won't prevent the analysis," },
+    { text: 'but your score needs to be fair if you want to compete with your friends.' },
+    { text: "By attempting these ridiculous things, you've just lost points." },
+    { text: 'I advise you not to touch it anymore.', emotion: 'dramatic' },
+  ],
+  'final-busted': [{ text: 'No,', emotion: 'dramatic' }, { text: 'enjoy your genre bubbles.' }],
+};
 
 export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
   score,
@@ -49,39 +86,20 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
   const showInteractiveScorePanel =
     !isPass && (phase === 'interactive-score' || phase === 'busted' || phase === 'final-busted');
 
-  // Animation variants
+  // ── Dynamic timing for current phase ──
+  const { delays, fadeVariants, slideVariants, totalSequenceDuration } = useMemo(
+    () => computeDialogueTiming(PHASE_LINES[phase]),
+    [phase],
+  );
+
+  // Button appears after all text lines
+  const buttonDelay = totalSequenceDuration;
+
+  // Container variants — no staggerChildren, delays are now explicit via custom prop
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { staggerChildren: 1.0 } },
+    show: { opacity: 1 },
     exit: { opacity: 0, transition: { duration: 0.5 } },
-  };
-
-  const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: 'easeOut' } },
-  };
-
-  const textVariants: Variants = {
-    hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { duration: 0.7, ease: 'easeOut' } },
-  };
-
-  // Sequential fade for line-by-line dialogue (used in final-busted)
-  const sequentialFade: Variants = {
-    hidden: { opacity: 0 },
-    show: (i: number) => ({
-      opacity: 1,
-      transition: { delay: i * 1.2, duration: 0.8 },
-    }),
-  };
-
-  const sequentialSlide: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    show: (i: number) => ({
-      opacity: 1,
-      y: 0,
-      transition: { delay: i * 1.2, duration: 0.8 },
-    }),
   };
 
   const scoreColor = getScoreColor(fakeScore);
@@ -212,7 +230,8 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
             className="flex flex-col items-center space-y-8 max-w-4xl mx-auto"
           >
             <motion.div
-              variants={itemVariants}
+              variants={fadeVariants}
+              custom={delays[0]}
               className="flex flex-col md:flex-row items-center md:items-baseline justify-center gap-2 md:gap-3 flex-wrap"
             >
               <span className="text-xl md:text-3xl text-muted-foreground text-center">
@@ -231,7 +250,8 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
               </div>
             </motion.div>
             <motion.div
-              variants={itemVariants}
+              variants={fadeVariants}
+              custom={delays[1]}
               className="text-xl md:text-3xl text-muted-foreground max-w-2xl mx-auto leading-relaxed text-center"
             >
               You truly have a <span className="font-bold text-foreground">respectable memory</span>{' '}
@@ -242,7 +262,7 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
               </span>
               .
             </motion.div>
-            <motion.div variants={itemVariants} className="pt-8">
+            <motion.div variants={slideVariants} custom={buttonDelay} className="pt-8">
               <Button
                 size="lg"
                 onClick={finishSuccess}
@@ -264,7 +284,8 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
             className="flex flex-col items-center space-y-8 max-w-4xl mx-auto"
           >
             <motion.div
-              variants={itemVariants}
+              variants={fadeVariants}
+              custom={delays[0]}
               className="flex flex-col md:flex-row items-center md:items-baseline justify-center gap-2 md:gap-3 flex-wrap"
             >
               <span className="text-xl md:text-3xl text-muted-foreground text-center">
@@ -283,12 +304,17 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
               </div>
             </motion.div>
             <motion.p
-              variants={itemVariants}
+              variants={fadeVariants}
+              custom={delays[1]}
               className="text-xl md:text-3xl text-primary font-serif leading-relaxed"
             >
               Do you have <span className="font-bold">anything</span> to say about this?
             </motion.p>
-            <motion.div variants={itemVariants} className="pt-8 w-full flex justify-center">
+            <motion.div
+              variants={slideVariants}
+              custom={buttonDelay}
+              className="pt-8 w-full flex justify-center"
+            >
               <Button
                 variant="outline"
                 onClick={() => setPhase('forgive')}
@@ -310,24 +336,28 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
             className="flex flex-col items-center space-y-8 max-w-4xl mx-auto"
           >
             <div className="text-xl md:text-3xl text-primary font-serif leading-relaxed text-center">
-              <motion.span variants={textVariants} className="inline mr-2">
+              <motion.span variants={fadeVariants} custom={delays[0]} className="inline mr-2">
                 Alright, alright.
               </motion.span>
-              <motion.span variants={textVariants} className="inline mr-2">
+              <motion.span variants={fadeVariants} custom={delays[1]} className="inline mr-2">
                 To be honest,
               </motion.span>
-              <motion.span variants={textVariants} className="inline">
+              <motion.span variants={fadeVariants} custom={delays[2]} className="inline">
                 I&apos;m going to show you the analysis <span className="font-bold">anyway</span>
                 .{' '}
               </motion.span>
-              <motion.span variants={textVariants} className="inline">
+              <motion.span variants={fadeVariants} custom={delays[3]} className="inline">
                 We&apos;re here to have <span className="font-bold">fun</span> after all,{' '}
               </motion.span>
-              <motion.span variants={textVariants} className="inline">
+              <motion.span variants={fadeVariants} custom={delays[4]} className="inline">
                 aren&apos;t we?
               </motion.span>
             </div>
-            <motion.div variants={itemVariants} className="pt-8 w-full flex justify-center">
+            <motion.div
+              variants={slideVariants}
+              custom={buttonDelay}
+              className="pt-8 w-full flex justify-center"
+            >
               <Button
                 variant="outline"
                 onClick={() => setPhase('interactive-score')}
@@ -349,24 +379,36 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
             className="flex flex-col items-center space-y-12 max-w-4xl mx-auto"
           >
             <div className="text-xl md:text-3xl text-primary font-serif leading-relaxed text-center">
-              <motion.span variants={textVariants} className="block mb-8 w-full text-center">
+              <motion.span
+                variants={fadeVariants}
+                custom={delays[0]}
+                className="block mb-8 w-full text-center"
+              >
                 The score was there just to bring a bit more <span className="font-bold">fun</span>.
               </motion.span>
               <span className="block mb-2 text-center w-full">
-                <motion.span variants={textVariants} className="inline mr-2">
+                <motion.span variants={fadeVariants} custom={delays[1]} className="inline mr-2">
                   In fact,
                 </motion.span>
-                <motion.span variants={textVariants} className="inline">
+                <motion.span variants={fadeVariants} custom={delays[2]} className="inline">
                   I&apos;ll even give you the chance to change your score{' '}
                   <span className="font-bold">however you like</span>.{' '}
                 </motion.span>
               </span>
-              <motion.span variants={itemVariants} className="block mt-4 text-center w-full">
+              <motion.span
+                variants={slideVariants}
+                custom={delays[3]}
+                className="block mt-4 text-center w-full"
+              >
                 Try it in the top right corner.
               </motion.span>
             </div>
 
-            <motion.div variants={itemVariants} className="pt-8 w-full flex justify-center">
+            <motion.div
+              variants={slideVariants}
+              custom={buttonDelay}
+              className="pt-8 w-full flex justify-center"
+            >
               <Button size="lg" onClick={finishPrank} className="w-full max-w-sm text-xl py-6">
                 Continue
               </Button>
@@ -385,32 +427,42 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
           >
             <div className="text-xl md:text-3xl text-primary font-serif leading-relaxed text-center">
               <span className="block mb-2">
-                <motion.span variants={textVariants} className="inline font-bold">
+                <motion.span
+                  variants={fadeVariants}
+                  custom={delays[0]}
+                  className="inline font-bold"
+                >
                   Are you serious?
                 </motion.span>
               </span>
-              <motion.span variants={textVariants} className="inline">
+              <motion.span variants={fadeVariants} custom={delays[1]} className="inline">
                 The scores <span className="font-bold">won&apos;t</span> prevent the analysis,{' '}
               </motion.span>
-              <motion.span variants={textVariants} className="inline">
+              <motion.span variants={fadeVariants} custom={delays[2]} className="inline">
                 <span className="font-bold"> but your score needs to be fair</span> if you want to
                 compete with your friends.
               </motion.span>
             </div>
             <motion.p
-              variants={itemVariants}
+              variants={fadeVariants}
+              custom={delays[3]}
               className="text-xl md:text-3xl text-primary font-serif leading-relaxed"
             >
               By attempting these <span className="font-bold">ridiculous </span> things, you&apos;ve
               just lost <span className="font-bold text-red-500">{clicks}</span> points.{' '}
             </motion.p>
             <motion.p
-              variants={itemVariants}
+              variants={fadeVariants}
+              custom={delays[4]}
               className="text-xl md:text-3xl text-primary font-serif leading-relaxed"
             >
               <span className="font-bold">I advise you not to touch it anymore.</span>
             </motion.p>
-            <motion.div variants={itemVariants} className="pt-8 w-full flex justify-center">
+            <motion.div
+              variants={slideVariants}
+              custom={buttonDelay}
+              className="pt-8 w-full flex justify-center"
+            >
               <Button
                 variant="outline"
                 onClick={() => setPhase('final-busted')}
@@ -432,16 +484,16 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
             className="flex flex-col items-center max-w-4xl mx-auto"
           >
             <div className="text-xl md:text-3xl text-primary font-serif leading-relaxed text-center">
-              <motion.span variants={sequentialFade} custom={0} className="inline">
+              <motion.span variants={fadeVariants} custom={delays[0]} className="inline">
                 No,{' '}
               </motion.span>
-              <motion.span variants={sequentialFade} custom={1} className="inline">
+              <motion.span variants={fadeVariants} custom={delays[1]} className="inline">
                 enjoy your <span className="font-bold">genre bubbles</span>.
               </motion.span>
             </div>
             <motion.div
-              variants={sequentialSlide}
-              custom={2}
+              variants={slideVariants}
+              custom={buttonDelay}
               className="pt-12 w-full flex justify-center"
             >
               <Button size="lg" onClick={finishPrank} className="w-full max-w-sm text-xl py-6">

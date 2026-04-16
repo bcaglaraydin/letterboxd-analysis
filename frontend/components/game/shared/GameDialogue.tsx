@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { GameBackground } from '@/components/game/shared/GameBackground';
 import { GameLayout } from '@/components/game/shared/GameLayout';
-import { DIALOGUE_TIMING } from '@/lib/dialogueConfig';
+import { useDialogueTiming, type DialogueLine } from '@/lib/useDialogueTiming';
 
 interface GameDialogueProps {
   messages: React.ReactNode[];
@@ -14,6 +14,28 @@ interface GameDialogueProps {
   completionMessage?: string;
   className?: string;
   top?: React.ReactNode;
+  /**
+   * Plain-text representation of each message, used for dynamic timing calculation.
+   * Must have the same length as `messages`. If omitted, falls back to
+   * extracting text from ReactNode children (best-effort).
+   */
+  dialogueTexts?: string[];
+}
+
+/**
+ * Best-effort text extraction from ReactNode for timing calculation.
+ * Handles strings, numbers, and recursively traverses React elements.
+ */
+function extractText(node: React.ReactNode): string {
+  if (typeof node === 'string') return node;
+  if (typeof node === 'number') return String(node);
+  if (node === null || node === undefined || typeof node === 'boolean') return '';
+  if (Array.isArray(node)) return node.map(extractText).join('');
+  if (React.isValidElement(node)) {
+    const children = (node.props as { children?: React.ReactNode }).children;
+    return extractText(children);
+  }
+  return '';
 }
 
 export const GameDialogue: React.FC<GameDialogueProps> = ({
@@ -23,8 +45,20 @@ export const GameDialogue: React.FC<GameDialogueProps> = ({
   completionMessage,
   className,
   top,
+  dialogueTexts,
 }) => {
   const [isCompleting, setIsCompleting] = useState(false);
+
+  // Build dialogue lines for the timing engine
+  const dialogueLines: DialogueLine[] = messages.map((msg, i) => ({
+    text: dialogueTexts?.[i] ?? extractText(msg),
+  }));
+
+  const { delays, fadeVariants, slideVariants, totalSequenceDuration } =
+    useDialogueTiming(dialogueLines);
+
+  // Button appears after all messages have had their read-time
+  const buttonDelay = totalSequenceDuration;
 
   const handleComplete = () => {
     if (completionMessage) {
@@ -69,29 +103,6 @@ export const GameDialogue: React.FC<GameDialogueProps> = ({
     show: { opacity: 1 },
   };
 
-  const sequentialFade = {
-    hidden: { opacity: 0 },
-    show: (i: number) => ({
-      opacity: 1,
-      transition: {
-        delay: i * DIALOGUE_TIMING.STEP_DELAY,
-        duration: DIALOGUE_TIMING.FADE_DURATION,
-      },
-    }),
-  };
-
-  const sequentialSlide = {
-    hidden: { opacity: 0, y: DIALOGUE_TIMING.SLIDE_Y_OFFSET },
-    show: (i: number) => ({
-      opacity: 1,
-      y: 0,
-      transition: {
-        delay: i * DIALOGUE_TIMING.STEP_DELAY,
-        duration: DIALOGUE_TIMING.FADE_DURATION,
-      },
-    }),
-  };
-
   return (
     <GameBackground className={className}>
       <GameLayout
@@ -109,8 +120,8 @@ export const GameDialogue: React.FC<GameDialogueProps> = ({
                 {messages.map((msg, index) => (
                   <motion.div
                     key={index}
-                    variants={sequentialFade}
-                    custom={index}
+                    variants={fadeVariants}
+                    custom={delays[index]}
                     className="text-xl md:text-3xl font-serif text-primary leading-relaxed"
                   >
                     {msg}
@@ -119,8 +130,8 @@ export const GameDialogue: React.FC<GameDialogueProps> = ({
               </div>
 
               <motion.div
-                variants={sequentialSlide}
-                custom={messages.length}
+                variants={slideVariants}
+                custom={buttonDelay}
                 className="pt-4 w-full flex justify-center"
               >
                 <Button
