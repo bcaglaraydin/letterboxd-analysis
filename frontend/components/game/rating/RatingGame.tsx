@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRatingGameStore } from '@/store/rating/ratingStore';
@@ -14,6 +14,7 @@ import { PostGameScreen } from '@/components/game/rating/PostGameScreen';
 import { RatingInteractionPanel } from '@/components/game/rating/RatingInteractionPanel';
 import { getScoreFeedback } from './constants';
 import { GAME_TEXT } from '@/lib/content';
+import { computeDialogueTiming } from '@/lib/useDialogueTiming';
 
 interface RatingGameProps {
   onGameComplete: (score: number) => void;
@@ -57,6 +58,20 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
     x: number;
     y: number;
   }>();
+
+  const { delays, fadeVariants, slideVariants, totalSequenceDuration } = useMemo(
+    () =>
+      computeDialogueTiming([
+        { text: 'To begin, ' },
+        { text: 'you’ll see movies you’ve rated before. ' },
+        { text: 'Your task is to guess the score you gave each one. ' },
+        { text: 'If you score 75/100 or higher, ' },
+        { text: 'we’ll unlock a deeper analysis of your rating behavior.' },
+      ]),
+    [],
+  );
+
+  const buttonDelay = totalSequenceDuration;
 
   const handleSubmit = () => {
     submitGuess(currentRating);
@@ -115,36 +130,55 @@ export function RatingGame({ onGameComplete }: RatingGameProps) {
             >
               <div className="max-w-2xl mx-auto space-y-8 my-auto pt-10 pb-10 px-4 md:px-8 w-full">
                 <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4 }}
-                  className="space-y-6"
+                  initial="hidden"
+                  animate="visible"
+                  className="space-y-6 text-center max-w-3xl mx-auto"
                 >
-                  <p className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
-                    {GAME_TEXT.RATING_GAME.INTRO.PART_1}
-                  </p>
-                  <p className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
-                    {GAME_TEXT.RATING_GAME.INTRO.PART_2_PREFIX}{' '}
-                    <span className={`font-bold text-3xl ml-1 ${getScoreFeedback(75).color}`}>
-                      75
-                    </span>
-                    <span className="font-bold text-3xl mr-1">/100</span> or higher,{' '}
-                    <span className="font-bold">
-                      we&rsquo;ll unlock a deeper analysis of your rating behavior.
-                    </span>
-                  </p>
+                  <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
+                    <motion.span variants={fadeVariants} custom={delays[0]}>
+                      To begin,{' '}
+                    </motion.span>
+                    <motion.span variants={fadeVariants} custom={delays[1]}>
+                      you&rsquo;ll see movies you&rsquo;ve rated before.
+                    </motion.span>
+                  </div>
+
+                  <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
+                    <motion.span variants={fadeVariants} custom={delays[2]}>
+                      Your task is to guess the score you gave each one.
+                    </motion.span>
+                  </div>
+
+                  <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
+                    <motion.span variants={fadeVariants} custom={delays[3]}>
+                      If you score{' '}
+                      <span className={`font-bold text-3xl ml-1 ${getScoreFeedback(75).color}`}>
+                        75
+                      </span>
+                      <span className="font-bold text-3xl mr-1">/100</span> or higher,{' '}
+                    </motion.span>
+                    <motion.span variants={fadeVariants} custom={delays[4]}>
+                      <span className="font-bold">
+                        we&rsquo;ll unlock a deeper analysis of your rating behavior.
+                      </span>
+                    </motion.span>
+                  </div>
                 </motion.div>
 
-                <div className="pt-4 w-full flex justify-center relative min-h-[100px]">
-                  <motion.button
+                <motion.div
+                  initial="hidden"
+                  animate="visible"
+                  variants={slideVariants}
+                  custom={buttonDelay}
+                  className="pt-4 w-full flex justify-center relative min-h-[100px]"
+                >
+                  <button
                     onClick={() => setShowIntro(false)}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="absolute px-12 py-6 text-lg font-bold tracking-widest uppercase rounded-xl shadow-lg hover:shadow-xl bg-primary text-primary-foreground transition-all duration-200"
+                    className="absolute px-12 py-6 text-lg font-bold tracking-widest uppercase rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 bg-primary text-primary-foreground transform transition-all duration-200"
                   >
                     I understand
-                  </motion.button>
-                </div>
+                  </button>
+                </motion.div>
               </div>
             </motion.div>
           ) : (
