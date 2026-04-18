@@ -176,7 +176,11 @@ export const handler = async (event, context) => {
         if (shouldReuseCachedPartial) {
           Logger.info(`Reusing cached partial rating game.`, { username, minFilms });
         } else {
-          ratingGameData = await GameService.generatePartialRatingGame(userFilms, metadataMap, minFilms);
+          ratingGameData = await GameService.generatePartialRatingGame(
+            userFilms,
+            metadataMap,
+            minFilms
+          );
           try {
             await updateUserJob(username, {
               status: 'partial_ready',
