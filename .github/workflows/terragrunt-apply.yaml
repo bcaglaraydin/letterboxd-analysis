@@ -69,6 +69,7 @@ jobs:
         env:
           API_READ_ACCESS_TOKEN: ${{ secrets.API_READ_ACCESS_TOKEN }}
           SIGNING_SECRET: ${{ secrets.SIGNING_SECRET }}
+          ADMIN_IPS: ${{ secrets.ADMIN_IPS }}
         run: |
           terragrunt apply -auto-approve
 

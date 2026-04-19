@@ -34,6 +34,7 @@ inputs = {
     FILMS_TABLE     = dependency.films.outputs.table_name
     USER_JOBS_TABLE = dependency.user_jobs.outputs.table_name
     API_READ_ACCESS_TOKEN = get_env("API_READ_ACCESS_TOKEN", "")
+    ADMIN_IPS             = get_env("ADMIN_IPS", "")
   }
 
   policy_arns = [

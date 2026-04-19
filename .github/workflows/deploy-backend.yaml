@@ -305,6 +305,8 @@ jobs:
       - name: Run E2E Test
         working-directory: backend
         env:
+          API_READ_ACCESS_TOKEN: ${{ secrets.API_READ_ACCESS_TOKEN }}
+          ADMIN_IPS: ${{ secrets.ADMIN_IPS }}
           API_GATEWAY_URL: ${{ env.API_GATEWAY_URL }}
           TEST_USERNAME: bcaglaraydin
           E2E_TIMEOUT_SECONDS: '120'

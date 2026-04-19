@@ -5,9 +5,14 @@ import { Logger } from '../utils/logger.js';
 const QUOTAS_TABLE = process.env.QUOTAS_TABLE || 'letterboxd-analysis-quotas-dev';
 const GLOBAL_USAGE_TABLE = process.env.GLOBAL_USAGE_TABLE || 'letterboxd-analysis-global-usage-dev';
 
+const ADMIN_IPS = (process.env.ADMIN_IPS || '')
+  .split(',')
+  .map((ip) => ip.trim())
+  .filter(Boolean);
+
 // Configurable Limits
-const IP_LIMIT = 5;
-const GLOBAL_LIMIT = 100;
+const IP_LIMIT = parseInt(process.env.LIMIT_IP_DAILY || '5', 10);
+const GLOBAL_LIMIT = parseInt(process.env.LIMIT_GLOBAL_DAILY || '200', 10);
 const WINDOW_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 /**
@@ -17,6 +22,12 @@ const WINDOW_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
  * @throws Error with statusCode 429 if quota exceeded
  */
 export async function checkQuotas(ip) {
+  // 0. Whitelist Bypass
+  if (ADMIN_IPS.includes(ip)) {
+    Logger.info(`[Quota Bypass] Admin IP detected: ${ip}. Skipping quota check.`);
+    return;
+  }
+
   const now = Date.now();
   // Round to the current 24h window start
   const windowId = Math.floor(now / WINDOW_DURATION_MS).toString();
