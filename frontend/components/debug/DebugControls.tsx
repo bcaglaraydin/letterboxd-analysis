@@ -7,6 +7,7 @@ import { useUserStore } from '@/store/core/userStore';
 import { useGenreOrchestrationStore, GenrePhase } from '@/store/genre/genreOrchestrationStore';
 import { useGenreRankingStore } from '@/store/genre/rankingStore';
 import { useThemeStore } from '@/store/theme/themeStore';
+import { useTasteStore } from '@/store/taste/tasteStore';
 import { GAME_PHASES } from '@/lib/gameTypes';
 import { Bug, ChevronDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -15,7 +16,8 @@ import { MOCK_METRICS_RESPONSE, MOCK_RATING_MOVIES } from '@/mocks/data';
 export const DebugControls = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const { currentPhase, startRatingGame, startGenreGame, resetExperience } = useExperienceStore();
+  const { currentPhase, startRatingGame, startGenreGame, resetExperience, startTastePositioning } =
+    useExperienceStore();
   const { phase: genrePhase, setPhase: setGenrePhase } = useGenreOrchestrationStore();
   const router = useRouter();
 
@@ -197,6 +199,30 @@ export const DebugControls = () => {
                   </button>
                 </div>
 
+                <div className="grid grid-cols-2 gap-1">
+                  <button
+                    onClick={() =>
+                      handleAction(() => {
+                        useTasteStore.getState().resetTasteGame();
+                        startTastePositioning();
+                      })
+                    }
+                    className="px-2 py-1 bg-gray-800 hover:bg-gray-700 rounded text-left"
+                  >
+                    Start Taste
+                  </button>
+                  <button
+                    onClick={() =>
+                      handleAction(() => {
+                        useExperienceStore.getState().completeTastePositioning(100);
+                      })
+                    }
+                    className="px-2 py-1 bg-blue-900/50 hover:bg-blue-900/80 rounded text-left"
+                  >
+                    Skip Taste
+                  </button>
+                </div>
+
                 <div className="grid grid-cols-1 gap-1">
                   <button
                     onClick={() =>
@@ -298,6 +324,28 @@ export const DebugControls = () => {
                       className="px-2 py-1 rounded text-left bg-gray-800 hover:bg-gray-700"
                     >
                       Jump to {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {currentPhase === GAME_PHASES.TASTE_POSITIONING && (
+              <div>
+                <h3 className="text-gray-400 mb-2 font-bold uppercase mt-4 border-t border-gray-700 pt-3">
+                  Taste Phase
+                </h3>
+                <div className="flex flex-col gap-1">
+                  <div className="text-[10px] text-gray-500 mb-1">
+                    Current Step: {useTasteStore.getState().step}
+                  </div>
+                  {([1, 2, 3] as const).map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => handleAction(() => useTasteStore.getState().setStep(s))}
+                      className="px-2 py-1 rounded text-left bg-gray-800 hover:bg-gray-700"
+                    >
+                      Jump to Step {s}
                     </button>
                   ))}
                 </div>

@@ -9,6 +9,7 @@ import {
   selectRatingGameStatus,
   selectGenreGameStatus,
   selectThemeGameStatus,
+  selectTasteGameStatus,
   selectHabitsGameStatus,
 } from '@/store/core/experienceStore';
 import { GameBackground } from '@/components/game/shared/GameBackground';
@@ -23,11 +24,13 @@ export const GameHub = () => {
   const ratingGameStatus = useExperienceStore(selectRatingGameStatus);
   const genreGameStatus = useExperienceStore(selectGenreGameStatus);
   const themeGameStatus = useExperienceStore(selectThemeGameStatus);
+  const tasteGameStatus = useExperienceStore(selectTasteGameStatus);
   const habitsGameStatus = useExperienceStore(selectHabitsGameStatus);
 
   const startGenreGame = useExperienceStore((state) => state.startGenreGame);
   const startRatingGame = useExperienceStore((state) => state.startRatingGame);
   const startThemeExperience = useExperienceStore((state) => state.startThemeExperience);
+  const startTastePositioning = useExperienceStore((state) => state.startTastePositioning);
   const startHabitsExperience = useExperienceStore((state) => state.startHabitsExperience);
 
   const container = {
@@ -91,6 +94,18 @@ export const GameHub = () => {
                   />
                 )}
 
+                {/* Taste Positioning Card */}
+                {tasteGameStatus === 'COMPLETED' && (
+                  <GameHubCard
+                    title="Taste Positioning"
+                    status={tasteGameStatus}
+                    score={scores.taste}
+                    maxScore={100}
+                    icon={<Star className="w-5 h-5 md:w-6 md:h-6 fill-current" />}
+                    onClick={startTastePositioning}
+                  />
+                )}
+
                 {/* Viewing Habits Card */}
                 {habitsGameStatus === 'COMPLETED' && (
                   <GameHubCard
@@ -125,6 +140,14 @@ export const GameHub = () => {
                 {themeGameStatus === 'UNLOCKED' && (
                   <button
                     onClick={startThemeExperience}
+                    className="w-full max-w-sm h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2"
+                  >
+                    Continue
+                  </button>
+                )}
+                {tasteGameStatus === 'UNLOCKED' && (
+                  <button
+                    onClick={startTastePositioning}
                     className="w-full max-w-sm h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2"
                   >
                     Continue

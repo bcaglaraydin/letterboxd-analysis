@@ -7,6 +7,7 @@ import { RatingGame } from '../rating/RatingGame';
 import { GameHub } from './GameHub';
 import { GenreOrchestration } from '@/components/game/genre/GenreOrchestration';
 import { ThemeExperience } from '@/components/game/theme/ThemeExperience';
+import { TastePositioningOrchestration } from '@/components/game/taste/TastePositioningOrchestration';
 import { ViewingHabitsOrchestration } from '@/components/game/habits/ViewingHabitsOrchestration';
 import { useUserStore } from '@/store/core/userStore';
 import { Loader2 } from 'lucide-react';
@@ -14,8 +15,13 @@ import { GAME_PHASES } from '@/lib/gameTypes';
 import { DebugControls } from '../../debug/DebugControls';
 
 export const ExperienceOrchestrator = () => {
-  const { currentPhase, completeRatingGame, completeGenreGame, completeThemeExperience } =
-    useExperienceStore();
+  const {
+    currentPhase,
+    completeRatingGame,
+    completeGenreGame,
+    completeThemeExperience,
+    completeTastePositioning,
+  } = useExperienceStore();
   const backgroundStatus = useUserStore((state) => state.backgroundStatus);
 
   const completeRatingGameHandler = (score: number) => {
@@ -28,6 +34,10 @@ export const ExperienceOrchestrator = () => {
 
   const completeThemeHandler = (score: number) => {
     completeThemeExperience(score);
+  };
+
+  const completeTasteHandler = (score: number) => {
+    completeTastePositioning(score);
   };
 
   const completeHabitsHandler = (score: number) => {
@@ -91,6 +101,18 @@ export const ExperienceOrchestrator = () => {
             className="w-full h-full"
           >
             <ThemeExperience onComplete={completeThemeHandler} />
+          </motion.div>
+        )}
+
+        {currentPhase === GAME_PHASES.TASTE_POSITIONING && (
+          <motion.div
+            key="taste-positioning"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="w-full h-full"
+          >
+            <TastePositioningOrchestration onGameComplete={completeTasteHandler} />
           </motion.div>
         )}
 

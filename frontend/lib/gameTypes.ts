@@ -7,6 +7,7 @@ export const GAME_PHASES = {
   HUB: 'hub',
   GENRE: 'genre-game',
   THEME: 'theme-guessing',
+  TASTE_POSITIONING: 'taste-positioning',
   HABITS: 'viewing-habits',
 } as const;
 

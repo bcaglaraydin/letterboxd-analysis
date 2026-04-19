@@ -26,7 +26,6 @@ interface ScorePanelProps {
   /** Position of the panel */
   position?: 'static' | 'top-right';
   /** Whether to show maxScore next to current score (e.g., '45/120', default: false) */
-  /** Whether to show maxScore next to current score (e.g., '45/120', default: false) */
   showMaxScore?: boolean;
   /** Maximum possible point (positive value) in a single action (for color scaling) */
   maxPositivePoint?: number;
@@ -40,7 +39,7 @@ interface ScorePanelProps {
  * ScorePanel - A unified component for score display with flying point animation.
  *
  * This component combines:
- * 1. Flying score animation that flies towards the counter (using Portal for z-index safety)
+ * 1. Flying score animation that flies towards the counter
  * 2. Animated score counter that ticks up as points arrive
  *
  * Usage:
@@ -87,7 +86,6 @@ export const ScorePanel: React.FC<ScorePanelProps> = ({
   // Previous points for detecting new earnings
   const prevPointsRef = useRef(pointsEarned);
 
-  // Calculate dynamic color based on performance (supports negative scores)
   // Calculate dynamic color based on performance (supports negative scores)
   const scoreColorStyle = getScoreColor(displayScore, maxScore, maxNegativePoint);
 

@@ -13,6 +13,7 @@ interface ExperienceState {
     rating: number;
     genre: number;
     theme: number;
+    taste: number;
     habits: number;
   };
   unlockedGames: string[];
@@ -29,6 +30,8 @@ interface ExperienceState {
   completeGenreGame: (score: number) => void;
   startThemeExperience: () => void;
   completeThemeExperience: (score: number) => void;
+  startTastePositioning: () => void;
+  completeTastePositioning: (score: number) => void;
   startHabitsExperience: () => void;
   completeHabitsExperience: (score: number) => void;
   resetExperience: () => void;
@@ -40,6 +43,7 @@ export const useExperienceStore = create<ExperienceState>((set) => ({
     rating: 0,
     genre: 0,
     theme: 0,
+    taste: 0,
     habits: 0,
   },
   unlockedGames: [GAME_PHASES.RATING],
@@ -84,8 +88,21 @@ export const useExperienceStore = create<ExperienceState>((set) => ({
   completeThemeExperience: (score) =>
     set((state) => ({
       scores: { ...state.scores, theme: score },
-      unlockedGames: [...new Set([...state.unlockedGames, GAME_PHASES.HABITS])],
+      unlockedGames: [...new Set([...state.unlockedGames, GAME_PHASES.TASTE_POSITIONING])],
       completedGames: [...new Set([...state.completedGames, GAME_PHASES.THEME])],
+      currentPhase: GAME_PHASES.HUB,
+    })),
+
+  startTastePositioning: () =>
+    set({
+      currentPhase: GAME_PHASES.TASTE_POSITIONING,
+    }),
+
+  completeTastePositioning: (score) =>
+    set((state) => ({
+      scores: { ...state.scores, taste: score },
+      unlockedGames: [...new Set([...state.unlockedGames, GAME_PHASES.HABITS])],
+      completedGames: [...new Set([...state.completedGames, GAME_PHASES.TASTE_POSITIONING])],
       currentPhase: GAME_PHASES.HUB,
     })),
 
@@ -104,7 +121,7 @@ export const useExperienceStore = create<ExperienceState>((set) => ({
   resetExperience: () =>
     set({
       currentPhase: GAME_PHASES.RATING,
-      scores: { rating: 0, genre: 0, theme: 0, habits: 0 },
+      scores: { rating: 0, genre: 0, theme: 0, taste: 0, habits: 0 },
       unlockedGames: [GAME_PHASES.RATING],
       completedGames: [],
     }),
@@ -123,6 +140,10 @@ export const selectIsThemeCompleted = (state: ExperienceState) =>
   state.completedGames.includes(GAME_PHASES.THEME);
 export const selectIsThemeUnlocked = (state: ExperienceState) =>
   state.unlockedGames.includes(GAME_PHASES.THEME);
+export const selectIsTasteCompleted = (state: ExperienceState) =>
+  state.completedGames.includes(GAME_PHASES.TASTE_POSITIONING);
+export const selectIsTasteUnlocked = (state: ExperienceState) =>
+  state.unlockedGames.includes(GAME_PHASES.TASTE_POSITIONING);
 export const selectIsHabitsCompleted = (state: ExperienceState) =>
   state.completedGames.includes(GAME_PHASES.HABITS);
 export const selectIsHabitsUnlocked = (state: ExperienceState) =>
@@ -131,6 +152,7 @@ export const selectAllGamesCompleted = (state: ExperienceState) =>
   state.completedGames.includes(GAME_PHASES.RATING) &&
   state.completedGames.includes(GAME_PHASES.GENRE) &&
   state.completedGames.includes(GAME_PHASES.THEME) &&
+  state.completedGames.includes(GAME_PHASES.TASTE_POSITIONING) &&
   state.completedGames.includes(GAME_PHASES.HABITS);
 
 // Derived Status Selectors
@@ -148,6 +170,12 @@ export const selectGenreGameStatus = (state: ExperienceState): GameStatus => {
 export const selectThemeGameStatus = (state: ExperienceState): GameStatus => {
   if (state.completedGames.includes(GAME_PHASES.THEME)) return 'COMPLETED';
   if (state.unlockedGames.includes(GAME_PHASES.THEME)) return 'UNLOCKED';
+  return 'LOCKED';
+};
+
+export const selectTasteGameStatus = (state: ExperienceState): GameStatus => {
+  if (state.completedGames.includes(GAME_PHASES.TASTE_POSITIONING)) return 'COMPLETED';
+  if (state.unlockedGames.includes(GAME_PHASES.TASTE_POSITIONING)) return 'UNLOCKED';
   return 'LOCKED';
 };
 
