@@ -15,13 +15,8 @@ import { GAME_PHASES } from '@/lib/gameTypes';
 import { DebugControls } from '../../debug/DebugControls';
 
 export const ExperienceOrchestrator = () => {
-  const {
-    currentPhase,
-    completeRatingGame,
-    completeGenreGame,
-    completeThemeExperience,
-    completeTastePositioning,
-  } = useExperienceStore();
+  const { currentPhase, completeRatingGame, completeGenreGame, completeThemeExperience } =
+    useExperienceStore();
   const backgroundStatus = useUserStore((state) => state.backgroundStatus);
 
   const completeRatingGameHandler = (score: number) => {
@@ -34,10 +29,6 @@ export const ExperienceOrchestrator = () => {
 
   const completeThemeHandler = (score: number) => {
     completeThemeExperience(score);
-  };
-
-  const completeTasteHandler = (score: number) => {
-    completeTastePositioning(score);
   };
 
   const completeHabitsHandler = (score: number) => {
@@ -112,7 +103,7 @@ export const ExperienceOrchestrator = () => {
             exit={{ opacity: 0 }}
             className="w-full h-full"
           >
-            <TastePositioningOrchestration onGameComplete={completeTasteHandler} />
+            <TastePositioningOrchestration />
           </motion.div>
         )}
 
