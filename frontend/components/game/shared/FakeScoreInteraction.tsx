@@ -35,7 +35,7 @@ const PHASE_LINES: Record<InteractionPhase, DialogueLine[]> = {
     },
   ],
   'initial-fail': [
-    { text: 'I see you scored' },
+    { text: 'I see you scored', pauseAfter: 800 },
     { text: 'Do you have anything to say about this?' },
   ],
   forgive: [
@@ -58,7 +58,10 @@ const PHASE_LINES: Record<InteractionPhase, DialogueLine[]> = {
     { text: "By attempting these ridiculous things, you've just lost points." },
     { text: 'I advise you not to touch it anymore.', emotion: 'dramatic' },
   ],
-  'final-busted': [{ text: 'No,', emotion: 'dramatic' }, { text: 'enjoy your genre bubbles.' }],
+  'final-busted': [
+    { text: 'No,', emotion: 'dramatic', pauseAfter: 1200 },
+    { text: 'enjoy your genre bubbles.' },
+  ],
 };
 
 export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({

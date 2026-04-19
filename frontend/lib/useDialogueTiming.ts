@@ -16,6 +16,8 @@ export interface DialogueLine {
   text: string;
   /** Emotional weight override (default: 'normal') */
   emotion?: EmotionalWeight;
+  /** Extra pause in ms after this line finishes appearing */
+  pauseAfter?: number;
 }
 
 export interface DialogueTimingResult {
@@ -93,7 +95,7 @@ export function useDialogueTiming(lines: DialogueLine[]): DialogueTimingResult {
     let cursor = 0;
     for (let i = 0; i < timings.length; i++) {
       delaysMs.push(cursor);
-      cursor += timings[i].totalDuration + INTER_LINE_GAP_MS;
+      cursor += timings[i].totalDuration + INTER_LINE_GAP_MS + (lines[i].pauseAfter || 0);
     }
 
     // Convert to seconds for Framer Motion
@@ -159,7 +161,7 @@ export function computeDialogueTiming(lines: DialogueLine[]): DialogueTimingResu
   let cursor = 0;
   for (let i = 0; i < timings.length; i++) {
     delaysMs.push(cursor);
-    cursor += timings[i].totalDuration + INTER_LINE_GAP_MS;
+    cursor += timings[i].totalDuration + INTER_LINE_GAP_MS + (lines[i].pauseAfter || 0);
   }
 
   const delays = delaysMs.map((d) => Number((d / 1000).toFixed(3)));

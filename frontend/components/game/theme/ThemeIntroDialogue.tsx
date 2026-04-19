@@ -26,9 +26,9 @@ const SCREEN_LINES: Record<DialogueKey, DialogueLine[]> = {
   ],
   known: [
     { text: "Ah, so you're familiar with themes like" },
-    { text: 'Intense violence and sexual transgression' },
+    { text: 'Intense violence and sexual transgression', pauseAfter: 1000 },
     { text: 'or' },
-    { text: 'Surreal and thought-provoking visions of life and death' },
+    { text: 'Surreal and thought-provoking visions of life and death', pauseAfter: 1000 },
     {
       text: 'In this next round, I want you to guess movies based on their themes.',
     },
@@ -38,9 +38,9 @@ const SCREEN_LINES: Record<DialogueKey, DialogueLine[]> = {
   ],
   unknown: [
     { text: 'Like' },
-    { text: 'Intense violence and sexual transgression' },
+    { text: 'Intense violence and sexual transgression', pauseAfter: 1000 },
     { text: 'or' },
-    { text: 'Surreal and thought-provoking visions of life and death' },
+    { text: 'Surreal and thought-provoking visions of life and death', pauseAfter: 1000 },
     { text: 'Yes, these are real, you are going to see more of them now.' },
     {
       text: 'In this next round, I want you to guess movies based on their themes.',
@@ -167,12 +167,14 @@ export const ThemeIntroDialogue: React.FC<ThemeIntroDialogueProps> = ({ onComple
 
               <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
                 <motion.span variants={fadeVariants} custom={delays[4]}>
-                  In this next round, I want you to guess movies based on their themes.
+                  In this next round, I want you to{' '}
+                  <span className="font-bold">guess movies based on their themes.</span>
                 </motion.span>
               </div>
               <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
                 <motion.span variants={fadeVariants} custom={delays[5]}>
-                  If you can&apos;t, we will reveal more clues, but you will get fewer points.
+                  If you can&apos;t, we will reveal more clues,{' '}
+                  <span className="font-bold">but you will get fewer points.</span>
                 </motion.span>
               </div>
             </div>
@@ -234,12 +236,14 @@ export const ThemeIntroDialogue: React.FC<ThemeIntroDialogueProps> = ({ onComple
               </div>
               <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
                 <motion.span variants={fadeVariants} custom={delays[5]}>
-                  In this next round, I want you to guess movies based on their themes.
+                  In this next round, I want you to{' '}
+                  <span className="font-bold">guess movies based on their themes.</span>
                 </motion.span>
               </div>
               <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
                 <motion.span variants={fadeVariants} custom={delays[6]}>
-                  If you can&apos;t, we will reveal more clues, but you will get fewer points.
+                  If you can&apos;t, we will reveal more clues,{' '}
+                  <span className="font-bold">but you will get fewer points.</span>
                 </motion.span>
               </div>
             </div>

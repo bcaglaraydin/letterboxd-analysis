@@ -109,21 +109,17 @@ export const HabitsIntroDialogue: React.FC<HabitsIntroDialogueProps> = ({ onComp
     const movie = comparisonMovies[stepIndex];
     if (!movie) return null;
 
+    // For comparison rounds, we want the buttons to appear much faster than standard dialogue
+    const fastButtonDelay = 0.4;
+    const fastSecondButtonDelay = 0.55;
+
     return (
-      <>
+      <div className="flex flex-col items-center w-full">
         <div className="space-y-6 text-center max-w-3xl mb-12">
           <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
-            <motion.span variants={fadeVariants} custom={delays[0]}>
-              Let&apos;s put that into perspective. Which one is worse?
-            </motion.span>
+            <span>Let&apos;s put that into perspective. Which one is worse?</span>
           </div>
         </div>
-
-        <motion.div
-          variants={fadeVariants}
-          custom={buttonDelay}
-          onAnimationComplete={() => setIsAnimationComplete(true)}
-        />
 
         <div className="w-full flex justify-center h-40">
           <AnimatePresence mode="wait">
@@ -135,36 +131,34 @@ export const HabitsIntroDialogue: React.FC<HabitsIntroDialogueProps> = ({ onComp
               transition={{ duration: 0.2 }}
               className="flex flex-col gap-4 w-full max-w-sm shrink-0 mt-4"
             >
-              <motion.div variants={slideVariants} custom={buttonDelay}>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: fastButtonDelay, duration: 0.4 }}
+              >
                 <Button
                   variant="outline"
                   onClick={() => handleMovieChoice(movie, stepIndex)}
-                  disabled={!isAnimationComplete}
                   className={`w-full py-6 border-primary/20 bg-background/50 transition-all duration-300 ${
                     movie.title.length > 35
                       ? 'text-xs'
                       : movie.title.length > 20
                         ? 'text-sm md:text-base'
                         : 'text-lg'
-                  } ${
-                    !isAnimationComplete
-                      ? 'opacity-50 cursor-not-allowed'
-                      : 'hover:bg-primary/10 hover:text-primary hover:border-primary/50'
-                  }`}
+                  } hover:bg-primary/10 hover:text-primary hover:border-primary/50`}
                 >
                   {movie.title}
                 </Button>
               </motion.div>
-              <motion.div variants={slideVariants} custom={secondButtonDelay}>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: fastSecondButtonDelay, duration: 0.4 }}
+              >
                 <Button
                   variant="outline"
                   onClick={() => handleExperienceChoice(stepIndex)}
-                  disabled={!isAnimationComplete}
-                  className={`w-full text-lg py-6 border-primary/20 bg-background/50 transition-all duration-300 ${
-                    !isAnimationComplete
-                      ? 'opacity-50 cursor-not-allowed'
-                      : 'hover:bg-primary/10 hover:text-primary hover:border-primary/50'
-                  }`}
+                  className="w-full text-lg py-6 border-primary/20 bg-background/50 transition-all duration-300 hover:bg-primary/10 hover:text-primary hover:border-primary/50"
                 >
                   This experience
                 </Button>
@@ -172,7 +166,7 @@ export const HabitsIntroDialogue: React.FC<HabitsIntroDialogueProps> = ({ onComp
             </motion.div>
           </AnimatePresence>
         </div>
-      </>
+      </div>
     );
   };
 
@@ -391,7 +385,7 @@ export const HabitsIntroDialogue: React.FC<HabitsIntroDialogueProps> = ({ onComp
           <div className="flex flex-col items-center justify-center w-full px-6 min-h-[50vh]">
             <AnimatePresence mode="wait">
               <motion.div
-                key={dialogueState + compareStep}
+                key={dialogueState}
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
