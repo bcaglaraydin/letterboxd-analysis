@@ -88,6 +88,11 @@ describe.runIf(shouldRun)('Worker Pipeline', () => {
       expect(typeof film.averageRating).toBe('number');
     });
 
+    it('has ratingCount', () => {
+      expect(film.ratingCount).toBeDefined();
+      expect(typeof film.ratingCount).toBe('number');
+    });
+
     it('has scrapedAt timestamp', () => {
       expect(film.scrapedAt).toBeDefined();
     });

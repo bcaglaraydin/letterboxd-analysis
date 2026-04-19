@@ -13,7 +13,6 @@ import { FeedbackOverlay } from '@/components/game/rating/FeedbackOverlay';
 import { PostGameScreen } from '@/components/game/rating/PostGameScreen';
 import { RatingInteractionPanel } from '@/components/game/rating/RatingInteractionPanel';
 import { getScoreFeedback } from './constants';
-import { GAME_TEXT } from '@/lib/content';
 import { computeDialogueTiming } from '@/lib/useDialogueTiming';
 
 interface RatingGameProps {

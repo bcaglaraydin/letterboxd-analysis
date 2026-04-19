@@ -2,6 +2,7 @@ import { generateGenreGame } from '../games/genreGame.js';
 import { generateRatingGame } from '../games/ratingGame.js';
 import { generateGenreMatchingGame } from '../games/genreMatchingGame.js';
 import { generateThemeGame } from '../games/themeGame.js';
+import { generateTasteGame } from '../games/tasteGame.js';
 import {
   calculateRatingDistribution,
   calculateBasicStats,
@@ -70,6 +71,9 @@ export const GameService = {
     // Generate Theme Guessing Game
     const themeGameData = generateThemeGame(allFilmsWithMeta);
 
+    // Generate Taste Positioning Analysis
+    const tasteGameData = generateTasteGame(allFilmsWithMeta);
+
     // Calculate User Stats
     const userRatings = userFilms.map((f) => f.userRating).filter((r) => r !== null);
     const ratingDist = calculateRatingDistribution(userRatings);
@@ -132,6 +136,7 @@ export const GameService = {
       genreGame: genreGameData,
       genreMatchingGame: genreMatchingGameData,
       themeGame: themeGameData,
+      tasteGame: tasteGameData,
     };
   },
 };

@@ -213,6 +213,13 @@ describe.runIf(shouldRun)('E2E: Full Backend Flow', () => {
     it('cached response contains theme game data', () => {
       expect(cachedResult.themeGame).toBeDefined();
     });
+
+    it('cached response contains taste game data', () => {
+      expect(cachedResult.tasteGame).toBeDefined();
+      expect(cachedResult.tasteGame.movies).toBeDefined();
+      expect(cachedResult.tasteGame.actualPopularity).toBeDefined();
+      expect(cachedResult.tasteGame.actualAlignment).toBeDefined();
+    });
   });
 
   // ============================================================================

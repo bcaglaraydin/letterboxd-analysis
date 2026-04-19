@@ -77,13 +77,10 @@ export const TasteScatterPlot: React.FC<TasteScatterPlotProps> = ({
 
   const plotPoints = useMemo(() => {
     return movies.map((movie) => {
-      const absDiff = Math.abs(movie.userRating - movie.communityRating);
-      const independence = Math.max(0, Math.min(1, absDiff / 1.5));
-
       return {
         ...movie,
         x: mapX(movie.popularity),
-        y: mapY(independence),
+        y: mapY(movie.divergence),
         isInteractive: interactiveMovieIds.has(movie.id),
       };
     });

@@ -1,34 +1,14 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTasteStore } from '@/store/taste/tasteStore';
 import { TasteGuessStep1 } from './TasteGuessStep1';
 import { TasteGuessStep2 } from './TasteGuessStep2';
 import { TasteReveal } from './TasteReveal';
 import { TasteIntro } from './TasteIntro';
-import { MOCK_TASTE_MOVIES } from '@/mocks/data';
-
-interface TastePositioningOrchestrationProps {
-  onGameComplete: (score: number) => void;
-}
-
-export const TastePositioningOrchestration: React.FC<TastePositioningOrchestrationProps> = ({
-  onGameComplete,
-}) => {
-  const { step, movies, setMovies, resetTasteGame } = useTasteStore();
-
-  useEffect(() => {
-    // Initializing with mock data if movies are empty
-    if (movies.length === 0) {
-      setMovies(MOCK_TASTE_MOVIES);
-    }
-
-    // Reset game state when entering OR if we need to clean up
-    // Actually, we usually want it to preserve state if the user navigates back and forth in the hub
-    // But for a fresh start:
-    // resetTasteGame();
-  }, [movies.length, setMovies]);
+export const TastePositioningOrchestration: React.FC = () => {
+  const { step } = useTasteStore();
 
   return (
     <div className="w-full h-full relative overflow-hidden bg-background">

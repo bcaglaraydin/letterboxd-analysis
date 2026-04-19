@@ -176,6 +176,23 @@ export interface ThemeSortingRound {
   }[];
 }
 
+export interface TasteMovieData {
+  id: string;
+  title: string;
+  posterUrl: string;
+  popularity: number;
+  userRating: number;
+  communityRating: number;
+  ratingDiff: number;
+  divergence: number;
+}
+
+export interface TasteGameData {
+  movies: TasteMovieData[];
+  actualPopularity: number;
+  actualAlignment: number;
+}
+
 export interface ThemeGameData {
   rounds: ThemeGameRound[];
   sortingRounds: ThemeSortingRound[];
@@ -189,6 +206,7 @@ export interface MetricsResponse {
   genreGame?: GenreGameData;
   genreMatchingGame?: GenreMatchingGameData;
   themeGame?: ThemeGameData;
+  tasteGame?: TasteGameData;
   userStats?: UserStats;
 }
 

@@ -7,7 +7,8 @@ export interface TasteMovie {
   popularity: number; // 0 (Niche) to 1 (Popular)
   userRating: number;
   communityRating: number;
-  ratingDiff: number; // userRating - communityRating, normalized to -1 to 1 or similar
+  ratingDiff: number;
+  divergence: number; // 0 (Consensus) to 1 (Divergence)
 }
 
 interface TasteState {
@@ -27,7 +28,7 @@ interface TasteState {
   setStep: (step: 0 | 1 | 2 | 3) => void;
   setGuessPopularity: (val: number) => void;
   setGuessAlignment: (val: number) => void;
-  setMovies: (movies: TasteMovie[]) => void;
+  setMovies: (movies: TasteMovie[], actualPop?: number, actualAlign?: number) => void;
   submitStep1: () => void;
   submitStep2: () => void;
   calculateResults: () => void;
@@ -50,23 +51,17 @@ export const useTasteStore = create<TasteState>((set, get) => ({
   setStep: (step) => set({ step }),
   setGuessPopularity: (guessPopularity) => set({ guessPopularity }),
   setGuessAlignment: (guessAlignment) => set({ guessAlignment }),
-  setMovies: (movies) => {
-    // Calculate centroids
-    const avgPop = movies.reduce((acc, m) => acc + m.popularity, 0) / movies.length;
-
-    // Calculate Absolute Divergence (Mean Absolute Deviation)
-    const avgAbsDiff =
-      movies.reduce((acc, m) => acc + Math.abs(m.userRating - m.communityRating), 0) /
-      movies.length;
-
-    // Normalize AbsDiff to 0-1 range.
-    // An average deviation of 1.5 is massive (total disagreement).
-    const normalizedAlignment = Math.max(0, Math.min(1, avgAbsDiff / 1.5));
+  setMovies: (movies: TasteMovie[], actualPop?: number, actualAlign?: number) => {
+    // If backend provided pre-calculated centroid, use it.
+    // Otherwise, fallback to a simple average (though backend should always provide it now)
+    const avgPop = actualPop ?? movies.reduce((acc, m) => acc + m.popularity, 0) / movies.length;
+    const avgAlign =
+      actualAlign ?? movies.reduce((acc, m) => acc + (m.divergence || 0), 0) / movies.length;
 
     set({
       movies,
       actualPopularity: avgPop,
-      actualAlignment: normalizedAlignment,
+      actualAlignment: avgAlign,
     });
   },
 

@@ -12,6 +12,7 @@ import { useRatingGameStore } from '@/store/rating/ratingStore';
 import { useGenreRankingStore } from '@/store/genre/rankingStore';
 import { useGenreMatchingStore } from '@/store/genre/matchingStore';
 import { useThemeStore } from '@/store/theme/themeStore';
+import { useTasteStore } from '@/store/taste/tasteStore';
 
 interface PollingState {
   isPolling: boolean;
@@ -81,6 +82,20 @@ export const hydrateStoresGlobal = (data: Awaited<ReturnType<typeof pollMetricsS
       useThemeStore
         .getState()
         .initThemeGame(data.themeGame.rounds, data.themeGame.sortingRounds || []);
+    }
+  }
+
+  // 5. Taste Positioning Game
+  if (data.tasteGame?.movies && data.tasteGame.movies.length > 0) {
+    const currentMovies = useTasteStore.getState().movies;
+    if (currentMovies.length === 0) {
+      useTasteStore
+        .getState()
+        .setMovies(
+          data.tasteGame.movies,
+          data.tasteGame.actualPopularity,
+          data.tasteGame.actualAlignment,
+        );
     }
   }
 };
