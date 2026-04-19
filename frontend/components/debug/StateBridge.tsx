@@ -82,14 +82,14 @@ export const StateBridge = () => {
               currentPhase: GAME_PHASES.HUB,
               unlockedGames: [GAME_PHASES.RATING, GAME_PHASES.GENRE],
               completedGames: [GAME_PHASES.RATING],
-              scores: { rating: 85, genre: 0, theme: 0, habits: 0 },
+              scores: { rating: 85, genre: 0, theme: 0, taste: 0, habits: 0 },
             });
           } else {
             useExperienceStore.setState({
               currentPhase: GAME_PHASES.HUB,
               unlockedGames: Object.values(GAME_PHASES),
               completedGames: Object.values(GAME_PHASES).filter((p) => p !== GAME_PHASES.HUB),
-              scores: { rating: 85, genre: 70, theme: 90, habits: 60 },
+              scores: { rating: 85, genre: 70, theme: 90, taste: 80, habits: 60 },
             });
           }
         },
