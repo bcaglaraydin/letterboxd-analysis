@@ -11,7 +11,7 @@ export interface TasteMovie {
 }
 
 interface TasteState {
-  step: 1 | 2 | 3;
+  step: 0 | 1 | 2 | 3;
   isStep1Revealed: boolean;
   isStep2Revealed: boolean;
   guessPopularity: number; // 0 to 1
@@ -24,7 +24,7 @@ interface TasteState {
   step2Score: number;
 
   // Actions
-  setStep: (step: 1 | 2 | 3) => void;
+  setStep: (step: 0 | 1 | 2 | 3) => void;
   setGuessPopularity: (val: number) => void;
   setGuessAlignment: (val: number) => void;
   setMovies: (movies: TasteMovie[]) => void;
@@ -35,7 +35,7 @@ interface TasteState {
 }
 
 export const useTasteStore = create<TasteState>((set, get) => ({
-  step: 1,
+  step: 0,
   isStep1Revealed: false,
   isStep2Revealed: false,
   guessPopularity: 0.5,
@@ -101,7 +101,7 @@ export const useTasteStore = create<TasteState>((set, get) => ({
 
   resetTasteGame: () =>
     set({
-      step: 1,
+      step: 0,
       isStep1Revealed: false,
       isStep2Revealed: false,
       guessPopularity: 0.5,

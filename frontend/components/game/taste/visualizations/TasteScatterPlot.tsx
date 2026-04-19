@@ -17,6 +17,8 @@ interface TasteScatterPlotProps {
   showGuess?: boolean;
   showActual?: boolean;
   showLine?: boolean;
+  showXLabels?: boolean;
+  showYLabels?: boolean;
 }
 
 export const TasteScatterPlot: React.FC<TasteScatterPlotProps> = ({
@@ -29,6 +31,8 @@ export const TasteScatterPlot: React.FC<TasteScatterPlotProps> = ({
   showGuess = false,
   showActual = false,
   showLine = false,
+  showXLabels = true,
+  showYLabels = true,
 }) => {
   const [selectedMovie, setSelectedMovie] = useState<TasteMovie | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -100,28 +104,6 @@ export const TasteScatterPlot: React.FC<TasteScatterPlotProps> = ({
     <div className="relative w-full h-full bg-muted/10 rounded-3xl border border-primary/5 p-2 md:p-4 select-none overflow-hidden flex flex-col items-center justify-center">
       <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
         {/* Quadrant Text Labels - Discrete helper text */}
-        <AnimatePresence>
-          {showPoints && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.1 }}
-              className="absolute inset-[10%] grid grid-cols-2 grid-rows-2 pointer-events-none"
-            >
-              <div className="border-r border-b border-primary/20 flex items-start justify-start p-4 text-[9px] uppercase font-black tracking-[0.2em] text-fuchsia-500">
-                Originalist
-              </div>
-              <div className="border-b border-primary/20 flex items-start justify-end p-4 text-[9px] uppercase font-black tracking-[0.2em] text-fuchsia-500">
-                Provocateur
-              </div>
-              <div className="border-r border-primary/20 flex items-end justify-start p-4 text-[9px] uppercase font-black tracking-[0.2em] text-slate-500">
-                Cult Consensus
-              </div>
-              <div className="flex items-end justify-end p-4 text-[9px] uppercase font-black tracking-[0.2em] text-slate-500">
-                Mainstream Harmony
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         <svg
           viewBox="0 0 100 100"
@@ -132,41 +114,63 @@ export const TasteScatterPlot: React.FC<TasteScatterPlotProps> = ({
           <line x1="50" y1="10" x2="50" y2="90" className="stroke-primary/30 stroke-[0.4]" />
 
           {/* Precision Labels at Margins (5/95) */}
-          {/* X Axis - Offset below the line */}
-          <text
-            x="5"
-            y="55"
-            textAnchor="start"
-            className="fill-[#818cf8] text-[2px] font-black uppercase tracking-[0.1em] opacity-80"
-          >
-            Niche
-          </text>
-          <text
-            x="95"
-            y="55"
-            textAnchor="end"
-            className="fill-[#f59e0b] text-[2px] font-black uppercase tracking-[0.1em] opacity-80"
-          >
-            Mainstream
-          </text>
+          <AnimatePresence>
+            {showXLabels && (
+              <motion.g
+                initial={{ opacity: 0, y: 2 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.6 }}
+              >
+                {/* X Axis - Offset below the line */}
+                <text
+                  x="5"
+                  y="55"
+                  textAnchor="start"
+                  className="fill-[#818cf8] text-[2px] font-black uppercase tracking-[0.1em]"
+                >
+                  Niche
+                </text>
+                <text
+                  x="95"
+                  y="55"
+                  textAnchor="end"
+                  className="fill-[#f59e0b] text-[2px] font-black uppercase tracking-[0.1em]"
+                >
+                  Mainstream
+                </text>
+              </motion.g>
+            )}
+          </AnimatePresence>
 
-          {/* Y Axis - Offset to the right of the line */}
-          <text
-            x="54"
-            y="6"
-            textAnchor="start"
-            className="fill-[#f43f5e] text-[2px] font-black uppercase tracking-[0.1em] opacity-80"
-          >
-            Divergence
-          </text>
-          <text
-            x="54"
-            y="96"
-            textAnchor="start"
-            className="fill-[#10b981] text-[2px] font-black uppercase tracking-[0.1em] opacity-80"
-          >
-            Consensus
-          </text>
+          <AnimatePresence>
+            {showYLabels && (
+              <motion.g
+                initial={{ opacity: 0, x: -2 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.6 }}
+              >
+                {/* Y Axis - Offset to the right of the line */}
+                <text
+                  x="54"
+                  y="6"
+                  textAnchor="start"
+                  className="fill-[#f43f5e] text-[2px] font-black uppercase tracking-[0.1em]"
+                >
+                  Divergence
+                </text>
+                <text
+                  x="54"
+                  y="96"
+                  textAnchor="start"
+                  className="fill-[#10b981] text-[2px] font-black uppercase tracking-[0.1em]"
+                >
+                  Consensus
+                </text>
+              </motion.g>
+            )}
+          </AnimatePresence>
 
           {/* Movie Points */}
           <AnimatePresence>

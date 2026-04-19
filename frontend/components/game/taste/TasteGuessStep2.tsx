@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTasteStore } from '@/store/taste/tasteStore';
 import { GameLayout } from '@/components/game/shared/GameLayout';
 import { Button } from '@/components/ui/button';
@@ -22,8 +22,8 @@ export const TasteGuessStep2 = () => {
     step2Score,
   } = useTasteStore();
 
-  const [phase, setPhase] = React.useState<'dialogue' | 'guess'>(
-    isStep2Revealed ? 'guess' : 'dialogue',
+  const [phase, setPhase] = React.useState<'intro-1' | 'intro-2' | 'guess'>(
+    isStep2Revealed ? 'guess' : 'intro-1',
   );
   const [isDragging, setIsDragging] = React.useState(false);
 
@@ -33,10 +33,16 @@ export const TasteGuessStep2 = () => {
   const [localPointsEarned, setLocalPointsEarned] = React.useState<number | null>(null);
   const thumbRef = React.useRef<HTMLDivElement>(null);
 
-  // Sequenced Reveal Effect: Wait for Reality marker to settle before flying score
+  // Constants for container animations
+  const containerVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -10 },
+  };
+
+  // Sequenced Reveal Effect
   React.useEffect(() => {
     if (isStep2Revealed && thumbRef.current && !localPointsEarned) {
-      // Capture coordinates immediately but delay the point flight
       const rect = thumbRef.current.getBoundingClientRect();
       const coords = {
         x: rect.left + rect.width / 2,
@@ -46,7 +52,7 @@ export const TasteGuessStep2 = () => {
       const timer = setTimeout(() => {
         setFlyFromPosition(coords);
         setLocalPointsEarned(step2Score);
-      }, 500); // Shortened delay for snappier feedback
+      }, 500);
 
       return () => clearTimeout(timer);
     }
@@ -60,57 +66,105 @@ export const TasteGuessStep2 = () => {
     }
   };
 
-  // Convert 0 to 1 range to 0 to 100 percentage
   const percentage = guessAlignment * 100;
 
-  return (
-    <GameLayout
-      className="w-full"
-      top={
-        <div className="w-full px-4 md:px-8 pt-4 md:pt-8 bg-background/50 backdrop-blur-sm z-30">
-          <div className="max-w-2xl mx-auto flex justify-between items-start">
-            <GameRoundIndicator major={2} majorTotal={2} />
-            <ScorePanel
-              score={score}
-              pointsEarned={localPointsEarned}
-              flyFromPosition={flyFromPosition}
-              label="Total Score"
-              size="md"
-              className="mb-0"
-              position="static"
-            />
-          </div>
-        </div>
-      }
-      middle={
-        <div className="w-full max-w-2xl mx-auto px-4 md:px-6 py-4 md:py-12 flex flex-col items-center justify-center space-y-12 md:space-y-16">
-          {phase === 'dialogue' ? (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col items-center space-y-12 text-center"
-            >
-              <p className="text-xl md:text-3xl font-serif italic text-primary leading-relaxed px-4">
-                &quot;Every viewer has a different lens. Some echo the collective, while others
-                maintain a clinical distance. How independent is your judgment from the community
-                consensus?&quot;
-              </p>
+  const renderPhase = () => {
+    switch (phase) {
+      case 'intro-1':
+        return (
+          <motion.div
+            key="intro-1"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="flex flex-col items-center space-y-12 max-w-4xl text-center px-4"
+          >
+            <h2 className="text-2xl md:text-3xl font-serif text-primary leading-tight">
+              Do other people’s opinions influence your ratings?
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-3xl">
               <Button
-                size="lg"
-                onClick={() => setPhase('guess')}
-                className="px-12 py-6 h-auto text-lg font-bold tracking-widest uppercase rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform duration-200 bg-accent text-accent-foreground"
+                variant="outline"
+                className="py-12 px-8 h-auto border-primary/10 bg-background/50 hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all duration-500 rounded-3xl flex flex-col items-center justify-center shadow-xl hover:shadow-primary/5 group"
+                onClick={() => setPhase('intro-2')}
               >
-                Next
+                <span className="text-base md:text-lg leading-relaxed whitespace-normal break-words max-w-xs transition-colors duration-300 group-hover:text-primary">
+                  To some extent, yes. It’s hard to completely ignore what others think.
+                </span>
               </Button>
-            </motion.div>
-          ) : (
+              <Button
+                variant="outline"
+                className="py-12 px-8 h-auto border-primary/10 bg-background/50 hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all duration-500 rounded-3xl flex flex-col items-center justify-center shadow-xl hover:shadow-primary/5 group"
+                onClick={() => setPhase('intro-2')}
+              >
+                <span className="text-base md:text-lg leading-relaxed whitespace-normal break-words max-w-xs transition-colors duration-300 group-hover:text-primary">
+                  Not much. I mostly rely on my own judgment when rating films.
+                </span>
+              </Button>
+            </div>
+          </motion.div>
+        );
+
+      case 'intro-2':
+        return (
+          <motion.div
+            key="intro-2"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="flex flex-col items-center space-y-12 max-w-4xl text-center px-4"
+          >
+            <h2 className="text-2xl md:text-3xl font-serif text-primary leading-tight">
+              Which feels closer to you?
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-2xl">
+              <Button
+                variant="outline"
+                className="py-12 px-8 h-auto text-xl font-bold border-primary/10 bg-background/50 hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all rounded-3xl flex flex-col items-center justify-center whitespace-normal text-center shadow-lg hover:shadow-primary/5 group"
+                onClick={() => setPhase('guess')}
+              >
+                <span className="leading-tight transition-colors duration-300 group-hover:text-primary">
+                  I tend to agree with the community
+                </span>
+              </Button>
+              <Button
+                variant="outline"
+                className="py-12 px-8 h-auto text-xl font-bold border-primary/10 bg-background/50 hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all rounded-3xl flex flex-col items-center justify-center whitespace-normal text-center shadow-lg hover:shadow-primary/5 group"
+                onClick={() => setPhase('guess')}
+              >
+                <span className="leading-tight transition-colors duration-300 group-hover:text-primary">
+                  I often rate differently
+                </span>
+              </Button>
+            </div>
+          </motion.div>
+        );
+
+      case 'guess':
+        return (
+          <div className="w-full max-w-2xl mx-auto px-4 md:px-6 py-4 md:py-12 flex flex-col items-center justify-center space-y-10 md:space-y-16">
+            {/* Sequenced Text Header */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="w-full flex flex-col items-center space-y-12 md:space-y-16"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="text-center"
             >
-              <p className="text-sm md:text-base font-bold uppercase tracking-[0.2em] text-muted-foreground/80">
-                Use the slider to locate yourself
+              <h2 className="text-2xl md:text-3xl font-serif text-primary leading-tight italic">
+                Can you be more precise?
+              </h2>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1.0, delay: 1.2 }}
+              className="w-full flex flex-col items-center space-y-10 md:space-y-16"
+            >
+              <p className="text-muted-foreground font-medium tracking-[0.2em] uppercase text-[10px] md:text-xs text-center">
+                Use the slider
               </p>
 
               <div className="w-full relative py-8 px-2">
@@ -132,7 +186,6 @@ export const TasteGuessStep2 = () => {
                   </span>
                 </div>
 
-                {/* Track Background - The Color Carrier */}
                 <div
                   className="relative h-2 w-full rounded-full overflow-hidden transition-colors duration-200"
                   style={{
@@ -157,10 +210,7 @@ export const TasteGuessStep2 = () => {
                     })(),
                   }}
                 >
-                  {/* Center Line Indicator */}
                   <div className="absolute left-1/2 top-0 w-0.5 h-full bg-black/10 -translate-x-1/2" />
-
-                  {/* Shimmer Effect - Entire Track */}
                   <motion.div
                     animate={{ backgroundPosition: ['0% 0%', '200% 0%'] }}
                     transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
@@ -168,7 +218,6 @@ export const TasteGuessStep2 = () => {
                   />
                 </div>
 
-                {/* Native Slider Interaction */}
                 <input
                   type="range"
                   min="0"
@@ -190,7 +239,6 @@ export const TasteGuessStep2 = () => {
                   )}
                 />
 
-                {/* Custom Thumb - Lift & Scale */}
                 <div
                   ref={thumbRef}
                   className={cn(
@@ -210,7 +258,6 @@ export const TasteGuessStep2 = () => {
                   <div className="w-2 h-2 md:w-1.5 md:h-1.5 bg-background rounded-full" />
                 </div>
 
-                {/* Reality Marker */}
                 {isStep2Revealed && (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.5, y: -20, left: '50%' }}
@@ -238,7 +285,33 @@ export const TasteGuessStep2 = () => {
                 {isStep2Revealed ? 'Analyze Results' : 'Lock In'}
               </Button>
             </motion.div>
-          )}
+          </div>
+        );
+    }
+  };
+
+  return (
+    <GameLayout
+      className="w-full"
+      top={
+        <div className="w-full px-4 md:px-8 pt-4 md:pt-8 bg-background/50 backdrop-blur-sm z-30">
+          <div className="max-w-2xl mx-auto flex justify-between items-start">
+            <GameRoundIndicator major={2} majorTotal={2} />
+            <ScorePanel
+              score={score}
+              pointsEarned={localPointsEarned}
+              flyFromPosition={flyFromPosition}
+              label="Total Score"
+              size="md"
+              className="mb-0"
+              position="static"
+            />
+          </div>
+        </div>
+      }
+      middle={
+        <div className="w-full max-w-4xl mx-auto flex items-center justify-center min-h-[60vh]">
+          <AnimatePresence mode="wait">{renderPhase()}</AnimatePresence>
         </div>
       }
     />

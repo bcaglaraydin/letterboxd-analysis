@@ -339,7 +339,7 @@ export const DebugControls = () => {
                   <div className="text-[10px] text-gray-500 mb-1">
                     Current Step: {useTasteStore.getState().step}
                   </div>
-                  {([1, 2, 3] as const).map((s) => (
+                  {([0, 1, 2, 3] as const).map((s) => (
                     <button
                       key={s}
                       onClick={() => handleAction(() => useTasteStore.getState().setStep(s))}

@@ -6,6 +6,7 @@ import { useTasteStore } from '@/store/taste/tasteStore';
 import { TasteGuessStep1 } from './TasteGuessStep1';
 import { TasteGuessStep2 } from './TasteGuessStep2';
 import { TasteReveal } from './TasteReveal';
+import { TasteIntro } from './TasteIntro';
 import { MOCK_TASTE_MOVIES } from '@/mocks/data';
 
 interface TastePositioningOrchestrationProps {
@@ -32,12 +33,24 @@ export const TastePositioningOrchestration: React.FC<TastePositioningOrchestrati
   return (
     <div className="w-full h-full relative overflow-hidden bg-background">
       <AnimatePresence mode="wait">
-        {step === 1 && (
+        {step === 0 && (
           <motion.div
-            key="step-1"
+            key="step-0"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            className="w-full h-full"
+          >
+            <TasteIntro />
+          </motion.div>
+        )}
+
+        {step === 1 && (
+          <motion.div
+            key="step-1"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
             className="w-full h-full"
           >
             <TasteGuessStep1 />

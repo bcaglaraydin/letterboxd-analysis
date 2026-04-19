@@ -41,11 +41,15 @@ export const TasteReveal = () => {
 
   // Define dialogues for each step
   const stepConfig = useMemo(() => {
+    const isMainstream = actualPopularity > 0.5;
+    const isDivergent = actualAlignment > 0.5;
+    const explainSentence = `You tend to love ${isMainstream ? 'mainstream' : 'niche'} movies, and your ratings usually ${isDivergent ? 'diverge' : 'align'} with the community.`;
+
     return {
       AXES: {
         messages: [
           'The landscape is defined by two metrics.',
-          'The horizontal axis represents your **mainstream affinity**: Niche to Mainstream.',
+          'The horizontal axis represents your **Mainstream Affinity**: Niche to Mainstream.',
           'The vertical axis measures your Independence: Consensus to Divergence.',
         ],
         nextStep: 'PERCEPTION' as RevealStep,
@@ -71,7 +75,7 @@ export const TasteReveal = () => {
         showLine: false,
       },
       REALITY: {
-        messages: ['This is your real taste center.', ...diagnosticMessages],
+        messages: ['This is your real taste center.', explainSentence, ...diagnosticMessages],
         nextStep: null,
         showPoints: true,
         showGuess: true,
@@ -79,7 +83,7 @@ export const TasteReveal = () => {
         showLine: true,
       },
     };
-  }, [diagnosticMessages]);
+  }, [diagnosticMessages, actualPopularity, actualAlignment]);
 
   const currentConfig = stepConfig[step];
   const [activeMessageIndex, setActiveMessageIndex] = useState(0);
@@ -122,7 +126,9 @@ export const TasteReveal = () => {
         mainstream: 'text-[#f59e0b]',
         popular: 'text-[#f59e0b]',
         consensus: 'text-[#10b981]',
+        align: 'text-[#10b981]',
         divergence: 'text-[#f43f5e]',
+        diverge: 'text-[#f43f5e]',
         independence: 'text-primary', // Bold for Independence
       };
 
@@ -171,6 +177,8 @@ export const TasteReveal = () => {
                 showGuess={currentConfig.showGuess}
                 showActual={currentConfig.showActual}
                 showLine={currentConfig.showLine}
+                showXLabels={step !== 'AXES' || activeMessageIndex >= 1}
+                showYLabels={step !== 'AXES' || activeMessageIndex >= 2}
               />
             </div>
           </div>
@@ -180,9 +188,14 @@ export const TasteReveal = () => {
             <div className="w-full text-lg md:text-2xl font-serif text-primary leading-relaxed px-4 mx-auto">
               {/* If we are in diagnostic mode, we use a static wrapper to pin 'you are' 
                   and a nested AnimatePresence to ONLY swap the descriptor. */}
-              {step === 'REALITY' && activeMessageIndex > 0 ? (
+              {step === 'REALITY' && activeMessageIndex >= 2 ? (
                 /* Absolute Pinned Grid: Ensures 'You are' never moves while keeping a natural gap */
-                <div className="grid grid-cols-2 w-full">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.4, ease: 'easeOut' }}
+                  className="grid grid-cols-2 w-full"
+                >
                   <div className="text-right pr-1">
                     <span className="text-primary whitespace-nowrap">You are</span>
                   </div>
@@ -193,13 +206,13 @@ export const TasteReveal = () => {
                         initial={{ opacity: 0, x: 5 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -5 }}
-                        transition={{ duration: 0.3, ease: 'easeOut' }}
+                        transition={{ duration: 0.4, ease: 'easeOut' }}
                       >
                         {highlightText(currentConfig.messages[activeMessageIndex])}
                       </motion.div>
                     </AnimatePresence>
                   </div>
-                </div>
+                </motion.div>
               ) : (
                 /* Standard animated block for primary dialogue messages */
                 <AnimatePresence mode="wait">
