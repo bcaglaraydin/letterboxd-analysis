@@ -18,42 +18,42 @@ export const generateTasteGame = (allFilmsWithMeta) => {
     return { movies: [], actualPopularity: 0.5, actualAlignment: 0.5 };
   }
 
-  // 2. Pre-calculate raw values for normalization boundaries
-  const movieMetrics = validMovies.map((m) => {
-    const rawPop = Math.log10(m.ratingCount + 1);
-    const rawDiff = Math.abs(m.userRating - m.averageRating);
-    return {
-      movie: m,
-      rawPop,
-      rawDiff,
-    };
-  });
+  // 2. Find normalization boundaries for all metrics
+  const userRatings = validMovies.map((m) => m.userRating);
+  const commRatings = validMovies.map((m) => m.averageRating);
+  const popValues = validMovies.map((m) => Math.log10(m.ratingCount + 1));
 
-  const popValues = movieMetrics.map((m) => m.rawPop);
-  const diffValues = movieMetrics.map((m) => m.rawDiff);
-
+  const minUser = Math.min(...userRatings);
+  const maxUser = Math.max(...userRatings);
+  const minComm = Math.min(...commRatings);
+  const maxComm = Math.max(...commRatings);
   const minPop = Math.min(...popValues);
   const maxPop = Math.max(...popValues);
-  const maxDiff = Math.max(...diffValues);
 
-  // Buffer to prevent zero-division and to ensure a meaningful range
+  const userRange = maxUser - minUser || 1;
+  const commRange = maxComm - minComm || 1;
   const popRange = maxPop - minPop || 1;
-  const diffRange = maxDiff || 1.5; // Default to at least 1.5 if maxDiff is tiny
 
-  // 3. Normalize and weigh each movie
+  // 3. Normalize each movie and prepare results
   let weightedPopSum = 0;
   let weightedDiffSum = 0;
   let totalWeight = 0;
 
-  const movies = movieMetrics.map(({ movie, rawPop, rawDiff }) => {
-    // X-Axis (Mainstream Affinity): 0 (Niche) to 1 (Mainstream)
+  const movies = validMovies.map((movie) => {
+    // X-Axis (Mainstream Affinity): Normalized Popularity (0 to 1)
+    const rawPop = Math.log10(movie.ratingCount + 1);
     const popularity = (rawPop - minPop) / popRange;
 
-    // Y-Axis (Independence/Divergence): 0 (Consensus) to 1 (Divergence)
-    const divergence = rawDiff / diffRange;
+    // Y-Axis (Independence): Relative Divergence
+    // Normalize both ratings within their own dataset first
+    const normUser = (movie.userRating - minUser) / userRange;
+    const normComm = (movie.averageRating - minComm) / commRange;
+    const divergence = Math.abs(normUser - normComm);
 
-    // Weight is the user's rating (higher ratings influence the center more)
-    const weight = movie.userRating;
+    // Weight: Use normalized User Rating as weight (normalized style)
+    // We add a tiny baseline weight (0.1) so bottom-rated movies still contribute slightly
+    const weight = normUser + 0.1;
+
     weightedPopSum += popularity * weight;
     weightedDiffSum += divergence * weight;
     totalWeight += weight;
@@ -67,6 +67,8 @@ export const generateTasteGame = (allFilmsWithMeta) => {
       userRating: movie.userRating,
       communityRating: movie.averageRating,
       ratingDiff: movie.userRating - movie.averageRating,
+      normUser,
+      normComm,
     };
   });
 
@@ -75,7 +77,7 @@ export const generateTasteGame = (allFilmsWithMeta) => {
   const actualAlignment = totalWeight > 0 ? weightedDiffSum / totalWeight : 0.5;
 
   Logger.info(
-    `[TasteGame] Calculated center: Pop=${actualPopularity.toFixed(3)}, Align=${actualAlignment.toFixed(3)} based on ${movies.length} movies.`
+    `[TasteGame] Normalized Center: Pop=${actualPopularity.toFixed(3)}, Align=${actualAlignment.toFixed(3)} based on ${movies.length} movies.`
   );
 
   return {
