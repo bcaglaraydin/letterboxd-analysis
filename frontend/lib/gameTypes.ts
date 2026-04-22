@@ -9,6 +9,7 @@ export const GAME_PHASES = {
   THEME: 'theme-guessing',
   TASTE_POSITIONING: 'taste-positioning',
   HABITS: 'viewing-habits',
+  RECAP: 'journey-recap',
 } as const;
 
 export type GamePhase = (typeof GAME_PHASES)[keyof typeof GAME_PHASES];

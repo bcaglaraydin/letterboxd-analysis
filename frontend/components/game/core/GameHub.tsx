@@ -11,6 +11,7 @@ import {
   selectThemeGameStatus,
   selectTasteGameStatus,
   selectHabitsGameStatus,
+  selectAllGamesCompleted,
 } from '@/store/core/experienceStore';
 import { GameBackground } from '@/components/game/shared/GameBackground';
 import { GameLayout } from '@/components/game/shared/GameLayout';
@@ -32,6 +33,8 @@ export const GameHub = () => {
   const startThemeExperience = useExperienceStore((state) => state.startThemeExperience);
   const startTastePositioning = useExperienceStore((state) => state.startTastePositioning);
   const startHabitsExperience = useExperienceStore((state) => state.startHabitsExperience);
+  const startRecap = useExperienceStore((state) => state.startRecap);
+  const allCompleted = useExperienceStore(selectAllGamesCompleted);
 
   const container = {
     hidden: { opacity: 0 },
@@ -121,45 +124,56 @@ export const GameHub = () => {
 
               {/* Render UNLOCKED game as a bottom button */}
               <div className="w-full flex justify-center">
-                {ratingGameStatus === 'UNLOCKED' && (
+                {allCompleted ? (
                   <button
-                    onClick={startRatingGame}
+                    onClick={startRecap}
                     className="w-full max-w-sm h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2"
                   >
-                    Continue
+                    Reveal Cinematic Identity
                   </button>
-                )}
-                {genreGameStatus === 'UNLOCKED' && (
-                  <button
-                    onClick={startGenreGame}
-                    className="w-full max-w-sm h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2"
-                  >
-                    Continue
-                  </button>
-                )}
-                {themeGameStatus === 'UNLOCKED' && (
-                  <button
-                    onClick={startThemeExperience}
-                    className="w-full max-w-sm h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2"
-                  >
-                    Continue
-                  </button>
-                )}
-                {tasteGameStatus === 'UNLOCKED' && (
-                  <button
-                    onClick={startTastePositioning}
-                    className="w-full max-w-sm h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2"
-                  >
-                    Continue
-                  </button>
-                )}
-                {habitsGameStatus === 'UNLOCKED' && (
-                  <button
-                    onClick={startHabitsExperience}
-                    className="w-full max-w-sm h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2"
-                  >
-                    Continue
-                  </button>
+                ) : (
+                  <>
+                    {ratingGameStatus === 'UNLOCKED' && (
+                      <button
+                        onClick={startRatingGame}
+                        className="w-full max-w-sm h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2"
+                      >
+                        Continue
+                      </button>
+                    )}
+                    {genreGameStatus === 'UNLOCKED' && (
+                      <button
+                        onClick={startGenreGame}
+                        className="w-full max-w-sm h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2"
+                      >
+                        Continue
+                      </button>
+                    )}
+                    {themeGameStatus === 'UNLOCKED' && (
+                      <button
+                        onClick={startThemeExperience}
+                        className="w-full max-w-sm h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2"
+                      >
+                        Continue
+                      </button>
+                    )}
+                    {tasteGameStatus === 'UNLOCKED' && (
+                      <button
+                        onClick={startTastePositioning}
+                        className="w-full max-w-sm h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2"
+                      >
+                        Continue
+                      </button>
+                    )}
+                    {habitsGameStatus === 'UNLOCKED' && (
+                      <button
+                        onClick={startHabitsExperience}
+                        className="w-full max-w-sm h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2"
+                      >
+                        Continue
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             </div>

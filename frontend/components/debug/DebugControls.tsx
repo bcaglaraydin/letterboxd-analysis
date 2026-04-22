@@ -252,6 +252,16 @@ export const DebugControls = () => {
                   >
                     Jump to Viewing Habits
                   </button>
+                  <button
+                    onClick={() =>
+                      handleAction(() => {
+                        useExperienceStore.setState({ currentPhase: GAME_PHASES.RECAP });
+                      })
+                    }
+                    className="px-2 py-1 bg-cyan-900/50 hover:bg-cyan-900/80 rounded text-left mt-1"
+                  >
+                    Jump to Journey Recap
+                  </button>
                 </div>
               </div>
             </div>

@@ -34,6 +34,7 @@ interface ExperienceState {
   completeTastePositioning: (score: number) => void;
   startHabitsExperience: () => void;
   completeHabitsExperience: (score: number) => void;
+  startRecap: () => void;
   resetExperience: () => void;
 }
 
@@ -117,6 +118,11 @@ export const useExperienceStore = create<ExperienceState>((set) => ({
       completedGames: [...new Set([...state.completedGames, GAME_PHASES.HABITS])],
       currentPhase: GAME_PHASES.HUB,
     })),
+
+  startRecap: () =>
+    set({
+      currentPhase: GAME_PHASES.RECAP,
+    }),
 
   resetExperience: () =>
     set({
