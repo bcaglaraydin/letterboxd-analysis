@@ -97,6 +97,7 @@ export const handler = async (event, context) => {
 
     if (userFilms.length === 0) {
       // If status is ready but 0 films, it means user truly has no films.
+      Logger.warn('User has 0 films, returning empty genreGame', { username });
       return {
         statusCode: 200,
         body: JSON.stringify({ status: 'ready', progress: 1, userStats: {}, genreGame: {} }),

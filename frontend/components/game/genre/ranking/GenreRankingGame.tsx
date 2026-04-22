@@ -79,10 +79,21 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
   const getGenre = (id: string) => genres.find((g) => g.id === id);
 
   if (genres.length === 0) {
+    // Diagnostic: Log full context when genre data is missing to debug root cause
+    console.error('[GenreRankingGame] ❌ genres array is empty — showing error screen', {
+      timestamp: new Date().toISOString(),
+      phase,
+      userRankingLength: userRanking.length,
+      actualRankingLength: actualRanking.length,
+      previousScore,
+    });
     return (
       <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center gap-4 min-h-[60vh]">
         <p className="text-muted-foreground text-sm">
           Failed to load genre data. Please try starting the game again.
+        </p>
+        <p className="text-muted-foreground/50 text-xs font-mono">
+          Debug: phase={phase}, rankings={userRanking.length}/{actualRanking.length}
         </p>
         <Button variant="outline" onClick={() => window.location.reload()} className="mt-4">
           Reload Page

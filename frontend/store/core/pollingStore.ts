@@ -26,10 +26,12 @@ interface PollingState {
 export const hydrateStoresGlobal = (data: Awaited<ReturnType<typeof pollMetricsStatus>>) => {
   console.log('[pollingStore] Hydrating stores', {
     status: data.status,
-    hasRating: !!data.ratingGame,
-    hasGenre: !!data.genreGame,
-    hasMatching: !!data.genreMatchingGame,
-    hasTheme: !!data.themeGame,
+    ratingMovies: data.ratingGame?.movies?.length ?? 0,
+    genreCount: data.genreGame?.genres?.length ?? 0,
+    genreGameShape: data.genreGame ? Object.keys(data.genreGame) : 'null',
+    matchingRounds: data.genreMatchingGame?.rounds?.length ?? 0,
+    themeRounds: data.themeGame?.rounds?.length ?? 0,
+    tasteMovies: data.tasteGame?.movies?.length ?? 0,
     hasUserStats: !!data.userStats,
   });
 
@@ -58,13 +60,25 @@ export const hydrateStoresGlobal = (data: Awaited<ReturnType<typeof pollMetricsS
 
   // 2. Genre Ranking Game
   if (data.genreGame) {
+    const genreArray = data.genreGame.genres;
+    if (!genreArray || genreArray.length === 0) {
+      console.warn('[pollingStore] ⚠️ genreGame present but genres array is empty/missing!', {
+        genreGameKeys: Object.keys(data.genreGame),
+        genreGameValue: JSON.stringify(data.genreGame).substring(0, 200),
+      });
+    }
     const currentGenres = useGenreRankingStore.getState().genres;
-    if (currentGenres.length === 0) {
+    if (currentGenres.length === 0 && genreArray && genreArray.length > 0) {
+      console.log(
+        `[pollingStore] Initializing genre ranking store with ${genreArray.length} genres`,
+      );
       useGenreRankingStore.getState().startGame({
         ...data.genreGame,
         previousScore: 0,
       });
     }
+  } else {
+    console.warn('[pollingStore] ⚠️ No genreGame in response data');
   }
 
   // 3. Genre Matching Game

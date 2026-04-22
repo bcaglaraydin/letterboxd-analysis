@@ -3,6 +3,7 @@ import { generateRatingGame } from '../games/ratingGame.js';
 import { generateGenreMatchingGame } from '../games/genreMatchingGame.js';
 import { generateThemeGame } from '../games/themeGame.js';
 import { generateTasteGame } from '../games/tasteGame.js';
+import { Logger } from '../utils/logger.js';
 import {
   calculateRatingDistribution,
   calculateBasicStats,
@@ -59,6 +60,14 @@ export const GameService = {
 
     // Generate Genre Game
     const genreGameData = generateGenreGame(allFilmsWithMeta, { limit: 8 });
+
+    // Diagnostic: Log genre game output for debugging empty-genre issues
+    Logger.info('Genre game generated', {
+      genreCount: genreGameData?.genres?.length ?? 0,
+      actualRankingCount: genreGameData?.actualRanking?.length ?? 0,
+      inputFilmCount: allFilmsWithMeta.length,
+      filmsWithGenres: allFilmsWithMeta.filter((f) => f.genres && f.genres.length > 0).length,
+    });
 
     // Generate Rating Game
     const ratingGameData = await generateRatingGame(userFilms, metadataMap, {
@@ -130,7 +139,7 @@ export const GameService = {
       countryStats,
     };
 
-    return {
+    const result = {
       userStats,
       ratingGame: ratingGameData,
       genreGame: genreGameData,
@@ -138,5 +147,17 @@ export const GameService = {
       themeGame: themeGameData,
       tasteGame: tasteGameData,
     };
+
+    // Diagnostic: Log full game data shape for debugging hydration issues
+    Logger.info('All games generated', {
+      hasUserStats: !!userStats,
+      ratingMovies: ratingGameData?.movies?.length ?? 0,
+      genreCount: genreGameData?.genres?.length ?? 0,
+      matchingRounds: genreMatchingGameData?.rounds?.length ?? 0,
+      themeRounds: themeGameData?.rounds?.length ?? 0,
+      tasteMovies: tasteGameData?.movies?.length ?? 0,
+    });
+
+    return result;
   },
 };
