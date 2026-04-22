@@ -60,18 +60,9 @@ export const IntroStep: React.FC<IntroStepProps> = ({ score, onNext }) => {
           animate="show"
           className="flex flex-col items-center space-y-8 max-w-4xl mx-auto"
         >
-          {/* 1. The results are in... */}
           <motion.div
             variants={sequentialItem}
             custom={0}
-            className="text-2xl md:text-4xl text-primary font-serif font-bold tracking-tight"
-          >
-            The results are in...
-          </motion.div>
-
-          <motion.div
-            variants={sequentialItem}
-            custom={1}
             className="flex flex-col md:flex-row items-center md:items-baseline justify-center gap-2 md:gap-3 flex-wrap"
           >
             {/* 2. Congratulations, you scored + Score Block (Grouped) */}

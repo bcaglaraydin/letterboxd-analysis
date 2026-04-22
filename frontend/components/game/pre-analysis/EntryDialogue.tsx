@@ -14,12 +14,12 @@ type DialogueKey = 'start' | 'what' | 'dontcare' | 'mockery';
 
 const SCREEN_LINES: Record<DialogueKey, DialogueLine[]> = {
   start: [
-    { text: "You've successfully entered a valid username" },
+    { text: "You've successfully entered a valid usernameç" },
     { text: 'Good!' },
-    { text: 'Before we start' },
+    { text: 'Before we start,' },
     { text: 'I need to ask you a few questions.' },
     {
-      text: 'Please answer them calmly and honestly. Your responses will not be stored or shared',
+      text: 'Please answer them calmly and honestly. Your responses will not be stored or shared.',
     },
   ],
   what: [
