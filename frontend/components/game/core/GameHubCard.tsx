@@ -11,7 +11,7 @@ interface GameHubCardProps {
   score: number;
   maxScore: number;
   icon: React.ReactNode;
-  onClick: () => void;
+  onClick?: () => void;
   actionLabel?: string;
   onHoverBorderColor?: string;
   gradientColor?: string;
@@ -52,9 +52,11 @@ export const GameHubCard: React.FC<GameHubCardProps> = ({
         className={cn(
           'w-full min-h-[180px] text-left bg-card border rounded-3xl p-4 sm:p-5 md:min-h-[250px] md:p-8 relative overflow-hidden transition-all duration-300 focus-visible:ring-2 focus-visible:outline-none flex flex-col max-w-full',
           onHoverBorderColor,
-          isUnlocked || isCompleted
+          isUnlocked
             ? `border-accent/50 bg-gradient-to-br ${gradientColor} to-transparent hover:shadow-lg hover:shadow-accent/5 hover:scale-[1.02] cursor-pointer`
-            : 'border-border/30 opacity-60 cursor-not-allowed',
+            : isCompleted
+              ? 'border-accent/20 bg-card cursor-default'
+              : 'border-border/30 opacity-60 cursor-not-allowed',
         )}
         onClick={!isDisabled ? onClick : undefined}
         disabled={isDisabled}

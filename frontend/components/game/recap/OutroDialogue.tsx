@@ -17,7 +17,7 @@ const OUTRO_LINES: DialogueLine[] = [
   { text: 'I truly enjoyed building it, and I hope you enjoyed it too.' },
   { text: 'On the next page, your cinematic identity card is waiting for you.' },
   {
-    text: 'After downloading yours, you can enter a friend’s username to see how well you know them.',
+    text: 'After downloading yours, you can start again by entering a friend’s username and get their cinematic identity card to see how well you know them.',
   },
   { text: 'Go ahead, take it:' },
 ];
