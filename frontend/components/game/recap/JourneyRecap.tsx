@@ -8,8 +8,8 @@ import { useExperienceStore } from '@/store/core/experienceStore';
 import { useTasteStore } from '@/store/taste/tasteStore';
 import { useThemeStore } from '@/store/theme/themeStore';
 import { Button } from '@/components/ui/button';
-import { Download, Film, Star } from 'lucide-react';
-import html2canvas from 'html2canvas';
+import { Download, Star, Film } from 'lucide-react';
+import { toPng } from 'html-to-image';
 import { getScoreColor } from '@/lib/scoreUtils';
 
 import { cn } from '@/lib/utils';
@@ -125,12 +125,15 @@ const RecapCard = React.forwardRef<HTMLDivElement, RecapCardProps>(
       badgeColor: string,
     ) => {
       if (!dev) return null;
-      const imgUrl = dev.poster || dev.posterUrl;
+      const rawUrl = dev.poster || dev.posterUrl;
+      // Smart Fix: Use wsrv.nl proxy only for export to bypass CORS without backend changes
+      const imgUrl =
+        isExport && rawUrl ? `https://wsrv.nl/?url=${encodeURIComponent(rawUrl)}` : rawUrl;
       return (
         <div
           className={cn(
-            'flex items-center gap-3 text-left relative overflow-hidden rounded-xl',
-            isExport ? 'p-4 h-[92px]' : 'p-3 md:p-4 h-[84px] md:h-[92px]',
+            'flex items-center gap-3 text-left relative rounded-xl',
+            isExport ? 'p-4' : 'p-3 md:p-4',
             color,
           )}
         >
@@ -146,8 +149,8 @@ const RecapCard = React.forwardRef<HTMLDivElement, RecapCardProps>(
             </h4>
             <p
               className={cn(
-                'font-serif leading-tight line-clamp-2 text-[#2D2D2D]',
-                isExport ? 'text-base' : 'text-xs md:text-base',
+                'font-serif leading-tight text-[#2D2D2D]',
+                isExport ? 'text-base' : 'text-xs md:text-base line-clamp-2',
               )}
             >
               {dev.title}
@@ -162,13 +165,15 @@ const RecapCard = React.forwardRef<HTMLDivElement, RecapCardProps>(
             </p>
           </div>
           {imgUrl && (
-            <div
-              className={cn('shrink-0 relative', isExport ? 'w-14 h-full' : 'w-12 md:w-14 h-full')}
-            >
+            <div className={cn('shrink-0', isExport ? 'w-14' : 'w-12 md:w-14')}>
               <img
                 src={imgUrl}
                 alt="poster"
-                className="absolute inset-0 w-full h-full object-cover rounded-md shadow-sm"
+                crossOrigin={isExport ? 'anonymous' : undefined}
+                className={cn(
+                  'w-full rounded-md shadow-sm',
+                  isExport ? 'h-[80px] object-cover' : 'h-auto',
+                )}
               />
             </div>
           )}
@@ -210,8 +215,8 @@ const RecapCard = React.forwardRef<HTMLDivElement, RecapCardProps>(
       <div
         ref={ref}
         className={cn(
-          'bg-white rounded-2xl shadow-lg border border-black/5 flex flex-col gap-0 relative overflow-hidden',
-          isExport ? 'p-10 w-[800px]' : 'p-4 md:p-10',
+          'bg-white rounded-2xl shadow-lg border border-black/5 flex flex-col gap-0 relative',
+          isExport ? 'p-10 w-[800px]' : 'p-4 md:p-10 overflow-hidden',
         )}
       >
         {/* SECTION 1: HEADER */}
@@ -567,33 +572,40 @@ const RecapCard = React.forwardRef<HTMLDivElement, RecapCardProps>(
                 Top Actors
               </p>
               <div className="flex flex-col gap-2">
-                {topActors.map((actor, i) => (
-                  <div key={i} className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      {actor.photoUrl ? (
-                        <img
-                          src={actor.photoUrl}
-                          className="w-7 h-7 rounded-full object-cover shadow-sm shrink-0"
-                          alt=""
-                        />
-                      ) : (
-                        <div className="w-7 h-7 rounded-full bg-black/10 shrink-0" />
-                      )}
-                      <span
-                        className={cn(
-                          'font-serif truncate text-[#2D2D2D]',
-                          isExport ? 'text-base' : 'text-sm md:text-base',
+                {topActors.map((actor, i) => {
+                  const actorImgUrl =
+                    isExport && actor.photoUrl
+                      ? `https://wsrv.nl/?url=${encodeURIComponent(actor.photoUrl)}`
+                      : actor.photoUrl;
+                  return (
+                    <div key={i} className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        {actorImgUrl ? (
+                          <img
+                            src={actorImgUrl}
+                            className="w-7 h-7 rounded-full object-cover shadow-sm shrink-0"
+                            crossOrigin={isExport ? 'anonymous' : undefined}
+                            alt=""
+                          />
+                        ) : (
+                          <div className="w-7 h-7 rounded-full bg-black/10 shrink-0" />
                         )}
-                      >
-                        {actor.name}
+                        <span
+                          className={cn(
+                            'font-serif text-[#2D2D2D]',
+                            isExport ? 'text-base' : 'text-sm md:text-base truncate',
+                          )}
+                        >
+                          {actor.name}
+                        </span>
+                      </div>
+                      <span className="text-xs font-bold text-[#888] tabular-nums shrink-0 flex items-center gap-1">
+                        {actor.count}
+                        <Film className="w-3 h-3 opacity-40" />
                       </span>
                     </div>
-                    <span className="text-xs font-bold text-[#888] tabular-nums shrink-0 flex items-center gap-1">
-                      {actor.count}
-                      <Film className="w-3 h-3 opacity-40" />
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
             {highestRatedGenre && (
@@ -731,53 +743,80 @@ export const JourneyRecap = () => {
     setDownloading(true);
     try {
       const element = exportRef.current;
-      const canvas = await html2canvas(element, {
-        scale: 2,
+      const wrapper = element.parentElement;
+
+      // Temporarily bring export card on-screen so it can be measured
+      if (wrapper) {
+        wrapper.style.position = 'fixed';
+        wrapper.style.left = '0';
+        wrapper.style.top = '0';
+        wrapper.style.zIndex = '-1';
+        wrapper.style.opacity = '0';
+        wrapper.style.pointerEvents = 'none';
+      }
+
+      // Let browser lay out the element properly
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      const dataUrl = await toPng(element, {
+        pixelRatio: 2,
         backgroundColor: '#F8F5F2',
-        useCORS: true,
-        logging: false,
+        cacheBust: true,
       });
 
-      const fileName = 'my-cinematic-identity.png';
+      // Move export card back off-screen
+      if (wrapper) {
+        wrapper.style.position = '';
+        wrapper.style.left = '';
+        wrapper.style.top = '';
+        wrapper.style.zIndex = '';
+        wrapper.style.opacity = '';
+        wrapper.style.pointerEvents = '';
+      }
 
-      const fallbackDownload = () => {
-        const dataUrl = canvas.toDataURL('image/png');
+      const fileName = `${username || 'my'}-cinematic-identity.png`;
+
+      // Try native share first, fall back to download
+      if (navigator.share && navigator.canShare) {
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
+        const file = new File([blob], fileName, { type: 'image/png' });
+        const shareData = { title: 'My Cinematic Identity', files: [file] };
+
+        if (navigator.canShare(shareData)) {
+          try {
+            await navigator.share(shareData);
+          } catch (err) {
+            console.error('Share aborted/failed:', err);
+          }
+        } else {
+          // Fallback download
+          const link = document.createElement('a');
+          link.download = fileName;
+          link.href = dataUrl;
+          link.click();
+        }
+      } else {
+        // Direct download
         const link = document.createElement('a');
         link.download = fileName;
         link.href = dataUrl;
         link.click();
-        setDownloading(false);
-      };
-
-      if (navigator.share && navigator.canShare) {
-        canvas.toBlob(async (blob) => {
-          if (!blob) {
-            fallbackDownload();
-            return;
-          }
-          const file = new File([blob], fileName, { type: 'image/png' });
-          const shareData = {
-            title: 'My Cinematic Identity',
-            files: [file],
-          };
-
-          if (navigator.canShare(shareData)) {
-            try {
-              await navigator.share(shareData);
-              setDownloading(false);
-            } catch (err) {
-              console.error('Share aborted/failed:', err);
-              setDownloading(false);
-            }
-          } else {
-            fallbackDownload();
-          }
-        }, 'image/png');
-      } else {
-        fallbackDownload();
       }
+
+      setDownloading(false);
     } catch (err) {
       console.error('Failed to generate image:', err);
+      // Restore wrapper position on error
+      const wrapper = exportRef.current?.parentElement;
+      if (wrapper) {
+        wrapper.style.position = '';
+        wrapper.style.left = '';
+        wrapper.style.top = '';
+        wrapper.style.zIndex = '';
+        wrapper.style.opacity = '';
+        wrapper.style.pointerEvents = '';
+      }
       setDownloading(false);
     }
   };
