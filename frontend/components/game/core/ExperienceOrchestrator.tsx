@@ -16,9 +16,11 @@ import { GAME_PHASES } from '@/lib/gameTypes';
 import { DebugControls } from '../../debug/DebugControls';
 
 export const ExperienceOrchestrator = () => {
-  const { currentPhase, completeRatingGame, completeGenreGame, completeThemeExperience } =
-    useExperienceStore();
-  const backgroundStatus = useUserStore((state) => state.backgroundStatus);
+  const currentPhase = useExperienceStore((s) => s.currentPhase);
+  const completeRatingGame = useExperienceStore((s) => s.completeRatingGame);
+  const completeGenreGame = useExperienceStore((s) => s.completeGenreGame);
+  const completeThemeExperience = useExperienceStore((s) => s.completeThemeExperience);
+  const backgroundStatus = useUserStore((s) => s.backgroundStatus);
 
   const completeRatingGameHandler = (score: number) => {
     completeRatingGame(score);

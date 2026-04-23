@@ -43,7 +43,7 @@ export const HabitsIntroDialogue: React.FC<HabitsIntroDialogueProps> = ({ onComp
               { text: 'What do you think now?' },
             ]
           : [
-              { text: "Earlier you weren't fully entertained by this analysis. " },
+              { text: "Earlier you weren't fully entertained by this experience. " },
               { text: 'What do you think now?' },
             ];
       case 'compare':
@@ -194,7 +194,7 @@ export const HabitsIntroDialogue: React.FC<HabitsIntroDialogueProps> = ({ onComp
                 ) : (
                   <>
                     <motion.span variants={fadeVariants} custom={delays[0]}>
-                      Earlier you weren&apos;t fully entertained by this analysis.{' '}
+                      Earlier you weren&apos;t fully entertained by this experience.{' '}
                     </motion.span>
                     <motion.span variants={fadeVariants} custom={delays[1]}>
                       What do you think now?
