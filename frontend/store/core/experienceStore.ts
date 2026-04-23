@@ -34,6 +34,7 @@ export interface ExperienceState {
   completeTastePositioning: (score: number) => void;
   startHabitsExperience: () => void;
   completeHabitsExperience: (score: number) => void;
+  startOutro: () => void;
   startRecap: () => void;
   resetExperience: () => void;
 }
@@ -113,11 +114,27 @@ export const useExperienceStore = create<ExperienceState>((set) => ({
     }),
 
   completeHabitsExperience: (score) =>
-    set((state) => ({
-      scores: { ...state.scores, habits: score },
-      completedGames: [...new Set([...state.completedGames, GAME_PHASES.HABITS])],
-      currentPhase: GAME_PHASES.HUB,
-    })),
+    set((state) => {
+      const nextCompleted = [...new Set([...state.completedGames, GAME_PHASES.HABITS])];
+      const allDone = [
+        GAME_PHASES.RATING,
+        GAME_PHASES.GENRE,
+        GAME_PHASES.THEME,
+        GAME_PHASES.TASTE_POSITIONING,
+        GAME_PHASES.HABITS,
+      ].every((p) => nextCompleted.includes(p));
+
+      return {
+        scores: { ...state.scores, habits: score },
+        completedGames: nextCompleted,
+        currentPhase: allDone ? GAME_PHASES.OUTRO : GAME_PHASES.HUB,
+      };
+    }),
+
+  startOutro: () =>
+    set({
+      currentPhase: GAME_PHASES.OUTRO,
+    }),
 
   startRecap: () =>
     set({

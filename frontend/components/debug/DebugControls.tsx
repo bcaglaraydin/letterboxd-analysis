@@ -255,12 +255,25 @@ export const DebugControls = () => {
                   <button
                     onClick={() =>
                       handleAction(() => {
-                        useExperienceStore.setState({ currentPhase: GAME_PHASES.RECAP });
+                        const {
+                          completeRatingGame,
+                          completeGenreGame,
+                          completeThemeExperience,
+                          completeTastePositioning,
+                          completeHabitsExperience,
+                          startOutro,
+                        } = useExperienceStore.getState();
+                        completeRatingGame(100);
+                        completeGenreGame(100);
+                        completeThemeExperience(100);
+                        completeTastePositioning(100);
+                        completeHabitsExperience(100);
+                        startOutro();
                       })
                     }
-                    className="px-2 py-1 bg-cyan-900/50 hover:bg-cyan-900/80 rounded text-left mt-1"
+                    className="px-2 py-1 bg-red-600/50 hover:bg-red-600/80 rounded text-left mt-2 font-bold"
                   >
-                    Jump to Journey Recap
+                    🔥 Skip to Journey End
                   </button>
                 </div>
               </div>

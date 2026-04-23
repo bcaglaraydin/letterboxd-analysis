@@ -9,6 +9,7 @@ export const GAME_PHASES = {
   THEME: 'theme-guessing',
   TASTE_POSITIONING: 'taste-positioning',
   HABITS: 'viewing-habits',
+  OUTRO: 'outro-dialogue',
   RECAP: 'journey-recap',
 } as const;
 

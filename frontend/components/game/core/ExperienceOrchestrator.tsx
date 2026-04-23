@@ -10,6 +10,7 @@ import { ThemeExperience } from '@/components/game/theme/ThemeExperience';
 import { TastePositioningOrchestration } from '@/components/game/taste/TastePositioningOrchestration';
 import { ViewingHabitsOrchestration } from '@/components/game/habits/ViewingHabitsOrchestration';
 import { JourneyRecap } from '@/components/game/recap/JourneyRecap';
+import { OutroDialogue } from '@/components/game/recap/OutroDialogue';
 import { useUserStore } from '@/store/core/userStore';
 import { Loader2 } from 'lucide-react';
 import { GAME_PHASES } from '@/lib/gameTypes';
@@ -119,6 +120,18 @@ export const ExperienceOrchestrator = () => {
             className="w-full h-full"
           >
             <ViewingHabitsOrchestration onGameComplete={completeHabitsHandler} />
+          </motion.div>
+        )}
+
+        {currentPhase === GAME_PHASES.OUTRO && (
+          <motion.div
+            key="outro-dialogue"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="w-full h-full"
+          >
+            <OutroDialogue onComplete={() => useExperienceStore.getState().startRecap()} />
           </motion.div>
         )}
 

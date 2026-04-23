@@ -33,7 +33,7 @@ export const GameHub = () => {
   const startThemeExperience = useExperienceStore((state) => state.startThemeExperience);
   const startTastePositioning = useExperienceStore((state) => state.startTastePositioning);
   const startHabitsExperience = useExperienceStore((state) => state.startHabitsExperience);
-  const startRecap = useExperienceStore((state) => state.startRecap);
+  const startOutro = useExperienceStore((state) => state.startOutro);
   const allCompleted = useExperienceStore(selectAllGamesCompleted);
 
   const container = {
@@ -126,7 +126,7 @@ export const GameHub = () => {
               <div className="w-full flex justify-center">
                 {allCompleted ? (
                   <button
-                    onClick={startRecap}
+                    onClick={startOutro}
                     className="w-full max-w-sm h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2"
                   >
                     Reveal Cinematic Identity
