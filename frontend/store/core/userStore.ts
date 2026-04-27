@@ -59,8 +59,7 @@ export const useUserStore = create<UserState>((set, get) => ({
     if (userStats) {
       return {
         userStats,
-        genreGame: { genres: [], actualRanking: [] }, // Placeholder as we only cache userStats
-      } as { userStats: UserStats; genreGame: GenreGameData };
+      } as unknown as { userStats: UserStats; genreGame: GenreGameData };
     }
 
     const data = await apiFetchFullStats(username);
