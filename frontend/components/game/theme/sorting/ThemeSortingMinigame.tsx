@@ -12,8 +12,14 @@ import { SORTING_POINTS } from '@/store/theme/themeStore';
 import { GAME_SECTION_TITLE_CLASS } from '@/components/game/shared/titleStyles';
 
 export function ThemeSortingMinigame() {
-  const { sortingRounds, currentSortingIndex, sortingScore, sortingLastPoints, handleThemeSwipe } =
-    useThemeStore();
+  const {
+    score,
+    sortingRounds,
+    currentSortingIndex,
+    sortingScore,
+    sortingLastPoints,
+    handleThemeSwipe,
+  } = useThemeStore();
 
   const [flyFromPosition, setFlyFromPosition] = useState<{ x: number; y: number } | undefined>();
   const [bgFlash, setBgFlash] = useState<'correct' | 'incorrect' | null>(null);
@@ -100,10 +106,10 @@ export function ThemeSortingMinigame() {
             }}
           />
           <ScorePanel
-            score={sortingScore}
+            score={score + sortingScore}
             pointsEarned={sortingLastPoints}
             flyFromPosition={flyFromPosition}
-            maxScore={100}
+            maxScore={200}
             showMaxScore={true}
             className="mb-0"
             size="lg"

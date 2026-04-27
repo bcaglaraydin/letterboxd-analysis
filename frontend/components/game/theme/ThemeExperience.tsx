@@ -104,16 +104,13 @@ export function ThemeExperience({ onComplete }: ThemeExperienceProps) {
             }
             scorePanel={
               <ScorePanel
-                score={score}
+                score={score + useThemeStore.getState().sortingScore}
                 pointsEarned={phase === 'revealed' && flyFromPosition ? roundScore : null}
                 flyFromPosition={flyFromPosition}
-                maxScore={rounds.length * 20}
-                showMaxScore
-                label="Score"
+                maxScore={200}
                 size="lg"
                 position="static"
-                maxPositivePoint={20}
-                maxNegativePoint={0}
+                showMaxScore={true}
               />
             }
             onScorePosition={setFlyFromPosition}

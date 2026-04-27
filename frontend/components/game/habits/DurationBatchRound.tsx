@@ -178,7 +178,7 @@ function AnimatedBar({
 }: AnimatedBarProps) {
   const countRef = useAnimatedValue(watchCount, 'int', 2000, isMorphing || isFinal);
   const ratingRef = useAnimatedValue(avgRating, 'float', 2000, isMorphing || isFinal);
-  const heightPercent = Math.max(Math.pow(watchCount / Math.max(maxCount, 1), 1.5) * 100, 5);
+  const heightPercent = Math.max(Math.pow(watchCount / Math.max(maxCount, 1), 1.5) * 80, 5); // Capped at 80% for headroom
 
   return (
     <div className="flex-1 h-full min-h-0 flex flex-col items-center justify-end gap-1 sm:gap-2 group z-10 self-end">

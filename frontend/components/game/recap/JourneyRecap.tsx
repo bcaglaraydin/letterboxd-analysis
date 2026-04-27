@@ -650,10 +650,10 @@ const RecapCard = React.forwardRef<HTMLDivElement, RecapCardProps>(
           <div className="flex-1 grid grid-cols-5 gap-2">
             {[
               { label: 'Rating', val: scores.rating, max: 100 },
-              { label: 'Genre', val: scores.genre, max: 120 },
-              { label: 'Theme', val: scores.theme, max: 100 },
+              { label: 'Genre', val: Math.round((scores.genre / 200) * 100), max: 100 },
+              { label: 'Theme', val: Math.round((scores.theme / 200) * 100), max: 100 },
               { label: 'Taste', val: scores.taste, max: 100 },
-              { label: 'Habits', val: scores.habits, max: 40 },
+              { label: 'Habits', val: Math.round((scores.habits / 60) * 100), max: 100 },
             ].map((s) => (
               <div key={s.label} className="text-center">
                 <p
