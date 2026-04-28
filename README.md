@@ -1,33 +1,147 @@
-# Letterboxd Analysis 🍿
+# The Ultimate Letterboxd Analysis 🍿
 
-A serverless web application that analyzes a user's Letterboxd profile, scrapes their film data, and generates interactive mini-games and statistics about their cinematic tastes.
+## Why I Built This
 
-Built with **Next.js** for the frontend and **AWS Serverless** (API Gateway, Lambda, SQS, DynamoDB) for the backend, deployed completely via **Terraform** and **GitHub Actions**.
+I've always been drawn to products that analyze user behavior and turn data into something engaging and personal.
+
+Letterboxd already contains incredibly rich data — ratings, genres, themes, cast, countries — but lacks a deeply interactive insight layer. So I set out to build what I envisioned as a fully gamified, end-to-end analysis system for it.
 
 ---
 
-## 🏗️ Architecture Overview
+## What It Does
 
-The backend uses a smart, event-driven serverless architecture designed to handle slow scraping tasks asynchronously while providing instant feedback to the user.
+Enter a Letterboxd username → the app scrapes the user's entire watch history → and progressively unlocks six interactive games.
+
+Instead of overwhelming the user with dashboards, each insight is revealed through gameplay:
+
+| Game                  | Description                                                                                 |
+| --------------------- | ------------------------------------------------------------------------------------------- |
+| **Rating Intuition**  | Guess your own rating for films from your history                                           |
+| **Genre Ranking**     | Rank your most-watched genres against the real order                                        |
+| **Genre Matching**    | Match movies to their correct genre                                                         |
+| **Theme Guessing**    | Identify recurring themes in your taste                                                     |
+| **Taste Positioning** | Discover where you fall on mainstream ↔ niche and convergent ↔ divergent axes               |
+| **Viewing Habits**    | Guess your favorite actor, identify your real duration chart, explore your global watch map |
+
+After completing all games, the system generates a **Cinematic Identity** — a high-fidelity recap card including:
+
+- Scores and performance
+- Taste persona
+- "Guilty pleasures" and "hot takes"
+- Top actors and countries
+
+Exportable as a shareable PNG.
+
+---
+
+## Architecture
 
 ![AWS Architecture](docs/architecture.png)
 
-### Key Technologies
-
-- **Frontend**: Next.js (React), Tailwind CSS, Framer Motion, Zustand
-- **Compute**: AWS Lambda (Container Image / ARM64), Puppeteer (Chromium) for scraping
-- **Messaging**: Amazon SQS + Dead Letter Queues (DLQs)
-- **Database**: Amazon DynamoDB (PAY_PER_REQUEST, TTL-enabled)
-- **Infrastructure as Code**: Terraform / Terragrunt
-- **CI/CD**: GitHub Actions (OIDC, matrix deployments)
+| Layer         | Stack                                                             |
+| ------------- | ----------------------------------------------------------------- |
+| **Frontend**  | Next.js 16, React 19, Tailwind CSS, Framer Motion, Zustand, D3.js |
+| **Compute**   | AWS Lambda (Container Image, ARM64), Playwright + Chromium        |
+| **Messaging** | Amazon SQS + Dead Letter Queues                                   |
+| **Database**  | Amazon DynamoDB (PAY_PER_REQUEST, TTL, SSE)                       |
+| **IaC**       | Terraform + Terragrunt (9 modules)                                |
+| **CI/CD**     | GitHub Actions (OIDC, selective matrix builds, E2E verification)  |
 
 ---
 
-## 🚦 Application Logic Flow
+## Technical Highlights
 
-The system employs a "Smart Start" and "Polling" design pattern. Because scraping a user's entire Letterboxd history can take several minutes, the backend instantly returns a `202 Accepted` or `200 Processing` state, instructing the frontend to poll for partial and complete results.
+### Event-Driven Scraping Pipeline
 
-### Full System Flow
+Scraping is inherently slow, so the API immediately returns `202 Accepted` and dispatches work via SQS. A list scraper discovers all films, then fans out work to concurrent workers.
+
+This allows users to start interacting with the product before data collection finishes, turning waiting time into active engagement.
+
+### Progressive Experience (Partial Data Gameplay)
+
+Users can begin playing the Rating game with as few as 5 films while the rest of the dataset is still being processed.
+
+This required coordinating polling, state hydration, and per-game stores to ensure consistency without blocking the experience.
+
+### Self-Healing System Design
+
+The system automatically detects:
+
+- Stuck jobs
+- Data inconsistencies
+- Race conditions
+
+and resolves them without manual intervention, ensuring reliability in an unreliable scraping environment.
+
+### Idempotent & Fault-Tolerant Workers
+
+Each scraping worker uses DynamoDB conditional writes and TTL to guarantee idempotency and avoid duplicate processing in a distributed system.
+
+### Selective CI/CD Pipeline
+
+- Only modified Lambda functions are rebuilt and deployed using.
+- OIDC authentication removes the need for stored AWS credentials.
+- Each deployment is validated with live end-to-end tests.
+
+### Custom Dialogue Engine
+
+A logic-based system controls text reveal timing:
+
+- Nonlinear scaling based on length
+- Punctuation-aware pauses
+- Emotion-based modifiers
+
+This creates a more natural, narrative-driven interaction layer.
+
+### Design System
+
+A custom "Natural" design language built from scratch:
+
+- Serif typography
+- Warm color palette
+- Grain textures and organic shapes
+- Strict color constraints
+
+Documented and enforced across the entire application.
+
+---
+
+## Challenges
+
+### Gamification Balance
+
+Designing scoring systems that reward genuine self-awareness — without favoring extreme users (e.g. very generous raters or niche viewers) — required normalization strategies and carefully crafted decoy data.
+
+### Turning Data Into Gameplay
+
+With access to rich datasets (ratings, genres, themes, cast, countries), the main challenge wasn't analysis — it was curation. Deciding which insights are actually interesting, and transforming them into interactive experiences instead of static charts, required continuous iteration.
+
+### Progressive Loading & UX Trade-offs
+
+Balancing responsiveness with data completeness meant designing a system where users can interact with partial data while background processes continue. This introduced complexity in synchronization, polling, and state management.
+
+### Content & Narrative Design
+
+A "Cold Observer" persona guides the experience through dynamic dialogue. Writing content that remains engaging, coherent, and context-aware regardless of user data required blending product thinking with narrative design.
+
+### Scraping in a Constrained Environment
+
+Running headless Chromium inside ARM64 Lambda containers required:
+
+- Retry logic
+- Efficient batching
+
+while staying within strict memory and execution limits.
+
+### State Management Complexity
+
+Managing multiple concurrent game states, polling updates, and partial hydration introduced non-trivial frontend architecture challenges.
+
+---
+
+## System Flow
+
+The system uses a **Smart Start + Polling** pattern. The backend returns instant feedback (`202 Accepted` or `200 Processing`) and the frontend polls for partial and complete results.
 
 ```mermaid
 %%{init: {
@@ -301,39 +415,3 @@ flowchart TD
     class DLQ_LIST,DLQ_FILM dlq
     class S_202 accepted
 ```
-
-## 🛠️ Infrastructure & CI/CD
-
-- **Infrastructure as Code**: Everything under AWS is managed via `/infra` using **Terragrunt/Terraform**.
-- **CI/CD Pipelines**: Managed via GitHub Actions `.github/workflows`.
-  - Validates formatting (`make format`, `make lint`) and runs 50+ backend E2E/Unit tests using Vitest (`npm run test`).
-  - Uses `dorny/paths-filter` to trigger selective matrix builds to only compile Lambdas whose dependencies change.
-  - Automatically pushes ARM64 Docker images to Amazon ECR and deploys via Terragrunt `apply`.
-
----
-
-## 🛡️ Security & Cost Protection
-
-The application implements several layers of protection to ensure resource stability and cost predictability:
-
-### 1. Authenticated Handshake
-To prevent external bots from exhausting scraping resources, all `POST /analysis` requests require a short-lived JSON Web Token (JWT).
-- **Endpoint**: `GET /auth/token` performs the handshake and returns an IP-bound JWT.
-* **Binding**: Tokens are cryptographically bound to the requester's IP address.
-
-### 2. Tiered Quotas
-- **Per-IP Quota**: Limited to **5 successful analyses per 24 hours**.
-- **Global Quota**: The entire system is capped at **100 analyses per 24 hours**.
-- **Throttling**: API Gateway enforces a 5 req/sec steady-state rate.
-
-### 3. Cost Kill-Switch
-- **Hard Budget**: An AWS Budget is set at **$15/month**.
-- **Automatic Shutdown**: If the budget is exceeded, an SNS alert triggers a Lambda that flips the global kill-switch in **AWS SSM Parameter Store** (`/app/analysis_enabled`), gracefully disabling the scraper.
-
-## ⚙️ Environment Variables
-
-| Variable | Description | Required |
-| --- | --- | --- |
-| `SIGNING_SECRET` | Secret key for JWT signing (32+ chars) | **Yes** |
-| `API_READ_ACCESS_TOKEN` | Letterboxd internal API token (v1) | **Yes** |
-| `NEXT_PUBLIC_API_URL` | API Gateway endpoint | **Yes** |
