@@ -108,6 +108,10 @@ export default function HomePage() {
     );
   }
 
+  const handleImpersonate = () => {
+    setUsernameInput('bcaglaraydin');
+  };
+
   const heroSection = (
     <div
       className="flex flex-col items-center text-center w-full max-w-2xl mx-auto overflow-hidden"
@@ -170,8 +174,18 @@ export default function HomePage() {
           maxWidth: 'min(380px, 100%)',
         }}
       >
-        No account? No problem! Use <span className="font-bold text-primary">bcaglaraydin</span> and{' '}
-        <strong className="text-primary bg-primary/10 px-2 py-0.5 rounded-md hover:bg-primary hover:text-white transition-all cursor-pointer">
+        No account? No problem! Use{' '}
+        <span
+          className="font-bold text-primary cursor-pointer hover:underline underline-offset-4"
+          onClick={handleImpersonate}
+        >
+          bcaglaraydin
+        </span>{' '}
+        and{' '}
+        <strong
+          className="text-primary bg-primary/10 px-2 py-0.5 rounded-md hover:bg-primary hover:text-white transition-all cursor-pointer"
+          onClick={handleImpersonate}
+        >
           impersonate me
         </strong>{' '}
         to explore.
