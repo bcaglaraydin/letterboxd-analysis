@@ -1,12 +1,8 @@
 # The Ultimate Letterboxd Analysis 🍿
 
-> *A gamified web experience that turns your movie taste into playable insights.*
-
 ## Why I Built This
 
 I've always been drawn to products that analyze user behavior and turn data into something engaging and personal.
-
-Most tools present insights as static charts. I wanted to explore a different direction: **What if your data was something you could play with?**
 
 Letterboxd already contains incredibly rich data — ratings, genres, themes, cast, countries — but lacks a deeply interactive insight layer. So I set out to build what I envisioned as a fully gamified, end-to-end analysis system for it.
 
@@ -69,13 +65,13 @@ This required coordinating polling, state hydration, and per-game stores to ensu
 
 ### Self-Healing System Design
 
-The system automatically detects and resolves:
+The system automatically detects:
 
-- **Stuck jobs** — stale processing states older than 3 minutes
-- **Data inconsistencies** — missing film metadata below expected thresholds
-- **Race conditions** — concurrent writes handled via DynamoDB conditional expressions
+- Stuck jobs
+- Data inconsistencies
+- Race conditions
 
-No manual intervention needed.
+and resolves them without manual intervention, ensuring reliability in an unreliable scraping environment.
 
 ### Idempotent & Fault-Tolerant Workers
 
@@ -93,7 +89,7 @@ An AWS Budget at $15/month triggers an SNS → Lambda chain that flips the kill-
 
 ### Selective CI/CD Pipeline
 
-- Only modified Lambda functions are rebuilt and deployed using `dorny/paths-filter`.
+- Only modified Lambda functions are rebuilt and deployed.
 - OIDC authentication removes the need for stored AWS credentials.
 - Each deployment is validated with live end-to-end tests.
 
@@ -146,10 +142,6 @@ Running headless Chromium inside ARM64 Lambda containers required:
 - Efficient batching
 
 while staying within strict memory and execution limits.
-
-### Consistency Across Variable Data Sizes
-
-The experience needed to feel meaningful whether a user had 20 films or 2,000. Designing systems that scale insight quality across vastly different dataset sizes was a non-trivial problem.
 
 ### State Management Complexity
 
