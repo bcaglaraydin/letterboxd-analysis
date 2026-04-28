@@ -9,6 +9,11 @@ WORKDIR /build
 
 # Copy from native runner and install dependencies (no QEMU)
 COPY package*.json ./
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+ARG GH_PAT
+RUN if [ -n "$GH_PAT" ]; then \
+      git config --global url."https://${GH_PAT}@github.com/".insteadOf "https://github.com/"; \
+    fi
 RUN npm ci --omit=dev && npm cache clean --force
 
 # Now transition to the actual ARM64 runtime image

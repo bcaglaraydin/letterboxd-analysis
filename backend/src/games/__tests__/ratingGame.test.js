@@ -5,7 +5,7 @@ vi.mock('../../services/dynamoDbService.js', () => ({
   batchWrite: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('../../services/letterboxdScrapingService.js', () => ({
+vi.mock('letterboxd-scraper-engine', () => ({
   scrapeFilmDetails: vi.fn(),
 }));
 

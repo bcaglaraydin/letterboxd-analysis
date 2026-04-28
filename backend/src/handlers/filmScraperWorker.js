@@ -1,4 +1,4 @@
-import { scrapeFilmDetails } from '../services/letterboxdScrapingService.js';
+import { scrapeFilmDetails } from 'letterboxd-scraper-engine';
 import { putItem, getItem } from '../services/dynamoDbService.js';
 import { Logger } from '../utils/logger.js';
 

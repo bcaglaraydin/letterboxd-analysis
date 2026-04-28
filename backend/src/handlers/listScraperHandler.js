@@ -1,4 +1,4 @@
-import { scrapeUserFilmsList } from '../services/letterboxdScrapingService.js';
+import { scrapeUserFilmsList } from 'letterboxd-scraper-engine';
 import { sendMessageBatch } from '../services/sqsQueueService.js';
 import { updateUserJob } from '../services/userJobService.js';
 import { batchGet } from '../services/dynamoDbService.js';
