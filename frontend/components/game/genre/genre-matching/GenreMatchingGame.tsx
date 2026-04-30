@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { FILMS_PER_GAME, ANIMATION_TIMING } from './constants';
 import { GenreTier, TIER_INFO } from './types';
 import { GenreChipAnimated } from './GenreChipAnimated';
+import { GenreMatchingRules } from './GenreMatchingRules';
 import { useGenreMatchingGame } from './useGenreMatchingGame';
 
 /**
@@ -183,11 +184,14 @@ export function GenreMatchingGame({ onGameComplete, baseScore = 0 }: GenreMatchi
         className="p-1 md:p-4"
         top={
           <div className="flex items-center justify-between w-full px-2 py-1">
-            <GameRoundIndicator
-              major={2}
-              majorTotal={2}
-              minor={{ current: currentFilmIndex + 1, total: FILMS_PER_GAME, label: 'Movie' }}
-            />
+            <div className="flex items-center gap-2 md:gap-4">
+              <GameRoundIndicator
+                major={2}
+                majorTotal={2}
+                minor={{ current: currentFilmIndex + 1, total: FILMS_PER_GAME, label: 'Movie' }}
+              />
+              <GenreMatchingRules />
+            </div>
             {/* Score Panel */}
             <ScorePanel
               score={totalScore}

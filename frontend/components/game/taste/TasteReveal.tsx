@@ -165,7 +165,7 @@ export const TasteReveal = () => {
       middle={
         <div className="w-full h-full flex flex-col items-center justify-between overflow-hidden">
           {/* REGION 1: Graph - Maximum vertical reach */}
-          <div className="w-full flex-grow flex items-center justify-center p-2">
+          <div className="w-full flex-1 min-h-0 flex items-center justify-center p-2 relative">
             <div className="w-full max-w-6xl relative h-full max-h-[900px]">
               <TasteScatterPlot
                 movies={movies}
@@ -183,13 +183,9 @@ export const TasteReveal = () => {
             </div>
           </div>
 
-          {/* REGION 2: Dialogue - Absolute Stability with Nested AnimatePresence */}
-          <div className="w-full max-w-4xl min-h-[100px] md:min-h-[120px] flex flex-col items-center justify-center relative z-20 mt-2">
+          <div className="w-full max-w-4xl min-h-[100px] md:min-h-[120px] flex flex-col items-center justify-center relative z-20 mt-2 mb-4">
             <div className="w-full text-lg md:text-2xl font-serif text-primary leading-relaxed px-4 mx-auto">
-              {/* If we are in diagnostic mode, we use a static wrapper to pin 'you are' 
-                  and a nested AnimatePresence to ONLY swap the descriptor. */}
               {step === 'REALITY' && activeMessageIndex >= 2 ? (
-                /* Absolute Pinned Grid: Ensures 'You are' never moves while keeping a natural gap */
                 <motion.div
                   initial={{ opacity: 0, scale: 0.98 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -214,7 +210,6 @@ export const TasteReveal = () => {
                   </div>
                 </motion.div>
               ) : (
-                /* Standard animated block for primary dialogue messages */
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={`${step}-${activeMessageIndex}`}
@@ -230,21 +225,21 @@ export const TasteReveal = () => {
               )}
             </div>
           </div>
-
-          {/* REGION 3: Action Button - Grounded at the bottom */}
-          <div className="w-full flex justify-center pb-6 md:pb-10 pt-2">
-            <Button
-              size="lg"
-              onClick={handleNext}
-              className="px-12 py-6 h-auto text-lg font-bold tracking-widest uppercase rounded-xl shadow-2xl hover:scale-105 active:scale-95 transition-all min-w-[240px]"
-            >
-              {activeMessageIndex < currentConfig.messages.length - 1
-                ? 'Continue'
-                : currentConfig.nextStep
-                  ? 'Next Phase'
-                  : 'Finalize Analysis'}
-            </Button>
-          </div>
+        </div>
+      }
+      bottom={
+        <div className="w-full flex justify-center pb-8 md:pb-12 pt-2 bg-gradient-to-t from-background via-background to-transparent px-4">
+          <Button
+            size="lg"
+            onClick={handleNext}
+            className="px-12 py-6 h-auto text-lg font-bold tracking-widest uppercase rounded-xl shadow-2xl hover:scale-105 active:scale-95 transition-all min-w-[240px]"
+          >
+            {activeMessageIndex < currentConfig.messages.length - 1
+              ? 'Continue'
+              : currentConfig.nextStep
+                ? 'Next Phase'
+                : 'Finalize Analysis'}
+          </Button>
         </div>
       }
     />

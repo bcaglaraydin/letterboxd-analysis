@@ -111,7 +111,6 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) =>
       component: (
         <div className="w-full h-full relative">
           <PersonalGenreBubbles data={genreData} insights={userStats?.genreInsights} />
-          {/* Title is handled inside PersonalGenreBubbles now */}
         </div>
       ),
     },
@@ -138,6 +137,7 @@ export const PostGameScreen: React.FC<PostGameScreenProps> = ({ onComplete }) =>
               </div>
             </div>
           </div>
+
           <div className="flex-1 min-h-0 relative">
             <div
               ref={scrollRef}

@@ -65,7 +65,9 @@ export const TasteGuessStep1 = () => {
       top={
         <div className="w-full px-4 md:px-8 pt-4 md:pt-8 bg-background/50 backdrop-blur-sm z-30">
           <div className="max-w-2xl mx-auto flex justify-between items-start">
-            <GameRoundIndicator major={1} majorTotal={2} />
+            <div className="flex items-center gap-2 md:gap-4">
+              <GameRoundIndicator major={1} majorTotal={2} />
+            </div>
 
             <ScorePanel
               score={score}
@@ -75,6 +77,8 @@ export const TasteGuessStep1 = () => {
               size="md"
               className="mb-0"
               position="static"
+              showMaxScore={true}
+              maxScore={100}
             />
           </div>
         </div>

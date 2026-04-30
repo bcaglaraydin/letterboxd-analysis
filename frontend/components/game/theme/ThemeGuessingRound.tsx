@@ -8,6 +8,7 @@ import { getScoreColor } from '@/lib/scoreUtils';
 import Image from 'next/image';
 import { GameBackground } from '@/components/game/shared/GameBackground';
 import { GameLayout } from '@/components/game/shared/GameLayout';
+import { ThemeGuessingRules } from '@/components/game/theme/ThemeGuessingRules';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { GAME_TEXT } from '@/lib/content';
@@ -148,7 +149,10 @@ export function ThemeGuessingRound({
         className="w-full max-w-7xl mx-auto"
         top={
           <div className="flex justify-between items-start p-4 md:p-8 w-full relative z-[60]">
-            {roundIndicator}
+            <div className="flex items-center gap-2 md:gap-4">
+              {roundIndicator}
+              {phase === 'guessing' && <ThemeGuessingRules />}
+            </div>
             {scorePanel}
           </div>
         }

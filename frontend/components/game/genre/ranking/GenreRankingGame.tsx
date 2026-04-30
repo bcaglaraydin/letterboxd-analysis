@@ -117,7 +117,9 @@ export function GenreRankingGame({ onGameComplete }: GenreRankingGameProps) {
           className="w-full max-w-7xl mx-auto"
           top={
             <div className="flex justify-between items-start p-4 md:p-8 w-full relative z-[60]">
-              <GameRoundIndicator major={1} majorTotal={2} />
+              <div className="flex items-center gap-2 md:gap-4">
+                <GameRoundIndicator major={1} majorTotal={2} />
+              </div>
               {isRevealing ? (
                 /* Score display during reveal */
                 <ScorePanel

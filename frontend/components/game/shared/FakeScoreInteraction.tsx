@@ -143,81 +143,87 @@ export const FakeScoreInteraction: React.FC<FakeScoreInteractionProps> = ({
         showInteractiveScorePanel && 'pt-28 sm:pt-32 md:pt-10',
       )}
     >
-      {/* Top Right Score Panel */}
+      {/* Top Bar for Score Panel - Standardized Positioning */}
       <AnimatePresence>
         {!isPass && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed top-3 right-3 md:top-6 md:right-6 z-[60] flex max-w-[calc(100vw-1.5rem)] flex-col items-end"
+            className="fixed top-0 left-0 right-0 z-[60] p-4 md:p-8"
           >
-            <AnimatePresence>
-              {(phase === 'interactive-score' ||
-                phase === 'busted' ||
-                phase === 'final-busted') && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="cursor-pointer mb-2 opacity-50 hover:opacity-100 hover:-translate-y-1 transition-all group"
-                  onClick={handleScoreInteraction}
-                >
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="text-primary group-hover:animate-bounce"
-                  >
-                    <path d="m18 15-6-6-6 6" />
-                  </svg>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <div className="max-w-2xl mx-auto flex justify-end items-start">
+              <div className="flex flex-col items-end">
+                <AnimatePresence>
+                  {(phase === 'interactive-score' ||
+                    phase === 'busted' ||
+                    phase === 'final-busted') && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="cursor-pointer mb-2 opacity-50 hover:opacity-100 hover:-translate-y-1 transition-all group"
+                      onClick={handleScoreInteraction}
+                    >
+                      <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-primary group-hover:animate-bounce"
+                      >
+                        <path d="m18 15-6-6-6 6" />
+                      </svg>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-            <div className="cursor-pointer" onClick={handleScoreInteraction}>
-              <ScorePanel
-                score={fakeScore}
-                maxScore={maxScore}
-                label="Score"
-                size="md"
-                countSpeed={1}
-                animationDelay={0}
-              />
+                <div className="cursor-pointer" onClick={handleScoreInteraction}>
+                  <ScorePanel
+                    score={fakeScore}
+                    maxScore={maxScore}
+                    label="Score"
+                    size="md"
+                    countSpeed={1}
+                    animationDelay={0}
+                    position="static"
+                    showMaxScore={true}
+                  />
+                </div>
+
+                <AnimatePresence>
+                  {(phase === 'interactive-score' ||
+                    phase === 'busted' ||
+                    phase === 'final-busted') && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="cursor-pointer mt-2 opacity-50 hover:opacity-100 hover:translate-y-1 transition-all group"
+                      onClick={handleScoreInteraction}
+                    >
+                      <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-primary group-hover:animate-bounce"
+                      >
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
-
-            <AnimatePresence>
-              {(phase === 'interactive-score' ||
-                phase === 'busted' ||
-                phase === 'final-busted') && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="cursor-pointer mt-2 opacity-50 hover:opacity-100 hover:translate-y-1 transition-all group"
-                  onClick={handleScoreInteraction}
-                >
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="text-primary group-hover:animate-bounce"
-                  >
-                    <path d="m6 9 6 6 6-6" />
-                  </svg>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>
