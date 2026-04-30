@@ -162,6 +162,7 @@ interface AnimatedBarProps {
   watchCount: number;
   avgRating: number;
   maxCount: number;
+  minCount: number;
   isMorphing: boolean;
   isFinal: boolean;
   index: number;
@@ -172,13 +173,15 @@ function AnimatedBar({
   watchCount,
   avgRating,
   maxCount,
+  minCount,
   isMorphing,
   isFinal,
   index,
 }: AnimatedBarProps) {
   const countRef = useAnimatedValue(watchCount, 'int', 2000, isMorphing || isFinal);
   const ratingRef = useAnimatedValue(avgRating, 'float', 2000, isMorphing || isFinal);
-  const heightPercent = Math.max(Math.pow(watchCount / Math.max(maxCount, 1), 1.5) * 80, 5); // Capped at 80% for headroom
+  const range = maxCount - minCount;
+  const heightPercent = range === 0 ? 50 : 15 + ((watchCount - minCount) / range) * 85;
 
   return (
     <div className="flex-1 h-full min-h-0 flex flex-col items-center justify-end gap-1 sm:gap-2 group z-10 self-end">
@@ -350,7 +353,7 @@ export function DurationBatchRound({
                 transition={{ duration: 0.4 }}
                 className="text-center mb-6 md:mb-10 w-full shrink-0"
               >
-                <h2 className="text-3xl md:text-5xl font-serif text-primary leading-tight">
+                <h2 className="text-2xl md:text-5xl font-serif text-primary leading-tight">
                   Which distribution of movie durations looks like you?
                 </h2>
                 <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-[11px] sm:text-xs">
@@ -405,10 +408,14 @@ export function DurationBatchRound({
                       <div className="p-4 sm:p-6 flex-1 h-full">
                         <ChartFrame maxCount={maxCountInGraph}>
                           {graph.batches.map((batch) => {
-                            const heightPercent = Math.max(
-                              Math.pow(batch.watchCount / maxCountInGraph, 1.5) * 100,
-                              5,
+                            const minCountInGraph = Math.min(
+                              ...graph.batches.map((b) => b.watchCount),
                             );
+                            const range = maxCountInGraph - minCountInGraph;
+                            const heightPercent =
+                              range === 0
+                                ? 50
+                                : 15 + ((batch.watchCount - minCountInGraph) / range) * 85;
 
                             return (
                               <div
@@ -500,6 +507,7 @@ export function DurationBatchRound({
                   <ChartFrame maxCount={Math.max(...revealBatches.map((b) => b.watchCount))}>
                     {revealBatches.map((batch, index) => {
                       const maxCount = Math.max(...revealBatches.map((b) => b.watchCount));
+                      const minCount = Math.min(...revealBatches.map((b) => b.watchCount));
 
                       return (
                         <AnimatedBar
@@ -508,6 +516,7 @@ export function DurationBatchRound({
                           watchCount={batch.watchCount}
                           avgRating={batch.avgRating}
                           maxCount={maxCount}
+                          minCount={minCount}
                           isMorphing={isMorphing}
                           isFinal={isFinal}
                           index={index}
