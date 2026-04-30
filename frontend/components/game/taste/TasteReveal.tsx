@@ -51,6 +51,7 @@ export const TasteReveal = () => {
           'The landscape is defined by two metrics.',
           'The horizontal axis represents your **Mainstream Affinity**: Niche to Mainstream.',
           'The vertical axis measures your Independence: Consensus to Divergence.',
+          'Mainstream: you like movies that are more watched\nNiche: you like movies that are less watched\nConsensus: you rate like the crowd\nDivergence: you rate differently than the crowd',
         ],
         nextStep: 'PERCEPTION' as RevealStep,
         showPoints: false,
@@ -217,7 +218,7 @@ export const TasteReveal = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.98 }}
                     transition={{ duration: 0.4, ease: 'easeOut' }}
-                    className="text-center w-full"
+                    className="text-center w-full whitespace-pre-wrap"
                   >
                     {highlightText(currentConfig.messages[activeMessageIndex])}
                   </motion.div>
