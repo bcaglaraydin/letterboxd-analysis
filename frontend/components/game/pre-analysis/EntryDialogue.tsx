@@ -64,8 +64,8 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
             <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed mb-8 text-center space-y-4">
               <p>
                 <motion.span variants={fadeVariants} custom={delays[0]} className="mr-2">
-                  <span className="font-bold">You&apos;ve successfully entered</span> a valid
-                  username
+                  You&apos;ve successfully entered{' '}
+                  <span className="font-bold">a valid username.</span>
                 </motion.span>
                 <motion.span variants={fadeVariants} custom={delays[1]} className="font-bold">
                   Good!
@@ -73,7 +73,7 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
               </p>
               <p>
                 <motion.span variants={fadeVariants} custom={delays[2]} className="mr-2">
-                  Before we start
+                  Before we start,
                 </motion.span>
                 <motion.span variants={fadeVariants} custom={delays[3]} className="font-bold">
                   I need to ask you a few questions.
@@ -81,7 +81,7 @@ export const EntryDialogue: React.FC<EntryDialogueProps> = ({ onStart }) => {
               </p>
               <motion.p variants={fadeVariants} custom={delays[4]}>
                 Please answer them <span className="font-bold">calmly and honestly.</span> Your
-                responses will not be stored or shared
+                responses will not be stored or shared.
               </motion.p>
             </div>
             <div className="flex flex-col gap-4 w-full max-w-sm">

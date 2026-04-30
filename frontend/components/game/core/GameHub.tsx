@@ -91,7 +91,7 @@ export const GameHub = () => {
                     title="Theme Guessing"
                     status={themeGameStatus}
                     score={scores.theme}
-                    maxScore={100}
+                    maxScore={200}
                     icon={<Sparkles className="w-5 h-5 md:w-6 md:h-6 fill-current" />}
                     onClick={undefined}
                   />
@@ -115,7 +115,7 @@ export const GameHub = () => {
                     title="Viewing Habits"
                     status={habitsGameStatus}
                     score={scores.habits}
-                    maxScore={40}
+                    maxScore={60}
                     icon={<Activity className="w-5 h-5 md:w-6 md:h-6 fill-current" />}
                     onClick={undefined}
                   />
