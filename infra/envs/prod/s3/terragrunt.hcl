@@ -18,3 +18,4 @@ inputs = {
   website_enabled             = true
   cloudfront_distribution_arn = dependency.cloudfront.outputs.cloudfront_arn
 }
+# Trigger S3 deploy to resolve policy mock bug
