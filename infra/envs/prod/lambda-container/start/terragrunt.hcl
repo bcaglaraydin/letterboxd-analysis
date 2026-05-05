@@ -23,7 +23,7 @@ dependency "sqs_list" {
 }
 
 dependency "ecr" {
-  config_path = "../../../shared/ecr/start"
+  config_path = "../../../../shared/ecr/start"
 }
 
 dependency "quotas" {

@@ -23,7 +23,7 @@ dependency "user_jobs" {
 }
 
 dependency "ecr" {
-  config_path = "../../../shared/ecr/list-scraper"
+  config_path = "../../../../shared/ecr/list-scraper"
 }
 
 inputs = {

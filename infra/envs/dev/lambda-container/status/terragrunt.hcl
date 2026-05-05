@@ -15,7 +15,7 @@ dependency "user_jobs" {
 }
 
 dependency "ecr" {
-  config_path = "../../../shared/ecr/status"
+  config_path = "../../../../shared/ecr/status"
 }
 
 dependency "cost_protection" {

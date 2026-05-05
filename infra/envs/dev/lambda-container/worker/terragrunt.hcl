@@ -15,7 +15,7 @@ dependency "films" {
 }
 
 dependency "ecr" {
-  config_path = "../../../shared/ecr/worker"
+  config_path = "../../../../shared/ecr/worker"
 }
 
 inputs = {
