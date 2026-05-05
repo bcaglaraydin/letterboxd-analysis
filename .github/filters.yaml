@@ -7,20 +7,20 @@
 
 # SHARED CHANGES
 core_infra:
-  - 'infra/envs/dev/dynamodb/**'
-  - 'infra/envs/dev/sqs/**'
-  - 'infra/envs/dev/sqs-list/**'
+  - 'infra/envs/**/dynamodb/**'
+  - 'infra/envs/**/sqs/**'
+  - 'infra/envs/**/sqs-list/**'
   - 'infra/modules/dynamodb/**'
   - 'infra/modules/sqs/**'
-  - 'infra/envs/dev/cost-protection/**'
+  - 'infra/envs/**/cost-protection/**'
   - 'infra/modules/cost-protection/**'
 
 ecr_infra:
-  - 'infra/envs/dev/ecr/**'
+  - 'infra/shared/ecr/**'
   - 'infra/modules/ecr/**'
 
 gateway_infra:
-  - 'infra/envs/dev/api-gateway/**'
+  - 'infra/envs/**/api-gateway/**'
   - 'infra/modules/api-gateway/**'
 
 # Base image (Chromium) - ONLY affects browser-based lambdas
@@ -45,7 +45,7 @@ start:
   - 'backend/src/games/**'
   - 'backend/src/utils/**'
   - 'backend/docker/lambdas/start/**'
-  - 'infra/envs/dev/lambda-container/start/**'
+  - 'infra/envs/**/lambda-container/start/**'
   - 'backend/package.json'
   - 'backend/package-lock.json'
 
@@ -59,7 +59,7 @@ status:
   - 'backend/src/games/**'
   - 'backend/src/utils/**'
   - 'backend/docker/lambdas/status/**'
-  - 'infra/envs/dev/lambda-container/status/**'
+  - 'infra/envs/**/lambda-container/status/**'
   - 'backend/package.json'
   - 'backend/package-lock.json'
 
@@ -71,7 +71,7 @@ list_scraper:
   - 'backend/src/services/dynamoDbService.js'
   - 'backend/src/utils/**'
   - 'backend/docker/lambdas/list-scraper/**'
-  - 'infra/envs/dev/lambda-container/list-scraper/**'
+  - 'infra/envs/**/lambda-container/list-scraper/**'
   - 'backend/package.json'
   - 'backend/package-lock.json'
 
@@ -81,6 +81,6 @@ worker:
   - 'backend/src/services/dynamoDbService.js'
   - 'backend/src/utils/**'
   - 'backend/docker/lambdas/worker/**'
-  - 'infra/envs/dev/lambda-container/worker/**'
+  - 'infra/envs/**/lambda-container/worker/**'
   - 'backend/package.json'
   - 'backend/package-lock.json'

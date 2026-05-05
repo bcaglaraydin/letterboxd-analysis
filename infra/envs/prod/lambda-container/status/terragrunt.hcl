@@ -23,9 +23,9 @@ dependency "cost_protection" {
 }
 
 inputs = {
-  function_name = "letterboxd-analysis-status-dev"
+  function_name = "letterboxd-analysis-status-prod"
   image_uri     = "${dependency.ecr.outputs.repository_url}:${get_env("IMAGE_TAG", "latest")}"
-  environment   = "dev"
+  environment   = "prod"
   memory_size   = 256
   timeout       = 30
 

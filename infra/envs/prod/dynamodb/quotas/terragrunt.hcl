@@ -7,7 +7,8 @@ terraform {
 }
 
 inputs = {
-  table_name = "UserJobs-dev"
-  hash_key      = "username"
+  table_name = "letterboxd-analysis-quotas-prod"
+  hash_key   = "ip"
+  range_key  = "window_id" # DATE#2024-04-12 or HOUR#2024-04-12-14
   ttl_attribute = "ttl"
 }

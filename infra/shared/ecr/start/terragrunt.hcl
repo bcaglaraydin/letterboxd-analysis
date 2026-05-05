@@ -7,8 +7,8 @@ terraform {
 }
 
 inputs = {
-  repository_name         = "letterboxd-start-dev"
-  environment             = "dev"
+  repository_name = "letterboxd-start"
+  environment = "shared"
   enable_lifecycle_policy = true
   max_image_count         = 2
 }

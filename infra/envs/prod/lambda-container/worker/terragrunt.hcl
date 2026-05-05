@@ -19,9 +19,9 @@ dependency "ecr" {
 }
 
 inputs = {
-  function_name = "letterboxd-analysis-worker-dev"
+  function_name = "letterboxd-analysis-worker-prod"
   image_uri     = "${dependency.ecr.outputs.repository_url}:${get_env("IMAGE_TAG", "latest")}"
-  environment   = "dev"
+  environment   = "prod"
   memory_size   = 2048
   timeout       = 300
 

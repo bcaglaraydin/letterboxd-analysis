@@ -7,7 +7,7 @@ terraform {
 }
 
 inputs = {
-  table_name = "UserJobs-dev"
-  hash_key      = "username"
+  table_name = "Films-prod"
+  hash_key      = "slug"
   ttl_attribute = "ttl"
 }

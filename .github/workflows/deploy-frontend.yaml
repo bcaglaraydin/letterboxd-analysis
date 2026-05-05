@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
+      - develop
       - master
     paths:
       - 'frontend/**'
@@ -18,12 +19,14 @@ permissions:
 
 env:
   AWS_REGION: eu-west-1
-  NODE_VERSION: 22
+  NODE_VERSION: 24
 
 jobs:
   deploy-frontend:
     name: Deploy Frontend
     runs-on: ubuntu-latest
+    env:
+      APP_ENV: ${{ github.ref == 'refs/heads/master' && 'prod' || 'dev' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -45,12 +48,12 @@ jobs:
         id: infra
         run: |
           # Fetch API Gateway URL
-          API_URL=$(aws apigatewayv2 get-apis --query "Items[?Name=='letterboxd-analysis-api-dev'].ApiEndpoint" --output text)
+          API_URL=$(aws apigatewayv2 get-apis --query "Items[?Name=='letterboxd-analysis-api-${APP_ENV}'].ApiEndpoint" --output text)
           echo "API_URL=$API_URL" >> $GITHUB_OUTPUT
 
           # Fetch CloudFront Distribution ID
           # Origin domain matches the S3 bucket regional domain
-          CF_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[0].DomainName=='letterboxd-analysis-frontend-dev.s3.eu-west-1.amazonaws.com'].Id" --output text)
+          CF_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[0].DomainName=='letterboxd-analysis-frontend-${APP_ENV}.s3.eu-west-1.amazonaws.com'].Id" --output text)
           echo "CF_ID=$CF_ID" >> $GITHUB_OUTPUT
 
       - name: Install Dependencies
@@ -66,7 +69,7 @@ jobs:
       - name: Sync to S3
         working-directory: frontend/out
         run: |
-          aws s3 sync . s3://letterboxd-analysis-frontend-dev --delete
+          aws s3 sync . s3://letterboxd-analysis-frontend-${APP_ENV} --delete
 
       - name: Invalidate CloudFront
         run: |

@@ -27,9 +27,9 @@ dependency "ecr" {
 }
 
 inputs = {
-  function_name = "letterboxd-analysis-list-scraper-dev"
+  function_name = "letterboxd-analysis-list-scraper-prod"
   image_uri     = "${dependency.ecr.outputs.repository_url}:${get_env("IMAGE_TAG", "latest")}"
-  environment   = "dev"
+  environment   = "prod"
   memory_size   = 3008
   timeout       = 900 # 15 minutes max
   reserved_concurrent_executions = 2

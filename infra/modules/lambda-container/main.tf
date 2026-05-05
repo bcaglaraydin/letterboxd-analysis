@@ -19,7 +19,10 @@ resource "aws_lambda_function" "this" {
   architectures                  = var.architectures
 
   environment {
-    variables = var.environment_variables
+    variables = merge(
+      var.environment_variables,
+      { ENVIRONMENT = var.environment }
+    )
   }
 
   # Ensure IAM role is ready before creating Lambda

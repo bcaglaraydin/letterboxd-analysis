@@ -7,7 +7,7 @@ terraform {
 }
 
 inputs = {
-  table_name = "UserJobs-dev"
+  table_name = "UserJobs-prod"
   hash_key      = "username"
   ttl_attribute = "ttl"
 }

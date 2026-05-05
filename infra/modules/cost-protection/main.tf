@@ -98,7 +98,7 @@ resource "aws_lambda_function" "budget_killer" {
   function_name    = "${var.project_name}-budget-killer-${var.environment}"
   role             = aws_iam_role.budget_killer_role.arn
   handler          = "index.handler"
-  runtime          = "nodejs20.x"
+  runtime          = "nodejs24.x"
 
   environment {
     variables = {

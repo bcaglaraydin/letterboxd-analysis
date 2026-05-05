@@ -4,8 +4,8 @@
 # Browser: Required (Cloudflare bypass)
 # ==============================================================================
 
-ARG BASE_IMAGE_URI=public.ecr.aws/lambda/nodejs:22
-FROM --platform=$BUILDPLATFORM node:22-slim AS builder
+ARG BASE_IMAGE_URI=public.ecr.aws/lambda/nodejs:24
+FROM --platform=$BUILDPLATFORM node:24-slim AS builder
 WORKDIR /build
 
 # Copy and install dependencies in a native environment (no QEMU)

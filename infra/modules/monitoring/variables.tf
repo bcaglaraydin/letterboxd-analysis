@@ -18,3 +18,9 @@ variable "alarm_email" {
   type    = string
   default = null
 }
+
+variable "create_alarms" {
+  description = "Whether to create CloudWatch alarms"
+  type        = bool
+  default     = true
+}

@@ -7,8 +7,8 @@ terraform {
 }
 
 inputs = {
-  repository_name         = "letterboxd-list-scraper-dev"
-  environment             = "dev"
+  repository_name = "letterboxd-list-scraper"
+  environment = "shared"
   enable_lifecycle_policy = true
   max_image_count         = 2
 }

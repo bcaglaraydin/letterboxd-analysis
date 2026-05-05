@@ -55,5 +55,5 @@ inputs = {
   }
   api_gateway_names = [dependency.api_gateway.outputs.api_name]
   sqs_queue_names   = [dependency.sqs.outputs.queue_name, dependency.sqs_list.outputs.queue_name]
-  create_alarms     = false
+  create_alarms     = true
 }

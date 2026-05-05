@@ -7,6 +7,7 @@ const isLambda = !!process.env.AWS_LAMBDA_FUNCTION_NAME;
 // Base logger
 const pinoLogger = pino({
   level: process.env.LOG_LEVEL || 'info',
+  base: { environment: process.env.ENVIRONMENT || (isDev ? 'development' : 'production') },
   formatters: {
     level: (label) => {
       return { level: label.toUpperCase() };

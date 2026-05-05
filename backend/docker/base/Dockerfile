@@ -15,7 +15,7 @@
 # Allow architecture selection via --platform flag or Docker's default
 # Local dev: docker build . (uses host architecture, typically amd64)
 # AWS CI: docker build --platform linux/arm64 . 
-FROM public.ecr.aws/lambda/nodejs:22
+FROM public.ecr.aws/lambda/nodejs:24
 
 # ------------------------------------------------------------------------------
 # Environment Variables for Lambda + Chromium

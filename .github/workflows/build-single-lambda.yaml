@@ -59,10 +59,11 @@ jobs:
           push: true
           # Base image might be needed as build-arg for browser lambdas
           build-args: |
-             BASE_IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/letterboxd-base-dev:latest
+             BASE_IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/letterboxd-base:latest
              GH_PAT=${{ secrets.GH_PAT }}
           tags: |
-            ${{ steps.login-ecr.outputs.registry }}/letterboxd-${{ inputs.lambda_name }}-dev:${{ inputs.image_tag }}
-            ${{ steps.login-ecr.outputs.registry }}/letterboxd-${{ inputs.lambda_name }}-dev:latest
+            ${{ steps.login-ecr.outputs.registry }}/letterboxd-${{ inputs.lambda_name }}:${{ inputs.image_tag }}
+            ${{ steps.login-ecr.outputs.registry }}/letterboxd-${{ inputs.lambda_name }}:${{ github.ref_name }}
+            ${{ steps.login-ecr.outputs.registry }}/letterboxd-${{ inputs.lambda_name }}:latest
           cache-from: type=gha,scope=${{ inputs.lambda_name }}
           cache-to: type=gha,scope=${{ inputs.lambda_name }},mode=max

@@ -7,7 +7,7 @@ terraform {
 }
 
 inputs = {
-  name                       = "film-scrape-queue"
+  name = "film-scrape-queue-dev"
   visibility_timeout_seconds = 360
   message_retention_seconds  = 86400
 }

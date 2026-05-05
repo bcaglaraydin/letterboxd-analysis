@@ -4,7 +4,7 @@
 # Browser: Not required - uses lightweight base image
 # ==============================================================================
 
-FROM --platform=$BUILDPLATFORM node:22-slim AS builder
+FROM --platform=$BUILDPLATFORM node:24-slim AS builder
 WORKDIR /build
 
 # Copy from native runner and install dependencies (no QEMU)
@@ -19,7 +19,7 @@ RUN if [ -n "$GH_PAT" ]; then \
 RUN npm ci --omit=dev && npm cache clean --force
 
 # Now transition to the actual ARM64 runtime image
-FROM public.ecr.aws/lambda/nodejs:22
+FROM public.ecr.aws/lambda/nodejs:24
 
 # Copy the pre-built node_modules from the native builder
 COPY --from=builder /build/node_modules ${LAMBDA_TASK_ROOT}/node_modules

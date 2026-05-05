@@ -7,7 +7,7 @@ terraform {
 }
 
 inputs = {
-  name = "list-scrape-queue-dev"
-  visibility_timeout_seconds = 900 # 15 minutes for slow list scraping
+  name = "film-scrape-queue-prod"
+  visibility_timeout_seconds = 360
   message_retention_seconds  = 86400
 }
