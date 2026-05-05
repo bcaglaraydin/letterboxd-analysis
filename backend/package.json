@@ -38,7 +38,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.3",
-    "letterboxd-scraper-engine": "git+https://github.com/bcaglaraydin/letterboxd-scraper-engine.git",
+    "letterboxd-scraper-engine": "github:bcaglaraydin/letterboxd-scraper-engine",
     "p-limit": "^3.1.0",
     "pino": "^10.3.1",
     "pino-pretty": "^13.1.3",
