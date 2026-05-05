@@ -40,6 +40,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -60,9 +62,10 @@ jobs:
           GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           if [ -n "$GH_PAT" ]; then
-            git config --global url."https://${GH_PAT}@github.com/".insteadOf "ssh://git@github.com/"
-            git config --global url."https://${GH_PAT}@github.com/".insteadOf "git@github.com:"
-            git config --global url."https://${GH_PAT}@github.com/".insteadOf "https://github.com/"
+            AUTH_HEADER=$(echo -n "x-access-token:$GH_PAT" | base64 | tr -d '\n')
+            git config --global http.https://github.com/.extraheader "AUTHORIZATION: basic $AUTH_HEADER"
+            git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+            git config --global url."https://github.com/".insteadOf "git@github.com:"
           fi
           npm ci
 
