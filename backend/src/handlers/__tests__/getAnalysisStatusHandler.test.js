@@ -14,6 +14,9 @@ vi.mock('../../services/gameService.js', () => ({
     generatePartialRatingGame: vi.fn(),
   },
 }));
+vi.mock('../../services/configService.js', () => ({
+  isAnalysisEnabled: vi.fn().mockResolvedValue(true),
+}));
 
 describe('getAnalysisStatusHandler', () => {
   beforeEach(() => {
