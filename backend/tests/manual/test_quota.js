@@ -5,7 +5,7 @@ process.env.LIMIT_IP_DAILY = '10';
 async function test() {
   // Dynamically import to ensure env variables are captured from process.env
   // at the time of module evaluation.
-  const { checkQuotas } = await import('../src/services/quotaService.js');
+  const { checkQuotas } = await import('../../src/services/quotaService.js');
 
   console.log('--- Testing Whitelist ---');
   // This should log: [Quota Bypass] Admin IP detected: 1.2.3.4. Skipping quota check.
