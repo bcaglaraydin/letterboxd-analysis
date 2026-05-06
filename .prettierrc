@@ -14,7 +14,7 @@
   "bracketSameLine": false,
 
   "arrowParens": "always",
-  "endOfLine": "auto",
+  "endOfLine": "lf",
 
   "embeddedLanguageFormatting": "auto",
 
