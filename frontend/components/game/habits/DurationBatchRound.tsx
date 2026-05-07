@@ -25,16 +25,9 @@ function buildYAxisTicks(maxCount: number) {
   return [safeMax, Math.max(Math.round(safeMax / 2), 1), 0];
 }
 
-function getBarColor(rating: number) {
-  if (rating >= 4.0) {
-    return 'bg-gradient-to-t from-primary/75 to-primary/10 border-t-2 border-primary/55';
-  }
-
-  if (rating >= 3.5) {
-    return 'bg-gradient-to-t from-accent/75 to-accent/10 border-t-2 border-accent/55';
-  }
-
-  return 'bg-gradient-to-t from-muted-foreground/60 to-muted/10 border-t-2 border-muted-foreground/40';
+function getBarStyle() {
+  // A solid, premium terracotta color drawn from the World Map palette.
+  return 'bg-[#E76F51]/10 border border-[#E76F51]/30 border-b-0 border-t-2 border-t-[#E76F51] shadow-[0_-4px_12px_rgba(231,111,81,0.15)]';
 }
 
 function ChartGuides({ maxCount }: { maxCount: number }) {
@@ -89,7 +82,7 @@ function RatingBadge({
   animatedRef?: React.RefObject<HTMLSpanElement | null>;
 }) {
   return (
-    <span className="text-[10px] sm:text-[11px] font-bold text-accent flex items-center gap-0.5 tabular-nums">
+    <span className="text-[10px] sm:text-[11px] font-bold text-[#E76F51] flex items-center gap-0.5 tabular-nums">
       <span aria-hidden="true">&#9733;</span>
       {animatedRef ? <span ref={animatedRef} /> : value?.toFixed(1)}
     </span>
@@ -205,8 +198,8 @@ function AnimatedBar({
           delay: isMorphing ? index * 0.15 : 0,
         }}
         className={cn(
-          'w-[85%] sm:w-[80%] max-w-[4rem] rounded-t-xl transition-colors duration-1000 mx-auto shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]',
-          getBarColor(avgRating),
+          'w-[80%] sm:w-[75%] max-w-[4rem] rounded-t-sm transition-all duration-1000 mx-auto',
+          getBarStyle(),
         )}
       />
 
@@ -356,20 +349,7 @@ export function DurationBatchRound({
                 <h2 className="text-2xl md:text-5xl font-serif text-primary leading-tight">
                   Which distribution of movie durations looks like you?
                 </h2>
-                <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-[11px] sm:text-xs">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/80 px-3 py-1.5 text-muted-foreground">
-                    <span className="h-2.5 w-2.5 rounded-full bg-primary/80" />
-                    High rated
-                  </span>
-                  <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/80 px-3 py-1.5 text-muted-foreground">
-                    <span className="h-2.5 w-2.5 rounded-full bg-accent/80" />
-                    Mid rated
-                  </span>
-                  <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/80 px-3 py-1.5 text-muted-foreground">
-                    <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/55" />
-                    Lower rated
-                  </span>
-                </div>
+
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -437,8 +417,8 @@ export function DurationBatchRound({
                                   animate={{ height: `${heightPercent}%` }}
                                   transition={{ duration: 0.8, ease: 'easeOut' }}
                                   className={cn(
-                                    'w-[85%] sm:w-[80%] max-w-[4rem] rounded-t-xl mx-auto shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]',
-                                    getBarColor(batch.avgRating),
+                                    'w-[80%] sm:w-[75%] max-w-[4rem] rounded-t-sm transition-all duration-1000 mx-auto',
+                                    getBarStyle(),
                                   )}
                                 />
 
