@@ -27,7 +27,7 @@ export function GenreMatchingIntro({ onComplete, baseScore = 0 }: GenreMatchingI
         </div>
       }
       messages={[
-        <p key="msg1">Next up is the part I struggled with the most while building.</p>,
+        <p key="msg1">Next game!</p>,
         <p key="msg2">
           I want you to{' '}
           <span className="font-bold">correctly guess the genres of the movie shown.</span>
