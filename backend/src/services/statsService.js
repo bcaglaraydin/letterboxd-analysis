@@ -147,7 +147,7 @@ export function findRatingDeviations(movies) {
         m.userRating != null &&
         m.userRating > m.communityRating &&
         m.communityRating < 3.4 &&
-        m.userRating - m.communityRating >= 0.5
+        m.userRating >= 4
     )
     .sort((a, b) => b.userRating - b.communityRating - (a.userRating - a.communityRating));
 
@@ -158,7 +158,8 @@ export function findRatingDeviations(movies) {
         m.userRating != null &&
         m.userRating > m.communityRating &&
         m.communityRating >= 3.4 &&
-        m.userRating - m.communityRating >= 0.5
+        m.communityRating < 4 &&
+        m.userRating - m.communityRating >= 0.6
     )
     .sort((a, b) => b.userRating - b.communityRating - (a.userRating - a.communityRating));
 
@@ -179,7 +180,7 @@ export function findRatingDeviations(movies) {
       (m) =>
         m.userRating != null &&
         m.communityRating > m.userRating &&
-        m.communityRating < 3.6 &&
+        m.communityRating < 3.5 &&
         m.communityRating - m.userRating >= 0.8
     )
     .sort((a, b) => b.communityRating - b.userRating - (a.communityRating - a.userRating));
