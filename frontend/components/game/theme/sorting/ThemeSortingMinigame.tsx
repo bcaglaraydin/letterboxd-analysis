@@ -59,6 +59,9 @@ export function ThemeSortingMinigame() {
       y: window.innerHeight / 2,
     });
 
+    // Update score immediately to trigger flying points alongside the card swipe
+    handleThemeSwipe(guessType);
+
     // Animate card off screen based on direction
     await controls.start({
       x: isRightSwipe ? window.innerWidth : -window.innerWidth,
@@ -66,7 +69,6 @@ export function ThemeSortingMinigame() {
       transition: { duration: 0.3, ease: 'easeIn' },
     });
 
-    handleThemeSwipe(guessType);
     setVisibleIndex(nextVisibleIndex);
     setIsTransitioning(false);
   };

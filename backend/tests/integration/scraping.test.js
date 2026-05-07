@@ -13,7 +13,7 @@
 
 import 'dotenv/config';
 import { describe, it, expect, beforeAll } from 'vitest';
-import { scrapeUserFilmsList } from '../../src/services/letterboxdScrapingService.js';
+import { scrapeUserFilmsList } from 'letterboxd-scraper-engine';
 
 const TEST_USERNAME = process.env.TEST_USERNAME || 'bcaglaraydin';
 

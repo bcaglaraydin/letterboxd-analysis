@@ -17,6 +17,7 @@ import { GameBackground } from '@/components/game/shared/GameBackground';
 import { GameLayout } from '@/components/game/shared/GameLayout';
 import { RATING_GAME_CONFIG } from '@/components/game/rating/constants';
 import { GENRE_RANKING_CONFIG } from '@/components/game/genre/ranking/constants';
+import { GENRE_MATCHING_CONFIG } from '@/components/game/genre/genre-matching/constants';
 import { GameHubCard } from './GameHubCard';
 
 export const GameHub = () => {
@@ -73,13 +74,13 @@ export const GameHub = () => {
                   />
                 )}
 
-                {/* Genre Ranking Game Card */}
+                {/* Genre Game Card */}
                 {genreGameStatus === 'COMPLETED' && (
                   <GameHubCard
-                    title="Genre Ranking"
+                    title="Genre Master"
                     status={genreGameStatus}
                     score={scores.genre}
-                    maxScore={GENRE_RANKING_CONFIG.MAX_SCORE}
+                    maxScore={GENRE_RANKING_CONFIG.MAX_SCORE + GENRE_MATCHING_CONFIG.MAX_SCORE}
                     icon={<Drama className="w-5 h-5 md:w-6 md:h-6 fill-current" />}
                     onClick={undefined}
                   />
@@ -115,7 +116,7 @@ export const GameHub = () => {
                     title="Viewing Habits"
                     status={habitsGameStatus}
                     score={scores.habits}
-                    maxScore={60}
+                    maxScore={100}
                     icon={<Activity className="w-5 h-5 md:w-6 md:h-6 fill-current" />}
                     onClick={undefined}
                   />

@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Download, Star, Film } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { getScoreColor } from '@/lib/scoreUtils';
+import { GENRE_RANKING_CONFIG } from '@/components/game/genre/ranking/constants';
+import { GENRE_MATCHING_CONFIG } from '@/components/game/genre/genre-matching/constants';
 
 import { cn } from '@/lib/utils';
 import { UserStats, ThemeSortingRound } from '@/lib/api';
@@ -106,10 +108,21 @@ const RecapCard = React.forwardRef<HTMLDivElement, RecapCardProps>(
       ? Math.round(actualAlignment * 100)
       : Math.round((1 - actualAlignment) * 100);
 
-    const totalScoreRaw =
-      scores.rating + scores.genre + scores.taste + scores.habits + scores.theme;
-    const totalMaxRaw = 100 + 120 + 100 + 100 + 40; // 460
-    const totalOutOf100 = Math.round((totalScoreRaw / totalMaxRaw) * 100);
+    const genreMax = GENRE_RANKING_CONFIG.MAX_SCORE + GENRE_MATCHING_CONFIG.MAX_SCORE;
+    const themeMax = 200; // Fixed max for theme game
+    const ratingMax = 100;
+    const tasteMax = 100;
+    const habitsMax = 100;
+
+    const scaledRating = (scores.rating / ratingMax) * 100;
+    const scaledGenre = (scores.genre / genreMax) * 100;
+    const scaledTheme = (scores.theme / themeMax) * 100;
+    const scaledTaste = (scores.taste / tasteMax) * 100;
+    const scaledHabits = (scores.habits / habitsMax) * 100;
+
+    const totalOutOf100 = Math.round(
+      (scaledRating + scaledGenre + scaledTheme + scaledTaste + scaledHabits) / 5,
+    );
 
     // Helpers
     const renderDeviation = (
@@ -649,11 +662,11 @@ const RecapCard = React.forwardRef<HTMLDivElement, RecapCardProps>(
         <div className="flex items-start gap-0 pt-5 pb-1">
           <div className="flex-1 grid grid-cols-5 gap-2">
             {[
-              { label: 'Rating', val: scores.rating, max: 100 },
-              { label: 'Genre', val: Math.round((scores.genre / 200) * 100), max: 100 },
-              { label: 'Theme', val: Math.round((scores.theme / 200) * 100), max: 100 },
-              { label: 'Taste', val: scores.taste, max: 100 },
-              { label: 'Habits', val: Math.round((scores.habits / 60) * 100), max: 100 },
+              { label: 'Rating', val: Math.round(scaledRating), max: 100 },
+              { label: 'Genre', val: Math.round(scaledGenre), max: 100 },
+              { label: 'Theme', val: Math.round(scaledTheme), max: 100 },
+              { label: 'Taste', val: Math.round(scaledTaste), max: 100 },
+              { label: 'Habits', val: Math.round(scaledHabits), max: 100 },
             ].map((s) => (
               <div key={s.label} className="text-center">
                 <p

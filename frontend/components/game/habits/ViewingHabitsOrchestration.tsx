@@ -79,18 +79,12 @@ export function ViewingHabitsOrchestration({ onGameComplete }: ViewingHabitsOrch
     setPhase('duration');
   };
 
-  // Check if country data is available
-  const hasCountryData = userStats?.countryStats && userStats.countryStats.length > 0;
-  const totalRounds = hasCountryData ? 3 : 2;
+  const totalRounds = 3;
 
   const handleDurationComplete = (roundScore: number) => {
     const newScore = score + roundScore;
     setScore(newScore);
-    if (hasCountryData) {
-      setPhase('map-intro');
-    } else {
-      onGameComplete(newScore);
-    }
+    setPhase('map-intro');
   };
 
   const handleMapIntroComplete = () => {
@@ -156,7 +150,7 @@ export function ViewingHabitsOrchestration({ onGameComplete }: ViewingHabitsOrch
           </motion.div>
         )}
 
-        {phase === 'map-intro' && hasCountryData && (
+        {phase === 'map-intro' && (
           <motion.div
             key="map-intro"
             initial={{ opacity: 0 }}
@@ -169,7 +163,7 @@ export function ViewingHabitsOrchestration({ onGameComplete }: ViewingHabitsOrch
           </motion.div>
         )}
 
-        {phase === 'map' && hasCountryData && (
+        {phase === 'map' && (
           <motion.div
             key="map-round"
             initial={{ opacity: 0, x: 50 }}
@@ -183,7 +177,7 @@ export function ViewingHabitsOrchestration({ onGameComplete }: ViewingHabitsOrch
               currentScore={score}
               roundNumber={3}
               totalRounds={totalRounds}
-              countryStats={userStats!.countryStats!}
+              countryStats={userStats?.countryStats || []}
             />
           </motion.div>
         )}

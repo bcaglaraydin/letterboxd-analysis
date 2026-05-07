@@ -16,11 +16,11 @@ import { sendMessageBatch } from '../../src/services/sqsQueueService.js';
 import { getItem, deleteItem } from '../../src/services/dynamoDbService.js';
 
 const SQS_QUEUE_URL = process.env.SQS_QUEUE_URL;
-const FILMS_TABLE = process.env.FILMS_TABLE || 'Films';
+const FILMS_TABLE = process.env.FILMS_TABLE;
 const TEST_SLUG = 'dune-2021';
 
-// Skip these tests if AWS environment not configured
-const shouldRun = !!SQS_QUEUE_URL;
+// Skip these tests if AWS environment not fully configured
+const shouldRun = !!SQS_QUEUE_URL && !!FILMS_TABLE;
 
 describe.runIf(shouldRun)('Worker Pipeline', () => {
   // Clean up before and after tests to ensure fresh state

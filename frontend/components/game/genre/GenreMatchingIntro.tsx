@@ -3,6 +3,8 @@
 import React from 'react';
 import { GameDialogue } from '@/components/game/shared/GameDialogue';
 import { ScorePanel } from '@/components/game/shared/ScorePanel'; // Assuming ScorePanel needs to be imported
+import { GENRE_RANKING_CONFIG } from '@/components/game/genre/ranking/constants';
+import { GENRE_MATCHING_CONFIG } from '@/components/game/genre/genre-matching/constants';
 
 interface GenreMatchingIntroProps {
   onComplete: () => void;
@@ -16,7 +18,7 @@ export function GenreMatchingIntro({ onComplete, baseScore = 0 }: GenreMatchingI
         <div className="flex justify-end items-start p-4 md:p-8 w-full relative z-[60]">
           <ScorePanel
             score={baseScore} // Start from what they got in ranking
-            maxScore={200} // Global max score for entire Genre game
+            maxScore={GENRE_RANKING_CONFIG.MAX_SCORE + GENRE_MATCHING_CONFIG.MAX_SCORE} // Global max score for entire Genre game
             showMaxScore={true}
             size="md"
             label="Score"

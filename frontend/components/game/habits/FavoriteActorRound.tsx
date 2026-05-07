@@ -81,7 +81,7 @@ export function FavoriteActorRound({
           score={localTotalScore}
           pointsEarned={pointsEarned}
           flyFromPosition={flyPosition}
-          maxScore={60}
+          maxScore={100}
           size="lg"
           position="static"
           showMaxScore={true}

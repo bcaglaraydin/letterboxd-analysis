@@ -202,7 +202,7 @@ export function WorldMapRound({
         <ScorePanel
           score={currentScore}
           pointsEarned={null}
-          maxScore={60}
+          maxScore={100}
           size="lg"
           position="static"
           showMaxScore={true}
@@ -499,7 +499,7 @@ function CountryAnalysis({
         <ScorePanel
           score={currentScore}
           pointsEarned={null}
-          maxScore={60}
+          maxScore={100}
           size="lg"
           position="static"
           showMaxScore={true}

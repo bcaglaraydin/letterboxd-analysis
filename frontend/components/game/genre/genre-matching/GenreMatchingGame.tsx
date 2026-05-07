@@ -11,7 +11,8 @@ import { GameRoundIndicator } from '@/components/game/shared/GameRoundIndicator'
 import { ScorePanel } from '@/components/game/shared/ScorePanel';
 import { Button } from '@/components/ui/button';
 
-import { FILMS_PER_GAME, ANIMATION_TIMING } from './constants';
+import { FILMS_PER_GAME, ANIMATION_TIMING, GENRE_MATCHING_CONFIG } from './constants';
+import { GENRE_RANKING_CONFIG } from '@/components/game/genre/ranking/constants';
 import { GenreTier, TIER_INFO } from './types';
 import { GenreChipAnimated } from './GenreChipAnimated';
 import { GenreMatchingRules } from './GenreMatchingRules';
@@ -197,7 +198,7 @@ export function GenreMatchingGame({ onGameComplete, baseScore = 0 }: GenreMatchi
               score={totalScore}
               pointsEarned={lastPointsEarned}
               flyFromPosition={flyFromPosition}
-              maxScore={200} // Unified global max score for Genre
+              maxScore={GENRE_RANKING_CONFIG.MAX_SCORE + GENRE_MATCHING_CONFIG.MAX_SCORE} // Unified global max score for Genre
               showMaxScore={true}
               className="mb-0"
               size="md"

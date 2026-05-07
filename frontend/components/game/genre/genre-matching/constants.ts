@@ -1,6 +1,10 @@
 // Number of films per game
 export const FILMS_PER_GAME = 5;
 
+export const GENRE_MATCHING_CONFIG = {
+  MAX_SCORE: 80,
+} as const;
+
 export const ANIMATION_TIMING = {
   REVEAL_DELAY_MS: 300,
   REVEAL_STEP_CORRECT_MS: 1000,
