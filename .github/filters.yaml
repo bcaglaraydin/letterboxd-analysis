@@ -14,6 +14,12 @@ core_infra:
   - 'infra/modules/sqs/**'
   - 'infra/envs/**/cost-protection/**'
   - 'infra/modules/cost-protection/**'
+  - 'infra/envs/**/s3/**'
+  - 'infra/modules/s3/**'
+  - 'infra/envs/**/cloudfront/**'
+  - 'infra/modules/cloudfront/**'
+  - 'infra/envs/**/monitoring/**'
+  - 'infra/modules/monitoring/**'
 
 ecr_infra:
   - 'infra/shared/ecr/**'

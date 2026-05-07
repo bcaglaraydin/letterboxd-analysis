@@ -238,6 +238,8 @@ jobs:
           - sqs
           - sqs-list
           - cost-protection
+          - s3
+          - cloudfront
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/${{ github.ref == 'refs/heads/master' && 'prod' || 'dev' }}/${{ matrix.component }}
@@ -279,6 +281,21 @@ jobs:
     with:
       working_directory: infra/envs/${{ github.ref == 'refs/heads/master' && 'prod' || 'dev' }}/api-gateway
       output_key: api_endpoint
+    secrets: inherit
+
+  # ============================================================================
+  # DEPLOY MONITORING
+  # ============================================================================
+  deploy-monitoring:
+    name: Deploy Monitoring
+    needs: [detect-changes, deploy-api-gateway]
+    if: always() && (needs.deploy-api-gateway.result == 'success' || needs.detect-changes.outputs.core_infra == 'true')
+    permissions:
+      id-token: write
+      contents: read
+    uses: ./.github/workflows/terragrunt-apply.yaml
+    with:
+      working_directory: infra/envs/${{ github.ref == 'refs/heads/master' && 'prod' || 'dev' }}/monitoring
     secrets: inherit
 
   # ============================================================================

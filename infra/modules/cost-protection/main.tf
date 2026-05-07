@@ -7,7 +7,7 @@
 # ==============================================================================
 
 resource "aws_ssm_parameter" "analysis_enabled" {
-  name  = var.ssm_parameter_name
+  name  = "${var.ssm_parameter_name}-${var.environment}"
   type  = "String"
   value = "true"
   
@@ -102,7 +102,7 @@ resource "aws_lambda_function" "budget_killer" {
 
   environment {
     variables = {
-      SSM_PARAMETER_NAME = var.ssm_parameter_name
+      SSM_PARAMETER_NAME = "${var.ssm_parameter_name}-${var.environment}"
     }
   }
 }

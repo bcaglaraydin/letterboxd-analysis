@@ -2,7 +2,7 @@ import { SSMClient, GetParameterCommand } from '@aws-sdk/client-ssm';
 import { Logger } from '../utils/logger.js';
 
 const client = new SSMClient();
-const PARAM_NAME = '/app/analysis_enabled';
+const PARAM_NAME = `/app/analysis_enabled-${process.env.ENVIRONMENT || 'dev'}`;
 
 let lastCheck = 0;
 let cachedValue = true;

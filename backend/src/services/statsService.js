@@ -4,6 +4,13 @@
 
 import { getActorPhotoUrl } from './tmdbService.js';
 
+const DURATION_BUCKETS = [
+  { id: 'batch-1', label: '<90 min', minDuration: 0, maxDuration: 89 },
+  { id: 'batch-2', label: '90-120 min', minDuration: 90, maxDuration: 119 },
+  { id: 'batch-3', label: '120-150 min', minDuration: 120, maxDuration: 149 },
+  { id: 'batch-4', label: '150+ min', minDuration: 150, maxDuration: null },
+];
+
 export async function calculateTopActors(films) {
   const actorCounts = {};
 
@@ -266,13 +273,7 @@ export function calculateGenreStats(films) {
 
       const entry = genreMap[genreName];
 
-      // Add to community stats (all films in user's list usually serve as basis, or just rated?
-      // Usually comparison is best on rated films to match apples-to-apples,
-      // but watch count usually implies "seen".
-      // Let's stick to "films user has rated" for the main consistency,
-      // OR "films user has logged".
-      // The current system relies on `userRating` for "User Avg".
-      // Let's rely on stored userRating.
+      // Note: Community stats are calculated exclusively against films the user has rated to ensure an apples-to-apples comparison.
 
       if (isRated) {
         entry.userRatingSum += film.userRating;
@@ -356,15 +357,8 @@ export function calculateGenreStats(films) {
  * @returns {object} - { realDistribution: DurationBatch[], graphs: DistributionGraph[] }
  */
 export function calculateDurationDistribution(films) {
-  const BUCKETS = [
-    { id: 'batch-1', label: '<90 min', minDuration: 0, maxDuration: 89 },
-    { id: 'batch-2', label: '90-120 min', minDuration: 90, maxDuration: 119 },
-    { id: 'batch-3', label: '120-150 min', minDuration: 120, maxDuration: 149 },
-    { id: 'batch-4', label: '150+ min', minDuration: 150, maxDuration: null },
-  ];
-
   // Calculate real distribution
-  const bucketData = BUCKETS.map((bucket) => {
+  const bucketData = DURATION_BUCKETS.map((bucket) => {
     const inBucket = films.filter((f) => {
       if (f.runtime == null) return false;
       if (bucket.maxDuration === null) return f.runtime >= bucket.minDuration;
