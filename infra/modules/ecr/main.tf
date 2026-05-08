@@ -24,26 +24,41 @@ resource "aws_ecr_repository" "this" {
   }
 }
 
-# Lifecycle policy to clean up old images
+# Lifecycle policy: protect environment-tagged images, expire old untagged ones
 resource "aws_ecr_lifecycle_policy" "this" {
   count      = var.enable_lifecycle_policy ? 1 : 0
   repository = aws_ecr_repository.this.name
 
   policy = jsonencode({
-    rules = [
-      {
-        rulePriority = 1
-        description  = "Keep last ${var.max_image_count} images"
+    rules = concat(
+      # Rule per protected tag prefix — keep the latest image for each
+      [for i, prefix in var.protected_tag_prefixes : {
+        rulePriority = i + 1
+        description  = "Keep latest '${prefix}' tagged image"
         selection = {
-          tagStatus     = "any"
-          countType     = "imageCountMoreThan"
-          countNumber   = var.max_image_count
+          tagStatus      = "tagged"
+          tagPatternList = ["${prefix}*"]
+          countType      = "imageCountMoreThan"
+          countNumber    = 1
         }
         action = {
           type = "expire"
         }
-      }
-    ]
+      }],
+      # Final rule — expire old untagged images
+      [{
+        rulePriority = length(var.protected_tag_prefixes) + 1
+        description  = "Remove untagged images beyond ${var.max_image_count}"
+        selection = {
+          tagStatus   = "untagged"
+          countType   = "imageCountMoreThan"
+          countNumber = var.max_image_count
+        }
+        action = {
+          type = "expire"
+        }
+      }]
+    )
   })
 }
 

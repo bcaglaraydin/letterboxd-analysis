@@ -34,9 +34,15 @@ variable "enable_lifecycle_policy" {
 }
 
 variable "max_image_count" {
-  description = "Maximum number of images to keep"
+  description = "Maximum number of untagged/SHA-only images to keep (environment-tagged images are always protected)"
   type        = number
   default     = 2
+}
+
+variable "protected_tag_prefixes" {
+  description = "Tag prefixes to protect from lifecycle expiration (e.g. branch names)"
+  type        = list(string)
+  default     = ["develop", "master", "latest"]
 }
 
 variable "repository_policy" {
