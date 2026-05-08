@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import type { UserStats, Genre, GenreGameData } from '@/lib/api';
 import { GamePhase, GAME_PHASES } from '@/lib/gameTypes';
+import { trackPhaseStart, trackPhaseComplete, trackJourneyComplete } from '@/lib/analytics';
+import { useUserStore } from './userStore';
 
 // Re-export types for backwards compatibility
 export type { UserStats, Genre, GenreGameData };
@@ -56,64 +58,83 @@ export const useExperienceStore = create<ExperienceState>((set) => ({
   setUserEnjoymentChoice: (choice) => set({ userEnjoymentChoice: choice }),
   setHabitsPhase: (phase) => set({ habitsPhase: phase }),
 
-  completeRatingGame: (score) =>
+  completeRatingGame: (score) => {
+    trackPhaseComplete(GAME_PHASES.RATING, score, useUserStore.getState().username);
     set((state) => ({
       scores: { ...state.scores, rating: score },
       unlockedGames: [...new Set([...state.unlockedGames, GAME_PHASES.GENRE])],
       completedGames: [...new Set([...state.completedGames, GAME_PHASES.RATING])],
       currentPhase: GAME_PHASES.HUB,
-    })),
+    }));
+  },
 
-  startGenreGame: () =>
+  startGenreGame: () => {
+    trackPhaseStart(GAME_PHASES.GENRE, useUserStore.getState().username);
     set({
       currentPhase: GAME_PHASES.GENRE,
-    }),
+    });
+  },
 
-  startRatingGame: () =>
+  startRatingGame: () => {
+    trackPhaseStart(GAME_PHASES.RATING, useUserStore.getState().username);
     set({
       currentPhase: GAME_PHASES.RATING,
-    }),
+    });
+  },
 
-  completeGenreGame: (score) =>
+  completeGenreGame: (score) => {
+    trackPhaseComplete(GAME_PHASES.GENRE, score, useUserStore.getState().username);
     set((state) => ({
       scores: { ...state.scores, genre: score },
       unlockedGames: [...new Set([...state.unlockedGames, GAME_PHASES.THEME])],
       completedGames: [...new Set([...state.completedGames, GAME_PHASES.GENRE])],
       currentPhase: GAME_PHASES.HUB,
-    })),
+    }));
+  },
 
-  startThemeExperience: () =>
+  startThemeExperience: () => {
+    trackPhaseStart(GAME_PHASES.THEME, useUserStore.getState().username);
     set({
       currentPhase: GAME_PHASES.THEME,
-    }),
+    });
+  },
 
-  completeThemeExperience: (score) =>
+  completeThemeExperience: (score) => {
+    trackPhaseComplete(GAME_PHASES.THEME, score, useUserStore.getState().username);
     set((state) => ({
       scores: { ...state.scores, theme: score },
       unlockedGames: [...new Set([...state.unlockedGames, GAME_PHASES.TASTE_POSITIONING])],
       completedGames: [...new Set([...state.completedGames, GAME_PHASES.THEME])],
       currentPhase: GAME_PHASES.HUB,
-    })),
+    }));
+  },
 
-  startTastePositioning: () =>
+  startTastePositioning: () => {
+    trackPhaseStart(GAME_PHASES.TASTE_POSITIONING, useUserStore.getState().username);
     set({
       currentPhase: GAME_PHASES.TASTE_POSITIONING,
-    }),
+    });
+  },
 
-  completeTastePositioning: (score) =>
+  completeTastePositioning: (score) => {
+    trackPhaseComplete(GAME_PHASES.TASTE_POSITIONING, score, useUserStore.getState().username);
     set((state) => ({
       scores: { ...state.scores, taste: score },
       unlockedGames: [...new Set([...state.unlockedGames, GAME_PHASES.HABITS])],
       completedGames: [...new Set([...state.completedGames, GAME_PHASES.TASTE_POSITIONING])],
       currentPhase: GAME_PHASES.HUB,
-    })),
+    }));
+  },
 
-  startHabitsExperience: () =>
+  startHabitsExperience: () => {
+    trackPhaseStart(GAME_PHASES.HABITS, useUserStore.getState().username);
     set({
       currentPhase: GAME_PHASES.HABITS,
-    }),
+    });
+  },
 
-  completeHabitsExperience: (score) =>
+  completeHabitsExperience: (score) => {
+    trackPhaseComplete(GAME_PHASES.HABITS, score, useUserStore.getState().username);
     set((state) => {
       const nextCompleted = [...new Set([...state.completedGames, GAME_PHASES.HABITS])];
       const allDone = [
@@ -129,17 +150,23 @@ export const useExperienceStore = create<ExperienceState>((set) => ({
         completedGames: nextCompleted,
         currentPhase: allDone ? GAME_PHASES.OUTRO : GAME_PHASES.HUB,
       };
-    }),
+    });
+  },
 
-  startOutro: () =>
+  startOutro: () => {
+    trackPhaseStart(GAME_PHASES.OUTRO, useUserStore.getState().username);
     set({
       currentPhase: GAME_PHASES.OUTRO,
-    }),
+    });
+  },
 
-  startRecap: () =>
+  startRecap: () => {
+    trackJourneyComplete(useUserStore.getState().username);
+    trackPhaseStart(GAME_PHASES.RECAP, useUserStore.getState().username);
     set({
       currentPhase: GAME_PHASES.RECAP,
-    }),
+    });
+  },
 
   resetExperience: () =>
     set({

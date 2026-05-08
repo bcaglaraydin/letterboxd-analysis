@@ -13,6 +13,7 @@ import { useRatingGameStore } from '@/store/rating/ratingStore';
 import { triggerMetrics } from '@/lib/api';
 import { MIN_LOADING_TIME_MS } from '@/lib/gameTypes';
 import { API_ERRORS, ERROR_MESSAGES } from '@/lib/content';
+import { trackAnalysisStarted } from '@/lib/analytics';
 
 export default function HomePage() {
   const [usernameInput, setUsernameInput] = useState('');
@@ -53,6 +54,7 @@ export default function HomePage() {
 
       setUsername(finalUsername);
       ratingGameReset();
+      trackAnalysisStarted(finalUsername);
 
       if (data.status === 'ready' && data.ratingGame?.movies) {
         setProcessing(finalUsername);
