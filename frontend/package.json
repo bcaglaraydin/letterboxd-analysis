@@ -10,6 +10,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@next/third-parties": "^16.2.6",
     "@radix-ui/react-slot": "^1.2.4",
     "@types/d3": "^7.4.3",
     "@types/react-simple-maps": "^3.0.6",

@@ -25,6 +25,7 @@ jobs:
   deploy-frontend:
     name: Deploy Frontend
     runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/master' && 'prod' || 'dev' }}
     env:
       APP_ENV: ${{ github.ref == 'refs/heads/master' && 'prod' || 'dev' }}
     steps:
@@ -64,6 +65,9 @@ jobs:
         working-directory: frontend
         env:
           NEXT_PUBLIC_API_URL: ${{ steps.infra.outputs.API_URL }}
+          NEXT_PUBLIC_GTM_ID: ${{ vars.NEXT_PUBLIC_GTM_ID }}
+          NEXT_PUBLIC_GTM_AUTH: ${{ vars.NEXT_PUBLIC_GTM_AUTH }}
+          NEXT_PUBLIC_GTM_PREVIEW: ${{ vars.NEXT_PUBLIC_GTM_PREVIEW }}
         run: npm run build
 
       - name: Sync to S3

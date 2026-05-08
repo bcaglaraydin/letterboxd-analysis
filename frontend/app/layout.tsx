@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Playfair_Display, DM_Sans } from 'next/font/google';
+import { GoogleTagManager } from '@next/third-parties/google';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { DebugControls } from '@/components/debug/DebugControls';
@@ -39,6 +40,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      {process.env.NEXT_PUBLIC_GTM_ID && (
+        <GoogleTagManager
+          gtmId={process.env.NEXT_PUBLIC_GTM_ID}
+          auth={process.env.NEXT_PUBLIC_GTM_AUTH}
+          preview={process.env.NEXT_PUBLIC_GTM_PREVIEW}
+        />
+      )}
       <body
         className={cn(
           'h-[100dvh] overflow-hidden bg-background font-sans antialiased',
