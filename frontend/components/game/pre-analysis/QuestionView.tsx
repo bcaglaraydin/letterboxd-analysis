@@ -56,7 +56,7 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
 
       setTimeout(() => {
         onAnswer(0); // score already applied, just advance
-      }, 1500);
+      }, 3000);
     }, SLOW_PRANK_DELAY_MS);
 
     return () => clearTimeout(slowTimeout);
@@ -81,10 +81,10 @@ export const QuestionView: React.FC<QuestionViewProps> = ({
         if (onScoreUpdate) onScoreUpdate(-5);
       });
 
-      // Auto-advance after 1.5s
+      // Auto-advance after 3s
       setTimeout(() => {
         onAnswer(0); // score already applied, just advance
-      }, 1500);
+      }, 3000);
       return;
     }
 
