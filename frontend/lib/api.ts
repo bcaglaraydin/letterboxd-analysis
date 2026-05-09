@@ -208,6 +208,11 @@ export interface MetricsResponse {
   themeGame?: ThemeGameData;
   tasteGame?: TasteGameData;
   userStats?: UserStats;
+  tasteMatch?: {
+    matches: { name: string; url: string; avatarUrl: string }[];
+    userFavorites: { slug: string; posterUrl: string; title: string }[];
+    matchCount: number;
+  };
 }
 
 // Define the interface for our Data Provider

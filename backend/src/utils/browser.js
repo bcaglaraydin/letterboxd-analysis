@@ -325,7 +325,7 @@ async function simulateHumanInteraction(page) {
  * @param {string} url - The URL to fetch.
  * @returns {Promise<string>} - The HTML content.
  */
-export async function fetchHtmlWithBrowser(url) {
+export async function fetchHtmlWithBrowser(url, options = {}) {
   const session = getBrowserSession();
   let page = null;
 
@@ -333,13 +333,14 @@ export async function fetchHtmlWithBrowser(url) {
     page = await session.getPage();
 
     console.log(`[Browser] Navigating to ${url}... (Warm: ${!!session.isWarm})`);
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.goto(url, { waitUntil: options.waitUntil || 'domcontentloaded', timeout: 30000 });
 
     // Logic to handle potential challenge even if warm
     let passed = false;
     try {
       const timeout = session.isWarm ? WARM_SESSION_TIMEOUT_MS : COLD_SESSION_TIMEOUT_MS;
-      await page.waitForSelector(LETTERBOXD_READY_SELECTORS, { timeout });
+      const selector = options.waitForSelector || LETTERBOXD_READY_SELECTORS;
+      await page.waitForSelector(selector, { timeout });
       passed = true;
     } catch {
       if (session.isWarm) {
@@ -386,7 +387,8 @@ export async function fetchHtmlWithBrowser(url) {
         await simulateHumanInteraction(page);
 
         try {
-          await page.waitForSelector(LETTERBOXD_READY_SELECTORS, {
+          const selector = options.waitForSelector || LETTERBOXD_READY_SELECTORS;
+          await page.waitForSelector(selector, {
             timeout: CHALLENGE_SELECTOR_TIMEOUT_MS,
           });
           console.log('[Browser] Cloudflare challenge passed.');

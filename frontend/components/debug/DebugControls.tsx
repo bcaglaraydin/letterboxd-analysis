@@ -255,12 +255,30 @@ export const DebugControls = () => {
                   <button
                     onClick={() =>
                       handleAction(() => {
+                        const { setTasteMatch, setUserStats } = useUserStore.getState();
+                        if (MOCK_METRICS_RESPONSE.tasteMatch) {
+                          setTasteMatch(MOCK_METRICS_RESPONSE.tasteMatch);
+                        }
+                        if (MOCK_METRICS_RESPONSE.userStats) {
+                          setUserStats(MOCK_METRICS_RESPONSE.userStats);
+                        }
+                        useExperienceStore.setState({ currentPhase: GAME_PHASES.TASTE_MATCH });
+                      })
+                    }
+                    className="px-2 py-1 bg-teal-900/50 hover:bg-teal-900/80 rounded text-left mt-1"
+                  >
+                    Jump to Taste Soulmates
+                  </button>
+                  <button
+                    onClick={() =>
+                      handleAction(() => {
                         const {
                           completeRatingGame,
                           completeGenreGame,
                           completeThemeExperience,
                           completeTastePositioning,
                           completeHabitsExperience,
+                          completeTasteMatch,
                           startOutro,
                         } = useExperienceStore.getState();
                         completeRatingGame(100);
@@ -268,6 +286,7 @@ export const DebugControls = () => {
                         completeThemeExperience(100);
                         completeTastePositioning(100);
                         completeHabitsExperience(100);
+                        completeTasteMatch();
                         startOutro();
                       })
                     }

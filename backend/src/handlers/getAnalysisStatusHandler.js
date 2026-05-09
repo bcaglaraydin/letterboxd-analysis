@@ -227,6 +227,7 @@ export const handler = async (event, context) => {
 
     // Use GameService to generate all game data and stats
     const gameData = await GameService.generateAll(userFilms, metadataMap, minFilms);
+    gameData.tasteMatch = job.tasteMatch || { matches: [], userFavorites: [], matchCount: 0 };
     return buildReadyResponse(gameData, 1);
   } catch (error) {
     Logger.error('Status Handler Error', error);

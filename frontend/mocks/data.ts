@@ -1069,6 +1069,73 @@ export const MOCK_METRICS_RESPONSE: MetricsResponse = {
     skepticPicks: [],
     genreOverview: MOCK_GENRE_STATS,
   },
+  tasteMatch: {
+    matches: [
+      {
+        name: 'The Cinephile Ghost',
+        url: '/cineghost/',
+        avatarUrl:
+          'https://a.ltrbxd.com/resized/avatar/upload/7/6/1/5/2/8/shard/avtr-0-80-0-80-crop.jpg?v=cc1d5d884e',
+      },
+      {
+        name: 'Midnight Watcher',
+        url: '/midnight/',
+        avatarUrl:
+          'https://a.ltrbxd.com/resized/avatar/upload/3/3/8/0/0/5/3/shard/avtr-0-80-0-80-crop.jpg?v=0355312d20',
+      },
+      {
+        name: 'Criterion Collector',
+        url: '/criterion/',
+        avatarUrl:
+          'https://a.ltrbxd.com/resized/avatar/upload/3/6/4/2/4/2/2/shard/avtr-0-80-0-80-crop.jpg?v=a21a220fdf',
+      },
+      {
+        name: 'Noir Dreamer',
+        url: '/noirdream/',
+        avatarUrl:
+          'https://a.ltrbxd.com/resized/avatar/upload/9/5/2/8/9/7/shard/avtr-0-80-0-80-crop.jpg?v=72bce02e54',
+      },
+      {
+        name: 'Celluloid Soul',
+        url: '/celluloid/',
+        avatarUrl:
+          'https://a.ltrbxd.com/resized/avatar/upload/1/3/3/1/9/2/6/2/shard/avtr-0-80-0-80-crop.jpg?v=ddd8471f74',
+      },
+      {
+        name: 'Static Echoes',
+        url: '/staticecho/',
+        avatarUrl:
+          'https://a.ltrbxd.com/resized/avatar/upload/2/2/6/6/2/4/3/shard/avtr-0-80-0-80-crop.jpg?v=fef2ec5ac0',
+      },
+    ],
+    userFavorites: [
+      {
+        slug: 'my-neighbor-totoro',
+        title: 'My Neighbor Totoro',
+        posterUrl:
+          'https://a.ltrbxd.com/resized/film-poster/4/6/9/8/3/46983-my-neighbor-totoro-0-230-0-345-crop.jpg',
+      },
+      {
+        slug: 'autumn-sonata',
+        title: 'Autumn Sonata',
+        posterUrl:
+          'https://a.ltrbxd.com/resized/film-poster/5/1/5/7/0/51570-autumn-sonata-0-230-0-345-crop.jpg',
+      },
+      {
+        slug: 'the-fall',
+        title: 'The Fall',
+        posterUrl:
+          'https://a.ltrbxd.com/resized/film-poster/4/4/5/9/2/44592-the-fall-0-230-0-345-crop.jpg',
+      },
+      {
+        slug: 'birdman',
+        title: 'Birdman',
+        posterUrl:
+          'https://a.ltrbxd.com/resized/film-poster/1/1/6/7/1/2/116712-birdman-or-the-unexpected-virtue-of-ignorance-0-230-0-345-crop.jpg',
+      },
+    ],
+    matchCount: 3,
+  },
 };
 
 // ============================================================================

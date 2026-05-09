@@ -35,13 +35,16 @@ export const hydrateStoresGlobal = (data: Awaited<ReturnType<typeof pollMetricsS
     hasUserStats: !!data.userStats,
   });
 
-  const { setReady, setPartialReady, setUserStats } = useUserStore.getState();
+  const { setReady, setPartialReady, setUserStats, setTasteMatch } = useUserStore.getState();
 
   // Update Experience Store Status
   if (data.status === 'ready') {
     setReady();
     if (data.userStats) {
       setUserStats(data.userStats);
+    }
+    if (data.tasteMatch) {
+      setTasteMatch(data.tasteMatch);
     }
   } else {
     setPartialReady();

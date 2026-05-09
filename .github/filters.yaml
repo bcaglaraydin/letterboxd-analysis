@@ -62,6 +62,7 @@ status:
   - 'backend/src/services/gameService.js'
   - 'backend/src/services/statsService.js'
   - 'backend/src/services/tmdbService.js'
+  - 'backend/src/services/tasteMatchService.js'
   - 'backend/src/games/**'
   - 'backend/src/utils/**'
   - 'backend/docker/lambdas/status/**'
@@ -72,6 +73,7 @@ status:
 list_scraper:
   - 'backend/src/handlers/listScraperHandler.js'
   - 'backend/src/services/letterboxdScrapingService.js'
+  - 'backend/src/services/tasteMatchService.js'
   - 'backend/src/services/sqsQueueService.js'
   - 'backend/src/services/userJobService.js'
   - 'backend/src/services/dynamoDbService.js'

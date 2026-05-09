@@ -5,6 +5,11 @@ import type { UserStats, GenreGameData } from '@/lib/api';
 interface UserState {
   username: string | null;
   userStats: UserStats | null;
+  tasteMatch: {
+    matches: { name: string; url: string; avatarUrl: string }[];
+    userFavorites: { slug: string; posterUrl: string; title: string }[];
+    matchCount: number;
+  };
   backgroundStatus: 'idle' | 'processing' | 'partial_ready' | 'ready';
   hasStartedGame: boolean;
   hasSeenFakeScorePrank: boolean;
@@ -13,6 +18,11 @@ interface UserState {
   // Actions
   setUsername: (username: string) => void;
   setUserStats: (stats: UserStats) => void;
+  setTasteMatch: (match: {
+    matches: { name: string; url: string; avatarUrl: string }[];
+    userFavorites: { slug: string; posterUrl: string; title: string }[];
+    matchCount: number;
+  }) => void;
   setProcessing: (username: string) => void;
   setPartialReady: () => void;
   setReady: () => void;
@@ -26,6 +36,7 @@ interface UserState {
 export const useUserStore = create<UserState>((set, get) => ({
   username: null,
   userStats: null,
+  tasteMatch: { matches: [], userFavorites: [], matchCount: 0 },
   backgroundStatus: 'idle',
   hasStartedGame: false,
   hasSeenFakeScorePrank: false,
@@ -33,6 +44,7 @@ export const useUserStore = create<UserState>((set, get) => ({
 
   setUsername: (username) => set({ username }),
   setUserStats: (userStats) => set({ userStats }),
+  setTasteMatch: (tasteMatch) => set({ tasteMatch }),
 
   setProcessing: (username) => set({ backgroundStatus: 'processing', username }),
   setPartialReady: () => set({ backgroundStatus: 'partial_ready' }),
@@ -45,6 +57,7 @@ export const useUserStore = create<UserState>((set, get) => ({
     set({
       username: null,
       userStats: null,
+      tasteMatch: { matches: [], userFavorites: [], matchCount: 0 },
       backgroundStatus: 'idle',
       hasStartedGame: false,
       hasSeenFakeScorePrank: false,

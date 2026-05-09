@@ -36,6 +36,8 @@ export interface ExperienceState {
   completeTastePositioning: (score: number) => void;
   startHabitsExperience: () => void;
   completeHabitsExperience: (score: number) => void;
+  startTasteMatch: () => void;
+  completeTasteMatch: () => void;
   startOutro: () => void;
   startRecap: () => void;
   resetExperience: () => void;
@@ -148,8 +150,22 @@ export const useExperienceStore = create<ExperienceState>((set) => ({
       return {
         scores: { ...state.scores, habits: score },
         completedGames: nextCompleted,
-        currentPhase: allDone ? GAME_PHASES.OUTRO : GAME_PHASES.HUB,
+        currentPhase: allDone ? GAME_PHASES.TASTE_MATCH : GAME_PHASES.HUB,
       };
+    });
+  },
+
+  startTasteMatch: () => {
+    trackPhaseStart(GAME_PHASES.TASTE_MATCH, useUserStore.getState().username);
+    set({
+      currentPhase: GAME_PHASES.TASTE_MATCH,
+    });
+  },
+
+  completeTasteMatch: () => {
+    trackPhaseComplete(GAME_PHASES.TASTE_MATCH, 0, useUserStore.getState().username);
+    set({
+      currentPhase: GAME_PHASES.OUTRO,
     });
   },
 

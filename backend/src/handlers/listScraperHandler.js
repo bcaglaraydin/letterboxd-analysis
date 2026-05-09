@@ -2,6 +2,7 @@ import { scrapeUserFilmsList } from 'letterboxd-scraper-engine';
 import { sendMessageBatch } from '../services/sqsQueueService.js';
 import { updateUserJob } from '../services/userJobService.js';
 import { batchGet } from '../services/dynamoDbService.js';
+import { fetchTasteMatches } from '../services/tasteMatchService.js';
 import { Logger } from '../utils/logger.js';
 
 const FILMS_TABLE = process.env.FILMS_TABLE;
@@ -43,9 +44,14 @@ export const handler = async (event, context) => {
 
         // 2. Scrape List
         let userFilms;
+        let tasteMatch = { matches: [], userFavorites: [], matchCount: 0 };
         try {
           userFilms = await scrapeUserFilmsList(username);
           Logger.info(`Found ${userFilms.length} films for user`, { username });
+
+          // Also fetch taste matches while we process the job
+          tasteMatch = await fetchTasteMatches(username);
+          Logger.info(`Found ${tasteMatch.matches.length} taste matches for user`, { username });
         } catch (err) {
           Logger.error(`Scraping failed for user`, err, { username });
           await updateUserJob(username, {
@@ -103,6 +109,7 @@ export const handler = async (event, context) => {
         await updateUserJob(username, {
           films: userFilms,
           totalFilms: userFilms.length,
+          tasteMatch,
           updatedAt: Math.floor(Date.now() / 1000),
         });
 
