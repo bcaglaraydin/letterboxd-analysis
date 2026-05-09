@@ -58,10 +58,7 @@ export async function fetchSoulmates(username, favoriteSlugs) {
   let highestMatchCount = 0;
 
   try {
-    // Check levels 4, 3, 2 in order
     for (let level = Math.min(4, favoriteSlugs.length); level >= 2; level--) {
-      // If we already have enough matches from a higher level, we can stop or be selective
-      // But we always want to complete the current level to get the best peers
       const combinations = getCombinations(favoriteSlugs, level);
       Logger.info(`[TasteMatch] Level ${level}: Testing ${combinations.length} combinations...`);
 
