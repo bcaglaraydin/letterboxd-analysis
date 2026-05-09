@@ -1,8 +1,5 @@
 # ==============================================================================
-# DEPLOY BACKEND - SELECTIVE CI/CD
-# ==============================================================================
-# This workflow implements the selective build/deploy strategy using 
-# dorny/paths-filter and native GitHub Actions logic.
+# DEPLOY BACKEND - SELECTIVE CI/CD (SIMPLIFIED)
 # ==============================================================================
 
 name: Deploy Backend
@@ -47,94 +44,79 @@ jobs:
     name: Detect Changes
     runs-on: ubuntu-latest
     outputs:
-      # Pass through all filter outputs
-      start: ${{ steps.filter.outputs.start }}
-      status: ${{ steps.filter.outputs.status }}
-      list_scraper: ${{ steps.filter.outputs.list_scraper }}
-      worker: ${{ steps.filter.outputs.worker }}
-      base_image: ${{ steps.filter.outputs.base_image }}
-      core_infra: ${{ steps.filter.outputs.core_infra }}
-      ecr_infra: ${{ steps.filter.outputs.ecr_infra }}
-      gateway_infra: ${{ steps.filter.outputs.gateway_infra }}
-      
-      # Computed list for matrix strategy
       affected_lambdas: ${{ steps.compute.outputs.affected_lambdas }}
-      has_affected: ${{ steps.compute.outputs.has_affected }}
+      has_affected_lambdas: ${{ steps.compute.outputs.has_affected_lambdas }}
+      affected_ecr_repos: ${{ steps.compute.outputs.affected_ecr_repos }}
+      has_affected_ecr: ${{ steps.compute.outputs.has_affected_ecr }}
+      affected_core_infra: ${{ steps.compute.outputs.affected_core_infra }}
+      has_affected_core: ${{ steps.compute.outputs.has_affected_core }}
       base_needs_rebuild: ${{ steps.compute.outputs.base_needs_rebuild }}
+      deploy_gateway: ${{ steps.compute.outputs.deploy_gateway }}
+      deploy_monitoring: ${{ steps.compute.outputs.deploy_monitoring }}
       
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
       
       - uses: dorny/paths-filter@v4
         id: filter
         with:
           filters: .github/filters.yaml
+          list-files: json
 
       - name: Compute Strategy
         id: compute
         run: |
-          # Initialize empty array for JSON
-          LAMBDAS_JSON="[]"
-          HAS_AFFECTED="false"
-          BASE_REBUILD="false"
-          
-          # Check inputs first
+          CHANGES='${{ steps.filter.outputs.changes }}'
           FORCE="${{ github.event.inputs.force_rebuild_all }}"
           TARGETS="${{ github.event.inputs.target_lambdas }}"
           
-          # Check filter outputs
-          START_CHANGED="${{ steps.filter.outputs.start }}"
-          STATUS_CHANGED="${{ steps.filter.outputs.status }}"
-          LIST_CHANGED="${{ steps.filter.outputs.list_scraper }}"
-          WORKER_CHANGED="${{ steps.filter.outputs.worker }}"
-          BASE_CHANGED="${{ steps.filter.outputs.base_image }}"
-          
+          # Initialize
+          LAMBDAS="[]"
+          ECR="[]"
+          CORE="[]"
+          BASE_REBUILD="${{ steps.filter.outputs.base_image }}"
+          GATEWAY="${{ steps.filter.outputs.gateway }}"
+          MONITORING="${{ steps.filter.outputs.monitoring }}"
+
           if [ "$FORCE" == "true" ]; then
-             echo "Rebuilding ALL due to force"
-             LAMBDAS_JSON='["start","status","list-scraper","worker"]'
-             HAS_AFFECTED="true"
-             BASE_REBUILD="true" # Rebuild base just in case
+            LAMBDAS='["start","status","list-scraper","worker"]'
+            ECR='["base","start","status","list-scraper","worker"]'
+            CORE='["dynamodb/films","dynamodb/user-jobs","dynamodb/quotas","dynamodb/global-usage","sqs","sqs-list","cost-protection","s3","cloudfront"]'
+            BASE_REBUILD="true"
+            GATEWAY="true"
+            MONITORING="true"
           elif [ -n "$TARGETS" ]; then
-             echo "Targeting specific lambdas: $TARGETS"
-             SAFE_TARGETS=$(echo $TARGETS | tr ',' '\n' | jq -R . | jq -s -c .)
-             LAMBDAS_JSON="$SAFE_TARGETS"
-             HAS_AFFECTED="true"
+            LAMBDAS=$(echo $TARGETS | tr ',' '\n' | jq -R . | jq -s -c .)
           else
-             # Build list based on changes
-             AFFECTED=()
-             
-             # Lightweight lambdas (independent of base image changes)
-             if [ "$START_CHANGED" == "true" ]; then AFFECTED+=("start"); fi
-             if [ "$STATUS_CHANGED" == "true" ]; then AFFECTED+=("status"); fi
-             
-             # Browser lambdas (depend on Base Image OR their own changes)
-             if [ "$LIST_CHANGED" == "true" ] || [ "$BASE_CHANGED" == "true" ]; then 
-                AFFECTED+=("list-scraper"); 
-             fi
-             if [ "$WORKER_CHANGED" == "true" ] || [ "$BASE_CHANGED" == "true" ]; then 
-                AFFECTED+=("worker"); 
-             fi
-             
-             if [ "$BASE_CHANGED" == "true" ]; then
-                BASE_REBUILD="true"
-             fi
-             
-             if [ ${#AFFECTED[@]} -gt 0 ]; then
-               LAMBDAS_JSON=$(printf '%s\n' "${AFFECTED[@]}" | jq -R . | jq -s -c .)
-               HAS_AFFECTED="true"
-             fi
+            # Extract from filters using naming convention
+            LAMBDAS=$(echo $CHANGES | jq -c '[.[] | select(startswith("lambda:")) | split(":")[1]]')
+            ECR=$(echo $CHANGES | jq -c '[.[] | select(startswith("ecr:")) | split(":")[1]]')
+            CORE=$(echo $CHANGES | jq -c '[.[] | select(startswith("infra:")) | split(":")[1]]')
           fi
+
+          # Outputs for Matrix
+          echo "affected_lambdas=$LAMBDAS" >> $GITHUB_OUTPUT
+          echo "affected_ecr_repos=$ECR" >> $GITHUB_OUTPUT
+          echo "affected_core_infra=$CORE" >> $GITHUB_OUTPUT
           
-          echo "affected_lambdas=$LAMBDAS_JSON" >> $GITHUB_OUTPUT
-          echo "has_affected=$HAS_AFFECTED" >> $GITHUB_OUTPUT
+          # Boolean Helpers
+          echo "has_affected_lambdas=$([ "$LAMBDAS" != "[]" ] && echo true || echo false)" >> $GITHUB_OUTPUT
+          echo "has_affected_ecr=$([ "$ECR" != "[]" ] && echo true || echo false)" >> $GITHUB_OUTPUT
+          echo "has_affected_core=$([ "$CORE" != "[]" ] && echo true || echo false)" >> $GITHUB_OUTPUT
           echo "base_needs_rebuild=$BASE_REBUILD" >> $GITHUB_OUTPUT
-          
+          echo "deploy_gateway=$GATEWAY" >> $GITHUB_OUTPUT
+          echo "deploy_monitoring=$MONITORING" >> $GITHUB_OUTPUT
+
           echo "Strategy Computed:"
-          echo "Affected: $LAMBDAS_JSON"
-          echo "Base Rebuild: $BASE_REBUILD"
+          echo "Lambdas: $LAMBDAS"
+          echo "ECR: $ECR"
+          echo "Core: $CORE"
+          echo "Gateway: $GATEWAY, Monitoring: $MONITORING"
 
   # ============================================================================
-  # BUILD BASE IMAGE (If Needed)
+  # BUILD BASE IMAGE
   # ============================================================================
   build-base:
     name: Build Base Image
@@ -146,20 +128,16 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v6
-      
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-deploy-role
           aws-region: ${{ env.AWS_REGION }}
-
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
-      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
-      
       - name: Build and push base image
         uses: docker/build-push-action@v7
         with:
@@ -170,42 +148,34 @@ jobs:
           push: true
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/letterboxd-base:${{ github.sha }}
-            ${{ steps.login-ecr.outputs.registry }}/letterboxd-base:${{ github.ref_name }}
             ${{ steps.login-ecr.outputs.registry }}/letterboxd-base:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
   # ============================================================================
-  # DEPLOY ECR REPOS (If Needed)
+  # DEPLOY ECR REPOS
   # ============================================================================
   deploy-ecr:
-    name: Deploy ECR
+    name: Deploy ECR ${{ matrix.repo }}
     needs: detect-changes
-    if: needs.detect-changes.outputs.ecr_infra == 'true'
-    permissions:
-      id-token: write
-      contents: read
+    if: needs.detect-changes.outputs.has_affected_ecr == 'true'
     strategy:
        matrix:
-         repo: [base, start, status, list-scraper, worker]
+         repo: ${{ fromJson(needs.detect-changes.outputs.affected_ecr_repos) }}
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/shared/ecr/${{ matrix.repo }}
     secrets: inherit
 
   # ============================================================================
-  # BUILD AFFECTED LAMBDAS
+  # BUILD LAMBDAS
   # ============================================================================
   build:
     name: Build ${{ matrix.lambda }}
-    needs: [detect-changes, build-base] # Optional dependency on build-base
-    permissions:
-      id-token: write
-      contents: read
-    # Run if we have affected lambdas AND (base build skipped OR succeeded)
+    needs: [detect-changes, build-base]
     if: |
       always() && 
-      needs.detect-changes.outputs.has_affected == 'true' &&
+      needs.detect-changes.outputs.has_affected_lambdas == 'true' &&
       (needs.build-base.result == 'success' || needs.build-base.result == 'skipped')
     strategy:
       fail-fast: false
@@ -223,38 +193,22 @@ jobs:
   deploy-core-infra:
     name: Deploy Core ${{ matrix.component }}
     needs: detect-changes
-    if: needs.detect-changes.outputs.core_infra == 'true'
-    permissions:
-      id-token: write
-      contents: read
+    if: needs.detect-changes.outputs.has_affected_core == 'true'
     strategy:
       fail-fast: false
       matrix:
-        component: 
-          - dynamodb/films
-          - dynamodb/user-jobs
-          - dynamodb/quotas
-          - dynamodb/global-usage
-          - sqs
-          - sqs-list
-          - cost-protection
-          - s3
-          - cloudfront
+        component: ${{ fromJson(needs.detect-changes.outputs.affected_core_infra) }}
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/${{ github.ref == 'refs/heads/master' && 'prod' || 'dev' }}/${{ matrix.component }}
     secrets: inherit
 
   # ============================================================================
-  # DEPLOY AFFECTED LAMBDAS
+  # DEPLOY LAMBDAS
   # ============================================================================
   deploy-lambdas:
     name: Deploy ${{ matrix.lambda }}
     needs: [detect-changes, build, deploy-core-infra]
-    permissions:
-      id-token: write
-      contents: read
-    # Run only if build succeeded (or was skipped? No, build is mandatory for affected)
     if: always() && needs.build.result == 'success' && (needs.deploy-core-infra.result == 'success' || needs.deploy-core-infra.result == 'skipped')
     strategy:
       fail-fast: false
@@ -273,10 +227,9 @@ jobs:
   deploy-api-gateway:
     name: Deploy API Gateway
     needs: [detect-changes, deploy-lambdas]
-    if: always() && (needs.deploy-lambdas.result == 'success' || needs.detect-changes.outputs.gateway_infra == 'true')
-    permissions:
-      id-token: write
-      contents: read
+    if: |
+      always() && 
+      (needs.detect-changes.outputs.deploy_gateway == 'true' || github.event.inputs.force_rebuild_all == 'true')
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/${{ github.ref == 'refs/heads/master' && 'prod' || 'dev' }}/api-gateway
@@ -289,10 +242,9 @@ jobs:
   deploy-monitoring:
     name: Deploy Monitoring
     needs: [detect-changes, deploy-api-gateway]
-    if: always() && (needs.deploy-api-gateway.result == 'success' || needs.detect-changes.outputs.core_infra == 'true')
-    permissions:
-      id-token: write
-      contents: read
+    if: |
+      always() && 
+      (needs.detect-changes.outputs.deploy_monitoring == 'true' || github.event.inputs.force_rebuild_all == 'true')
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
       working_directory: infra/envs/${{ github.ref == 'refs/heads/master' && 'prod' || 'dev' }}/monitoring
@@ -308,36 +260,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-        with:
-          persist-credentials: false
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
       - name: Install Dependencies
         working-directory: backend
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
-        run: |
-          if [ -n "$GH_PAT" ]; then
-            git config --global url."https://${GH_PAT}@github.com/".insteadOf "ssh://git@github.com/"
-            git config --global url."https://${GH_PAT}@github.com/".insteadOf "git@github.com:"
-            git config --global url."https://${GH_PAT}@github.com/".insteadOf "https://github.com/"
-          fi
-          npm ci
-      - name: Get API Endpoint
-        run: |
-           if [ -n "${{ needs.deploy-api-gateway.outputs.terragrunt_output }}" ]; then
-             echo "API_GATEWAY_URL=${{ needs.deploy-api-gateway.outputs.terragrunt_output }}" >> $GITHUB_ENV
-           else
-             echo "API_GATEWAY_URL=" >> $GITHUB_ENV
-           fi
+        run: npm ci
       - name: Run E2E Test
         working-directory: backend
         env:
           API_READ_ACCESS_TOKEN: ${{ secrets.API_READ_ACCESS_TOKEN }}
           ADMIN_IPS: ${{ secrets.ADMIN_IPS }}
-          API_GATEWAY_URL: ${{ env.API_GATEWAY_URL }}
+          API_GATEWAY_URL: ${{ needs.deploy-api-gateway.outputs.terragrunt_output }}
           TEST_USERNAME: bcaglaraydin
           E2E_TIMEOUT_SECONDS: '120'
         run: npm run test:e2e

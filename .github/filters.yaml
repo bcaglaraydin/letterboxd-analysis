@@ -1,94 +1,118 @@
 # ==============================================================================
-# CHANGE DETECTION FILTERS
-# ==============================================================================
-# Maps file changes to specific outcomes.
-# Used by deploy-backend.yaml to determine what to build/deploy.
+# CHANGE DETECTION FILTERS (SIMPLIFIED)
 # ==============================================================================
 
-# SHARED CHANGES
-core_infra:
-  - 'infra/envs/**/dynamodb/**'
-  - 'infra/envs/**/sqs/**'
-  - 'infra/envs/**/sqs-list/**'
-  - 'infra/modules/dynamodb/**'
-  - 'infra/modules/sqs/**'
-  - 'infra/envs/**/cost-protection/**'
-  - 'infra/modules/cost-protection/**'
-  - 'infra/envs/**/s3/**'
-  - 'infra/modules/s3/**'
-  - 'infra/envs/**/cloudfront/**'
-  - 'infra/modules/cloudfront/**'
-  - 'infra/envs/**/monitoring/**'
-  - 'infra/modules/monitoring/**'
+# COMMON PATH ANCHORS
+_backend_core: &backend_core
+  - 'backend/package.json'
+  - 'backend/package-lock.json'
+  - 'backend/src/utils/**'
 
-ecr_infra:
-  - 'infra/shared/ecr/**'
-  - 'infra/modules/ecr/**'
+_shared_services: &shared_services
+  - 'backend/src/services/dynamoDbService.js'
+  - 'backend/src/services/userJobService.js'
 
-gateway_infra:
-  - 'infra/envs/**/api-gateway/**'
-  - 'infra/modules/api-gateway/**'
+_game_logic: &game_logic
+  - 'backend/src/services/gameService.js'
+  - 'backend/src/services/statsService.js'
+  - 'backend/src/services/tmdbService.js'
+  - 'backend/src/games/**'
 
-# Base image (Chromium) - ONLY affects browser-based lambdas
-base_image:
-  - 'backend/docker/base/Dockerfile'
-
-# LAMBDA SPECIFIC CHANGES (Trigger specific build/deploy)
-# Note: package.json/lock changes trigger ALL because dependencies are copied into all images
-
-start:
+# LAMBDA FILTERS
+"lambda:start":
+  - *backend_core
+  - *shared_services
+  - *game_logic
   - 'backend/src/handlers/startAnalysisHandler.js'
   - 'backend/src/handlers/authHandler.js'
   - 'backend/src/handlers/apiRouterHandler.js'
   - 'backend/src/services/configService.js'
   - 'backend/src/services/quotaService.js'
   - 'backend/src/services/sqsQueueService.js'
-  - 'backend/src/services/userJobService.js'
-  - 'backend/src/services/dynamoDbService.js'
-  - 'backend/src/services/gameService.js'
-  - 'backend/src/services/statsService.js'
-  - 'backend/src/services/tmdbService.js'
-  - 'backend/src/games/**'
-  - 'backend/src/utils/**'
   - 'backend/docker/lambdas/start/**'
   - 'infra/envs/**/lambda-container/start/**'
-  - 'backend/package.json'
-  - 'backend/package-lock.json'
 
-status:
+"lambda:status":
+  - *backend_core
+  - *shared_services
+  - *game_logic
   - 'backend/src/handlers/getAnalysisStatusHandler.js'
-  - 'backend/src/services/dynamoDbService.js'
-  - 'backend/src/services/userJobService.js'
-  - 'backend/src/services/gameService.js'
-  - 'backend/src/services/statsService.js'
-  - 'backend/src/services/tmdbService.js'
   - 'backend/src/services/tasteMatchService.js'
-  - 'backend/src/games/**'
-  - 'backend/src/utils/**'
   - 'backend/docker/lambdas/status/**'
   - 'infra/envs/**/lambda-container/status/**'
-  - 'backend/package.json'
-  - 'backend/package-lock.json'
 
-list_scraper:
+"lambda:list-scraper":
+  - *backend_core
+  - *shared_services
   - 'backend/src/handlers/listScraperHandler.js'
   - 'backend/src/services/letterboxdScrapingService.js'
   - 'backend/src/services/tasteMatchService.js'
   - 'backend/src/services/sqsQueueService.js'
-  - 'backend/src/services/userJobService.js'
-  - 'backend/src/services/dynamoDbService.js'
-  - 'backend/src/utils/**'
   - 'backend/docker/lambdas/list-scraper/**'
   - 'infra/envs/**/lambda-container/list-scraper/**'
-  - 'backend/package.json'
-  - 'backend/package-lock.json'
 
-worker:
+"lambda:worker":
+  - *backend_core
+  - *shared_services
   - 'backend/src/handlers/filmScraperWorker.js'
   - 'backend/src/services/letterboxdScrapingService.js'
-  - 'backend/src/services/dynamoDbService.js'
-  - 'backend/src/utils/**'
   - 'backend/docker/lambdas/worker/**'
   - 'infra/envs/**/lambda-container/worker/**'
-  - 'backend/package.json'
-  - 'backend/package-lock.json'
+
+# ECR FILTERS
+"ecr:base":
+  - 'infra/shared/ecr/base/**'
+  - 'infra/modules/ecr/**'
+"ecr:start":
+  - 'infra/shared/ecr/start/**'
+  - 'infra/modules/ecr/**'
+"ecr:status":
+  - 'infra/shared/ecr/status/**'
+  - 'infra/modules/ecr/**'
+"ecr:list-scraper":
+  - 'infra/shared/ecr/list-scraper/**'
+  - 'infra/modules/ecr/**'
+"ecr:worker":
+  - 'infra/shared/ecr/worker/**'
+  - 'infra/modules/ecr/**'
+
+# CORE INFRA FILTERS
+"infra:dynamodb/films":
+  - 'infra/envs/**/dynamodb/films/**'
+  - 'infra/modules/dynamodb/**'
+"infra:dynamodb/user-jobs":
+  - 'infra/envs/**/dynamodb/user-jobs/**'
+  - 'infra/modules/dynamodb/**'
+"infra:dynamodb/quotas":
+  - 'infra/envs/**/dynamodb/quotas/**'
+  - 'infra/modules/dynamodb/**'
+"infra:dynamodb/global-usage":
+  - 'infra/envs/**/dynamodb/global-usage/**'
+  - 'infra/modules/dynamodb/**'
+"infra:sqs":
+  - 'infra/envs/**/sqs/**'
+  - 'infra/modules/sqs/**'
+"infra:sqs-list":
+  - 'infra/envs/**/sqs-list/**'
+  - 'infra/modules/sqs/**'
+"infra:s3":
+  - 'infra/envs/**/s3/**'
+  - 'infra/modules/s3/**'
+"infra:cloudfront":
+  - 'infra/envs/**/cloudfront/**'
+  - 'infra/modules/cloudfront/**'
+"infra:cost-protection":
+  - 'infra/envs/**/cost-protection/**'
+  - 'infra/modules/cost-protection/**'
+
+# GLOBAL / SHARED FILTERS
+gateway:
+  - 'infra/envs/**/api-gateway/**'
+  - 'infra/modules/api-gateway/**'
+
+monitoring:
+  - 'infra/envs/**/monitoring/**'
+  - 'infra/modules/monitoring/**'
+
+base_image:
+  - 'backend/docker/base/Dockerfile'
