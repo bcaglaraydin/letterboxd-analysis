@@ -27,52 +27,35 @@ export function GenreMatchingIntro({ onComplete, baseScore = 0 }: GenreMatchingI
         </div>
       }
       messages={[
-        <div key="msg1" className="space-y-4 md:space-y-6">
+        <div key="msg1" className="space-y-4">
           <p className="text-3xl md:text-5xl">
-            Can you <span className="font-bold text-primary">guess the exact genres</span> of the
-            movie shown?
+            Let&apos;s see how well you{' '}
+            <span className="font-bold text-primary">know these films.</span>
           </p>
+        </div>,
+        <div key="msg2" className="space-y-4">
           <p className="text-xl md:text-3xl text-muted-foreground/80 font-sans">
-            You don&apos;t need to pick a genre from every tier. Just select the ones that belong to
-            the film!
+            You&apos;ll match the movie with its correct genres.
           </p>
         </div>,
-        <div
-          key="msg2"
-          className="space-y-5 text-lg md:text-2xl border-l-4 border-primary/20 pl-6 md:pl-8 py-2 my-6 md:my-10 font-sans text-left mx-auto max-w-2xl"
-        >
-          <p className="flex flex-col gap-1.5">
-            <span className="font-bold text-accent tracking-widest text-xl md:text-3xl">
-              ★★★ Niche
-            </span>
-            <span className="text-muted-foreground">
-              High reward if correct, high penalty if wrong.
-            </span>
-          </p>
-          <p className="flex flex-col gap-1.5">
-            <span className="font-bold text-primary tracking-widest text-xl md:text-3xl">
-              ★★ Mid
-            </span>
-            <span className="text-muted-foreground">Moderate reward and penalty.</span>
-          </p>
-          <p className="flex flex-col gap-1.5">
-            <span className="font-bold text-muted-foreground tracking-widest text-xl md:text-3xl">
-              ★ Popular
-            </span>
-            <span className="text-muted-foreground">Low reward, low penalty. Safest bet.</span>
+        <div key="msg3" className="space-y-4 max-w-2xl mx-auto">
+          <p className="text-lg md:text-2xl font-sans text-muted-foreground">
+            <span className="font-bold text-accent">Niche (★★★)</span> are high-risk, high-reward.
+            <br />
+            <span className="font-bold text-primary/80">Popular (★)</span> are safer but worth less.
           </p>
         </div>,
-        <div
-          key="msg3"
-          className="text-xl md:text-3xl font-medium bg-card/40 p-5 md:p-8 rounded-2xl border border-border/40 shadow-sm mx-auto max-w-3xl font-sans text-center"
-        >
-          <span className="text-muted-foreground leading-snug">
-            Missing a correct genre will also{' '}
-            <span className="text-red-400 font-semibold">cost you points</span>. Choose carefully!
-          </span>
+        <div key="msg4" className="space-y-4 max-w-3xl mx-auto">
+          <p className="text-xl md:text-3xl font-medium bg-card/30 p-6 rounded-2xl border border-border/40 font-sans">
+            <span className="text-red-400 font-bold">Don&apos;t miss the correct ones.</span>
+            <br />
+            <span className="text-muted-foreground text-lg md:text-xl mt-1 block">
+              Every genre you leave behind will cost you points.
+            </span>
+          </p>
         </div>,
       ]}
-      buttonText="I got this"
+      buttonText="Start"
       onComplete={onComplete}
     />
   );
