@@ -90,8 +90,6 @@ export async function fetchSoulmates(username, favoriteSlugs) {
         }
       }
 
-      // If we found ANY matches at this level, we stop here to maintain "quality"
-      // e.g., if we found 3 people with 3 matches, we return just them rather than adding 7 people with 2 matches
       if (uniqueMatches.size > 0) {
         break;
       }
