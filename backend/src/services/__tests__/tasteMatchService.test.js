@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { fetchTasteMatches } from '../tasteMatchService.js';
+import { fetchFavoriteSlugs, fetchSoulmates } from '../tasteMatchService.js';
 import * as browserUtils from '../../utils/browser.js';
 
 vi.mock('../../utils/browser.js');
@@ -29,10 +29,6 @@ describe('tasteMatchService', () => {
           <div class="person-summary">
             <a href="/soulmate1/" class="name">Soulmate One</a>
             <img src="avatar1.jpg" class="avatar">
-            <div class="poster-container">
-              <img src="fav1-1.jpg" alt="Film 1">
-              <img src="fav1-2.jpg" alt="Film 2">
-            </div>
           </div>
           <div class="person-summary">
             <a href="/testuser/" class="name">Test User</a>
@@ -47,39 +43,60 @@ describe('tasteMatchService', () => {
     vi.clearAllMocks();
   });
 
-  it('should extract user favorites and fetch matching members', async () => {
-    vi.mocked(browserUtils.fetchHtmlWithBrowser)
-      .mockResolvedValueOnce(mockProfileHtml) // First call for profile
-      .mockResolvedValueOnce(mockSearchHtml); // Second call for search
+  describe('fetchFavoriteSlugs', () => {
+    it('should extract favorite slugs from profile', async () => {
+      vi.mocked(browserUtils.fetchHtmlWithBrowser).mockResolvedValueOnce(mockProfileHtml);
 
-    const result = await fetchTasteMatches(mockUsername);
+      const slugs = await fetchFavoriteSlugs(mockUsername);
 
-    expect(result.userFavorites).toHaveLength(2);
-    expect(result.userFavorites[0]).toEqual({
-      slug: 'parasite',
-      posterUrl: 'parasite-poster.jpg',
-      title: 'Parasite',
+      expect(slugs).toEqual(['parasite', 'the-godfather']);
     });
 
-    expect(result.matches).toHaveLength(1); // Should exclude self
-    expect(result.matches[0].name).toBe('Soulmate One');
-    expect(result.matches[0].favorites).toHaveLength(2);
-    expect(result.matches[0].favorites[0]).toEqual({
-      title: 'Film 1',
-      posterUrl: 'fav1-1.jpg',
+    it('should return empty array if no favorites found', async () => {
+      vi.mocked(browserUtils.fetchHtmlWithBrowser).mockResolvedValueOnce(
+        '<html><body></body></html>'
+      );
+
+      const slugs = await fetchFavoriteSlugs(mockUsername);
+
+      expect(slugs).toHaveLength(0);
     });
-    expect(result.matchCount).toBe(2);
+
+    it('should return empty array on error', async () => {
+      vi.mocked(browserUtils.fetchHtmlWithBrowser).mockRejectedValueOnce(new Error('Network'));
+
+      const slugs = await fetchFavoriteSlugs(mockUsername);
+
+      expect(slugs).toHaveLength(0);
+    });
   });
 
-  it('should return empty result if no favorites found', async () => {
-    vi.mocked(browserUtils.fetchHtmlWithBrowser).mockResolvedValueOnce(
-      '<html><body></body></html>'
-    );
+  describe('fetchSoulmates', () => {
+    it('should fetch matching members excluding self', async () => {
+      vi.mocked(browserUtils.fetchHtmlWithBrowser).mockResolvedValueOnce(mockSearchHtml);
 
-    const result = await fetchTasteMatches(mockUsername);
+      const result = await fetchSoulmates(mockUsername, ['parasite', 'the-godfather']);
 
-    expect(result.userFavorites).toHaveLength(0);
-    expect(result.matches).toHaveLength(0);
-    expect(result.matchCount).toBe(0);
+      expect(result.matches).toHaveLength(1);
+      expect(result.matches[0].name).toBe('Soulmate One');
+      expect(result.matches[0]).not.toHaveProperty('favorites');
+      expect(result.matchCount).toBe(2);
+    });
+
+    it('should return empty result if no slugs provided', async () => {
+      const result = await fetchSoulmates(mockUsername, []);
+
+      expect(result.matches).toHaveLength(0);
+      expect(result.matchCount).toBe(0);
+    });
+
+    it('should return empty result on search error', async () => {
+      vi.mocked(browserUtils.fetchHtmlWithBrowser).mockRejectedValueOnce(new Error('Search'));
+
+      const result = await fetchSoulmates(mockUsername, ['parasite', 'the-godfather']);
+
+      expect(result.matches).toHaveLength(0);
+      expect(result.matchCount).toBe(0);
+    });
   });
 });

@@ -2,7 +2,7 @@ import { scrapeUserFilmsList } from 'letterboxd-scraper-engine';
 import { sendMessageBatch } from '../services/sqsQueueService.js';
 import { updateUserJob } from '../services/userJobService.js';
 import { batchGet } from '../services/dynamoDbService.js';
-import { fetchTasteMatches } from '../services/tasteMatchService.js';
+import { fetchFavoriteSlugs, fetchSoulmates } from '../services/tasteMatchService.js';
 import { Logger } from '../utils/logger.js';
 
 const FILMS_TABLE = process.env.FILMS_TABLE;
@@ -42,16 +42,23 @@ export const handler = async (event, context) => {
         // 1. Update Job Status -> Processing
         await updateUserJob(username, { status: 'processing' });
 
-        // 2. Scrape List
+        // 2. Scrape List & Extract Favorite Slugs
         let userFilms;
-        let tasteMatch = { matches: [], userFavorites: [], matchCount: 0 };
+        let favoriteSlugs = [];
+        let tasteMatch = { matches: [], matchCount: 0 };
         try {
           userFilms = await scrapeUserFilmsList(username);
           Logger.info(`Found ${userFilms.length} films for user`, { username });
 
-          // Also fetch taste matches while we process the job
-          tasteMatch = await fetchTasteMatches(username);
-          Logger.info(`Found ${tasteMatch.matches.length} taste matches for user`, { username });
+          // Extract favorite slugs from user profile (lightweight, slugs only)
+          favoriteSlugs = await fetchFavoriteSlugs(username);
+          Logger.info(`Found ${favoriteSlugs.length} favorite slugs for user`, { username });
+
+          // Search for soulmates who share these favorites
+          if (favoriteSlugs.length >= 2) {
+            tasteMatch = await fetchSoulmates(username, favoriteSlugs);
+            Logger.info(`Found ${tasteMatch.matches.length} taste matches for user`, { username });
+          }
         } catch (err) {
           Logger.error(`Scraping failed for user`, err, { username });
           await updateUserJob(username, {
@@ -102,13 +109,11 @@ export const handler = async (event, context) => {
           Logger.info(`All ${userFilms.length} films already cached in DB.`, { username });
         }
 
-        // 4. Update Job with Film Data (and keep status processing/pending until films are scraped?
-        // Actually, statusHandler checks counts. We can just save the list now.)
-        // Note: The original logic didn't mark "completed" here, it relied on caching.
-        // But we should store the list of films in the job so status handler knows what to check.
+        // 4. Update Job with Film Data, Favorite Slugs, and Taste Matches
         await updateUserJob(username, {
           films: userFilms,
           totalFilms: userFilms.length,
+          favoriteSlugs,
           tasteMatch,
           updatedAt: Math.floor(Date.now() / 1000),
         });

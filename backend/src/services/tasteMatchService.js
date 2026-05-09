@@ -3,35 +3,46 @@ import { fetchHtmlWithBrowser } from '../utils/browser.js';
 import { Logger } from '../utils/logger.js';
 
 /**
- * Fetches users with similar taste based on the 4 favorite films of a given user.
- * It will try matching 4 favorites, then 3, then 2.
- * Stops as soon as matches are found.
+ * Extracts the user's favorite film slugs from their Letterboxd profile.
+ * This is a lightweight operation — only slugs are returned.
  *
- * @param {string} username - The Letterboxd username to find matches for
- * @returns {Promise<Object>} - Object with { matches: Array<{name, url, avatarUrl, favorites: Array<{title, posterUrl}>}>, userFavorites, matchCount }
+ * @param {string} username - The Letterboxd username
+ * @returns {Promise<string[]>} - Array of favorite film slugs (max 4)
  */
-export async function fetchTasteMatches(username) {
+export async function fetchFavoriteSlugs(username) {
   try {
-    Logger.info(`[TasteMatch] Fetching profile for ${username} to extract favorites...`);
+    Logger.info(`[TasteMatch] Fetching profile for ${username} to extract favorite slugs...`);
     const profileHtml = await fetchHtmlWithBrowser(`https://letterboxd.com/${username}/`);
     const $ = load(profileHtml);
 
-    const userFavorites = [];
+    const slugs = [];
     $('#favourites .react-component[data-component-class="LazyPoster"]').each((_, el) => {
       const slug = $(el).attr('data-item-slug');
-      const posterUrl = $(el).find('img').attr('src');
-      const title = $(el).find('img').attr('alt');
-      if (slug) userFavorites.push({ slug, posterUrl, title });
+      if (slug) slugs.push(slug);
     });
 
-    const favoriteSlugs = userFavorites.map((f) => f.slug);
+    Logger.info(`[TasteMatch] Favorite slugs for ${username}:`, { slugs });
+    return slugs;
+  } catch (error) {
+    Logger.error(`[TasteMatch] Failed to fetch favorite slugs for ${username}`, error);
+    return [];
+  }
+}
 
-    Logger.info(`[TasteMatch] Favorites for ${username}:`, { favoriteSlugs });
+/**
+ * Searches Letterboxd for members who share the given favorite films.
+ * Tries matching 4, then 3, then 2 favorites. Stops as soon as matches are found.
+ *
+ * @param {string} username - The Letterboxd username (excluded from results)
+ * @param {string[]} favoriteSlugs - Array of favorite film slugs to match against
+ * @returns {Promise<Object>} - { matches: Array<{name, url, avatarUrl}>, matchCount: number }
+ */
+export async function fetchSoulmates(username, favoriteSlugs) {
+  if (!favoriteSlugs || favoriteSlugs.length === 0) {
+    return { matches: [], matchCount: 0 };
+  }
 
-    if (favoriteSlugs.length === 0) {
-      return { matches: [], userFavorites: [], matchCount: 0 };
-    }
-
+  try {
     // Try matching 4, then 3, then 2 favorites.
     for (let i = Math.min(4, favoriteSlugs.length); i >= 2; i--) {
       const query = favoriteSlugs
@@ -53,24 +64,8 @@ export async function fetchTasteMatches(username) {
           const url = nameEl.attr('href');
           const avatarUrl = $s(el).find('img').first().attr('src');
 
-          const soulmateFavorites = [];
-          $s(el)
-            .find('.poster-container img')
-            .each((__, imgEl) => {
-              const title = $s(imgEl).attr('alt');
-              const posterUrl = $s(imgEl).attr('src');
-              if (title && posterUrl) {
-                soulmateFavorites.push({ title, posterUrl });
-              }
-            });
-
           if (url && !url.includes(`/${username}/`)) {
-            members.push({
-              name,
-              url,
-              avatarUrl,
-              favorites: soulmateFavorites,
-            });
+            members.push({ name, url, avatarUrl });
           }
         });
 
@@ -78,7 +73,6 @@ export async function fetchTasteMatches(username) {
         if (members.length > 0) {
           return {
             matches: members.slice(0, 10),
-            userFavorites,
             matchCount: i,
           };
         }
@@ -87,9 +81,9 @@ export async function fetchTasteMatches(username) {
       }
     }
 
-    return { matches: [], userFavorites, matchCount: 0 };
+    return { matches: [], matchCount: 0 };
   } catch (error) {
-    Logger.error(`[TasteMatch] Failed to fetch taste matches for ${username}`, error);
-    return { matches: [], userFavorites: [], matchCount: 0 };
+    Logger.error(`[TasteMatch] Failed to fetch soulmates for ${username}`, error);
+    return { matches: [], matchCount: 0 };
   }
 }

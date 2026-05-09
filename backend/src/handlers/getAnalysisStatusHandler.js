@@ -227,7 +227,24 @@ export const handler = async (event, context) => {
 
     // Use GameService to generate all game data and stats
     const gameData = await GameService.generateAll(userFilms, metadataMap, minFilms);
-    gameData.tasteMatch = job.tasteMatch || { matches: [], userFavorites: [], matchCount: 0 };
+
+    // Derive userFavorites from DB metadata — only include favorites that exist in the DB
+    const favoriteSlugs = job.favoriteSlugs || [];
+    const userFavorites = favoriteSlugs
+      .map((slug) => {
+        const meta = metadataMap.get(slug);
+        if (!meta || !meta.year || meta.year === '????') return null;
+        return { slug, posterUrl: meta.posterUrl || null, title: meta.title || slug };
+      })
+      .filter(Boolean);
+
+    const rawTasteMatch = job.tasteMatch || { matches: [], matchCount: 0 };
+    gameData.tasteMatch = {
+      matches: rawTasteMatch.matches || [],
+      userFavorites,
+      matchCount: rawTasteMatch.matchCount || 0,
+    };
+
     return buildReadyResponse(gameData, 1);
   } catch (error) {
     Logger.error('Status Handler Error', error);

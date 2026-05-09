@@ -215,6 +215,23 @@ async function buildReadyResponse(job) {
   const minFilms = 5;
   const gameData = await GameService.generateAll(userFilms, metadataMap, minFilms);
 
+  // Derive userFavorites from DB metadata — only include favorites that exist in the DB
+  const favoriteSlugs = job.favoriteSlugs || [];
+  const userFavorites = favoriteSlugs
+    .map((slug) => {
+      const meta = metadataMap.get(slug);
+      if (!meta || !meta.year || meta.year === '????') return null;
+      return { slug, posterUrl: meta.posterUrl || null, title: meta.title || slug };
+    })
+    .filter(Boolean);
+
+  const rawTasteMatch = job.tasteMatch || { matches: [], matchCount: 0 };
+  gameData.tasteMatch = {
+    matches: rawTasteMatch.matches || [],
+    userFavorites,
+    matchCount: rawTasteMatch.matchCount || 0,
+  };
+
   return {
     statusCode: 200,
     body: JSON.stringify({
