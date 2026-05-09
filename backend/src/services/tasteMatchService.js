@@ -41,7 +41,7 @@ export async function fetchFavoriteSlugs(username) {
 }
 
 /**
- * Searches Letterboxd for members who share the given favorite films.
+ * Searches Letterboxd for members who share the favorite films.
  * Checks ALL combinations of films at each level (4, 3, 2) until 10 unique matches are found.
  *
  * @param {string} username - The Letterboxd username (excluded from results)
