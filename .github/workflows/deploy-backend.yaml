@@ -84,6 +84,9 @@ jobs:
           GATEWAY="${{ steps.filter.outputs.gateway }}"
           MONITORING="${{ steps.filter.outputs.monitoring }}"
 
+          # DEBUG: Print the raw matched filters
+          echo "Matched Filters: $CHANGES"
+
           if [ "$FORCE" == "true" ]; then
             LAMBDAS='["start","status","list-scraper","worker"]'
             ECR='["base","start","status","list-scraper","worker"]'
@@ -95,17 +98,20 @@ jobs:
             LAMBDAS=$(echo "$TARGETS" | tr ',' '\n' | jq -R . | jq -s -c .)
           else
             # Ensure CHANGES is not empty/null before processing
-            if [ -n "$CHANGES" ] && [ "$CHANGES" != "null" ]; then
-              LAMBDAS=$(echo "$CHANGES" | jq -c '[.[] | select(startswith("lambda:")) | split(":")[1]]')
-              ECR=$(echo "$CHANGES" | jq -c '[.[] | select(startswith("ecr:")) | split(":")[1]]')
-              CORE=$(echo "$CHANGES" | jq -c '[.[] | select(startswith("infra:")) | split(":")[1]]')
+            if [ -n "$CHANGES" ] && [ "$CHANGES" != "null" ] && [ "$CHANGES" != "[]" ]; then
+              # Extract from filters using naming convention (prefix-name)
+              LAMBDAS=$(echo "$CHANGES" | jq -c '[.[] | select(startswith("lambda-")) | sub("lambda-"; "")]')
+              ECR=$(echo "$CHANGES" | jq -c '[.[] | select(startswith("ecr-")) | sub("ecr-"; "")]')
+              
+              # Special handling for core infra to map back to folder paths (e.g. dynamodb-films -> dynamodb/films)
+              CORE=$(echo "$CHANGES" | jq -c '[.[] | select(startswith("infra-")) | sub("infra-"; "") | gsub("-"; "/")]')
             fi
           fi
 
           # Final safety check for empty results
-          [ -z "$LAMBDAS" ] && LAMBDAS="[]"
-          [ -z "$ECR" ] && ECR="[]"
-          [ -z "$CORE" ] && CORE="[]"
+          [ -z "$LAMBDAS" ] || [ "$LAMBDAS" == "null" ] && LAMBDAS="[]"
+          [ -z "$ECR" ] || [ "$ECR" == "null" ] && ECR="[]"
+          [ -z "$CORE" ] || [ "$CORE" == "null" ] && CORE="[]"
 
           # Outputs for Matrix
           echo "affected_lambdas=$LAMBDAS" >> $GITHUB_OUTPUT
@@ -126,6 +132,7 @@ jobs:
           echo "ECR: $ECR"
           echo "Core: $CORE"
           echo "Gateway: $GATEWAY, Monitoring: $MONITORING"
+          echo "Base Rebuild: ${BASE_REBUILD:-false}"
 
   # ============================================================================
   # BUILD BASE IMAGE

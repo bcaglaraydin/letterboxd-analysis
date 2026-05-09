@@ -3,7 +3,7 @@
 # ==============================================================================
 
 # LAMBDA FILTERS
-"lambda:start":
+lambda-start:
   - 'backend/package.json'
   - 'backend/package-lock.json'
   - 'backend/src/utils/**'
@@ -22,7 +22,7 @@
   - 'backend/docker/lambdas/start/**'
   - 'infra/envs/**/lambda-container/start/**'
 
-"lambda:status":
+lambda-status:
   - 'backend/package.json'
   - 'backend/package-lock.json'
   - 'backend/src/utils/**'
@@ -37,7 +37,7 @@
   - 'backend/docker/lambdas/status/**'
   - 'infra/envs/**/lambda-container/status/**'
 
-"lambda:list-scraper":
+lambda-list-scraper:
   - 'backend/package.json'
   - 'backend/package-lock.json'
   - 'backend/src/utils/**'
@@ -50,7 +50,7 @@
   - 'backend/docker/lambdas/list-scraper/**'
   - 'infra/envs/**/lambda-container/list-scraper/**'
 
-"lambda:worker":
+lambda-worker:
   - 'backend/package.json'
   - 'backend/package-lock.json'
   - 'backend/src/utils/**'
@@ -62,48 +62,48 @@
   - 'infra/envs/**/lambda-container/worker/**'
 
 # ECR FILTERS
-"ecr:base":
+ecr-base:
   - 'infra/shared/ecr/base/**'
   - 'infra/modules/ecr/**'
-"ecr:start":
+ecr-start:
   - 'infra/shared/ecr/start/**'
   - 'infra/modules/ecr/**'
-"ecr:status":
+ecr-status:
   - 'infra/shared/ecr/status/**'
   - 'infra/modules/ecr/**'
-"ecr:list-scraper":
+ecr-list-scraper:
   - 'infra/shared/ecr/list-scraper/**'
   - 'infra/modules/ecr/**'
-"ecr:worker":
+ecr-worker:
   - 'infra/shared/ecr/worker/**'
   - 'infra/modules/ecr/**'
 
 # CORE INFRA FILTERS
-"infra:dynamodb/films":
+infra-dynamodb-films:
   - 'infra/envs/**/dynamodb/films/**'
   - 'infra/modules/dynamodb/**'
-"infra:dynamodb/user-jobs":
+infra-dynamodb-user-jobs:
   - 'infra/envs/**/dynamodb/user-jobs/**'
   - 'infra/modules/dynamodb/**'
-"infra:dynamodb/quotas":
+infra-dynamodb-quotas:
   - 'infra/envs/**/dynamodb/quotas/**'
   - 'infra/modules/dynamodb/**'
-"infra:dynamodb/global-usage":
+infra-dynamodb-global-usage:
   - 'infra/envs/**/dynamodb/global-usage/**'
   - 'infra/modules/dynamodb/**'
-"infra:sqs":
+infra-sqs:
   - 'infra/envs/**/sqs/**'
   - 'infra/modules/sqs/**'
-"infra:sqs-list":
+infra-sqs-list:
   - 'infra/envs/**/sqs-list/**'
   - 'infra/modules/sqs/**'
-"infra:s3":
+infra-s3:
   - 'infra/envs/**/s3/**'
   - 'infra/modules/s3/**'
-"infra:cloudfront":
+infra-cloudfront:
   - 'infra/envs/**/cloudfront/**'
   - 'infra/modules/cloudfront/**'
-"infra:cost-protection":
+infra-cost-protection:
   - 'infra/envs/**/cost-protection/**'
   - 'infra/modules/cost-protection/**'
 
