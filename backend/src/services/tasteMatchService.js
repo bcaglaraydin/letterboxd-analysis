@@ -3,11 +3,22 @@ import { fetchHtmlWithBrowser } from '../utils/browser.js';
 import { Logger } from '../utils/logger.js';
 
 /**
+ * Helper to generate all combinations of a specific size from an array.
+ */
+function getCombinations(array, size) {
+  const result = [];
+  function fork(t, i) {
+    if (t.length === size) return result.push(t);
+    if (i === array.length) return;
+    fork(t.concat(array[i]), i + 1);
+    fork(t, i + 1);
+  }
+  fork([], 0);
+  return result;
+}
+
+/**
  * Extracts the user's favorite film slugs from their Letterboxd profile.
- * This is a lightweight operation — only slugs are returned.
- *
- * @param {string} username - The Letterboxd username
- * @returns {Promise<string[]>} - Array of favorite film slugs (max 4)
  */
 export async function fetchFavoriteSlugs(username) {
   try {
@@ -31,57 +42,68 @@ export async function fetchFavoriteSlugs(username) {
 
 /**
  * Searches Letterboxd for members who share the given favorite films.
- * Tries matching 4, then 3, then 2 favorites. Stops as soon as matches are found.
+ * Checks ALL combinations of films at each level (4, 3, 2) until 10 unique matches are found.
  *
  * @param {string} username - The Letterboxd username (excluded from results)
  * @param {string[]} favoriteSlugs - Array of favorite film slugs to match against
  * @returns {Promise<Object>} - { matches: Array<{name, url, avatarUrl}>, matchCount: number }
  */
 export async function fetchSoulmates(username, favoriteSlugs) {
-  if (!favoriteSlugs || favoriteSlugs.length === 0) {
+  if (!favoriteSlugs || favoriteSlugs.length < 2) {
     return { matches: [], matchCount: 0 };
   }
 
+  const MAX_MATCHES = 10;
+  const uniqueMatches = new Map(); // Use Map to track unique members by URL
+  let highestMatchCount = 0;
+
   try {
-    // Try matching 4, then 3, then 2 favorites.
-    for (let i = Math.min(4, favoriteSlugs.length); i >= 2; i--) {
-      const query = favoriteSlugs
-        .slice(0, i)
-        .map((s) => `fan:${s}`)
-        .join(' ');
-      Logger.info(`[TasteMatch] Querying members (${i} favorites): ${query}`);
+    // Check levels 4, 3, 2 in order
+    for (let level = Math.min(4, favoriteSlugs.length); level >= 2; level--) {
+      // If we already have enough matches from a higher level, we can stop or be selective
+      // But we always want to complete the current level to get the best peers
+      const combinations = getCombinations(favoriteSlugs, level);
+      Logger.info(`[TasteMatch] Level ${level}: Testing ${combinations.length} combinations...`);
 
-      const searchUrl = `https://letterboxd.com/s/search/members/${encodeURIComponent(query)}/`;
+      for (const combo of combinations) {
+        if (uniqueMatches.size >= MAX_MATCHES) break;
 
-      try {
-        const searchHtml = await fetchHtmlWithBrowser(searchUrl, { waitForSelector: '.results' });
-        const $s = load(searchHtml);
-        const members = [];
+        const query = combo.map((s) => `fan:${s}`).join(' ');
+        const searchUrl = `https://letterboxd.com/s/search/members/${encodeURIComponent(query)}/`;
 
-        $s('.person-summary').each((_, el) => {
-          const nameEl = $s(el).find('.name');
-          const name = nameEl.text().trim();
-          const url = nameEl.attr('href');
-          const avatarUrl = $s(el).find('img').first().attr('src');
+        try {
+          const searchHtml = await fetchHtmlWithBrowser(searchUrl, { waitForSelector: '.results' });
+          const $s = load(searchHtml);
 
-          if (url && !url.includes(`/${username}/`)) {
-            members.push({ name, url, avatarUrl });
-          }
-        });
+          $s('.person-summary').each((_, el) => {
+            if (uniqueMatches.size >= MAX_MATCHES) return;
 
-        Logger.info(`[TasteMatch] Found ${members.length} matching members (excluding self).`);
-        if (members.length > 0) {
-          return {
-            matches: members.slice(0, 10),
-            matchCount: i,
-          };
+            const nameEl = $s(el).find('.name');
+            const name = nameEl.text().trim();
+            const url = nameEl.attr('href');
+            const avatarUrl = $s(el).find('img').first().attr('src');
+
+            if (url && !url.includes(`/${username}/`) && !uniqueMatches.has(url)) {
+              if (uniqueMatches.size === 0) highestMatchCount = level;
+              uniqueMatches.set(url, { name, url, avatarUrl });
+            }
+          });
+        } catch (searchErr) {
+          Logger.warn(`[TasteMatch] Search error for query "${query}":`, searchErr);
         }
-      } catch (searchErr) {
-        Logger.warn(`[TasteMatch] Search error for query "${query}":`, searchErr);
+      }
+
+      // If we found ANY matches at this level, we stop here to maintain "quality"
+      // e.g., if we found 3 people with 3 matches, we return just them rather than adding 7 people with 2 matches
+      if (uniqueMatches.size > 0) {
+        break;
       }
     }
 
-    return { matches: [], matchCount: 0 };
+    return {
+      matches: Array.from(uniqueMatches.values()),
+      matchCount: highestMatchCount,
+    };
   } catch (error) {
     Logger.error(`[TasteMatch] Failed to fetch soulmates for ${username}`, error);
     return { matches: [], matchCount: 0 };
