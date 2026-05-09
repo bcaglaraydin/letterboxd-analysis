@@ -61,9 +61,7 @@ inputs = {
         Resource = dependency.user_jobs.outputs.table_arn
       },
       {
-        Action = [
-          "ssm:GetParameter"
-        ]
+        Action   = "ssm:GetParameter"
         Effect   = "Allow"
         Resource = "${dependency.cost_protection.outputs.ssm_parameter_arn}*"
       }
