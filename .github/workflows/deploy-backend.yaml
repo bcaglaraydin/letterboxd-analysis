@@ -190,7 +190,7 @@ jobs:
     name: Build ${{ matrix.lambda }}
     needs: [detect-changes, build-base]
     if: |
-      always() && 
+      always() && !cancelled() &&
       needs.detect-changes.outputs.has_affected_lambdas == 'true' &&
       (needs.build-base.result == 'success' || needs.build-base.result == 'skipped')
     strategy:
@@ -225,7 +225,7 @@ jobs:
   deploy-lambdas:
     name: Deploy ${{ matrix.lambda }}
     needs: [detect-changes, build, deploy-core-infra]
-    if: always() && needs.build.result == 'success' && (needs.deploy-core-infra.result == 'success' || needs.deploy-core-infra.result == 'skipped')
+    if: always() && !cancelled() && needs.build.result == 'success' && (needs.deploy-core-infra.result == 'success' || needs.deploy-core-infra.result == 'skipped')
     strategy:
       fail-fast: false
       matrix:
@@ -244,7 +244,7 @@ jobs:
     name: Deploy API Gateway
     needs: [detect-changes, deploy-lambdas]
     if: |
-      always() && 
+      always() && !cancelled() &&
       (needs.detect-changes.outputs.deploy_gateway == 'true' || github.event.inputs.force_rebuild_all == 'true')
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
@@ -259,7 +259,7 @@ jobs:
     name: Deploy Monitoring
     needs: [detect-changes, deploy-api-gateway]
     if: |
-      always() && 
+      always() && !cancelled() &&
       (needs.detect-changes.outputs.deploy_monitoring == 'true' || github.event.inputs.force_rebuild_all == 'true')
     uses: ./.github/workflows/terragrunt-apply.yaml
     with:
