@@ -72,7 +72,7 @@ jobs:
           FORCE="${{ github.event.inputs.force_rebuild_all }}"
           TARGETS="${{ github.event.inputs.target_lambdas }}"
           
-          # Initialize
+          # Initialize default values
           LAMBDAS="[]"
           ECR="[]"
           CORE="[]"
@@ -88,13 +88,20 @@ jobs:
             GATEWAY="true"
             MONITORING="true"
           elif [ -n "$TARGETS" ]; then
-            LAMBDAS=$(echo $TARGETS | tr ',' '\n' | jq -R . | jq -s -c .)
+            LAMBDAS=$(echo "$TARGETS" | tr ',' '\n' | jq -R . | jq -s -c .)
           else
-            # Extract from filters using naming convention
-            LAMBDAS=$(echo $CHANGES | jq -c '[.[] | select(startswith("lambda:")) | split(":")[1]]')
-            ECR=$(echo $CHANGES | jq -c '[.[] | select(startswith("ecr:")) | split(":")[1]]')
-            CORE=$(echo $CHANGES | jq -c '[.[] | select(startswith("infra:")) | split(":")[1]]')
+            # Ensure CHANGES is not empty/null before processing
+            if [ -n "$CHANGES" ] && [ "$CHANGES" != "null" ]; then
+              LAMBDAS=$(echo "$CHANGES" | jq -c '[.[] | select(startswith("lambda:")) | split(":")[1]]')
+              ECR=$(echo "$CHANGES" | jq -c '[.[] | select(startswith("ecr:")) | split(":")[1]]')
+              CORE=$(echo "$CHANGES" | jq -c '[.[] | select(startswith("infra:")) | split(":")[1]]')
+            fi
           fi
+
+          # Final safety check for empty results
+          [ -z "$LAMBDAS" ] && LAMBDAS="[]"
+          [ -z "$ECR" ] && ECR="[]"
+          [ -z "$CORE" ] && CORE="[]"
 
           # Outputs for Matrix
           echo "affected_lambdas=$LAMBDAS" >> $GITHUB_OUTPUT
@@ -102,12 +109,13 @@ jobs:
           echo "affected_core_infra=$CORE" >> $GITHUB_OUTPUT
           
           # Boolean Helpers
-          echo "has_affected_lambdas=$([ "$LAMBDAS" != "[]" ] && echo true || echo false)" >> $GITHUB_OUTPUT
-          echo "has_affected_ecr=$([ "$ECR" != "[]" ] && echo true || echo false)" >> $GITHUB_OUTPUT
-          echo "has_affected_core=$([ "$CORE" != "[]" ] && echo true || echo false)" >> $GITHUB_OUTPUT
-          echo "base_needs_rebuild=$BASE_REBUILD" >> $GITHUB_OUTPUT
-          echo "deploy_gateway=$GATEWAY" >> $GITHUB_OUTPUT
-          echo "deploy_monitoring=$MONITORING" >> $GITHUB_OUTPUT
+          if [ "$LAMBDAS" != "[]" ]; then echo "has_affected_lambdas=true" >> $GITHUB_OUTPUT; else echo "has_affected_lambdas=false" >> $GITHUB_OUTPUT; fi
+          if [ "$ECR" != "[]" ]; then echo "has_affected_ecr=true" >> $GITHUB_OUTPUT; else echo "has_affected_ecr=false" >> $GITHUB_OUTPUT; fi
+          if [ "$CORE" != "[]" ]; then echo "has_affected_core=true" >> $GITHUB_OUTPUT; else echo "has_affected_core=false" >> $GITHUB_OUTPUT; fi
+          
+          echo "base_needs_rebuild=${BASE_REBUILD:-false}" >> $GITHUB_OUTPUT
+          echo "deploy_gateway=${GATEWAY:-false}" >> $GITHUB_OUTPUT
+          echo "deploy_monitoring=${MONITORING:-false}" >> $GITHUB_OUTPUT
 
           echo "Strategy Computed:"
           echo "Lambdas: $LAMBDAS"

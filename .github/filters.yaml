@@ -1,28 +1,18 @@
 # ==============================================================================
-# CHANGE DETECTION FILTERS (SIMPLIFIED)
+# CHANGE DETECTION FILTERS (SIMPLIFIED & FLATTENED)
 # ==============================================================================
 
-# COMMON PATH ANCHORS
-_backend_core: &backend_core
+# LAMBDA FILTERS
+"lambda:start":
   - 'backend/package.json'
   - 'backend/package-lock.json'
   - 'backend/src/utils/**'
-
-_shared_services: &shared_services
   - 'backend/src/services/dynamoDbService.js'
   - 'backend/src/services/userJobService.js'
-
-_game_logic: &game_logic
   - 'backend/src/services/gameService.js'
   - 'backend/src/services/statsService.js'
   - 'backend/src/services/tmdbService.js'
   - 'backend/src/games/**'
-
-# LAMBDA FILTERS
-"lambda:start":
-  - *backend_core
-  - *shared_services
-  - *game_logic
   - 'backend/src/handlers/startAnalysisHandler.js'
   - 'backend/src/handlers/authHandler.js'
   - 'backend/src/handlers/apiRouterHandler.js'
@@ -33,17 +23,26 @@ _game_logic: &game_logic
   - 'infra/envs/**/lambda-container/start/**'
 
 "lambda:status":
-  - *backend_core
-  - *shared_services
-  - *game_logic
+  - 'backend/package.json'
+  - 'backend/package-lock.json'
+  - 'backend/src/utils/**'
+  - 'backend/src/services/dynamoDbService.js'
+  - 'backend/src/services/userJobService.js'
+  - 'backend/src/services/gameService.js'
+  - 'backend/src/services/statsService.js'
+  - 'backend/src/services/tmdbService.js'
+  - 'backend/src/games/**'
   - 'backend/src/handlers/getAnalysisStatusHandler.js'
   - 'backend/src/services/tasteMatchService.js'
   - 'backend/docker/lambdas/status/**'
   - 'infra/envs/**/lambda-container/status/**'
 
 "lambda:list-scraper":
-  - *backend_core
-  - *shared_services
+  - 'backend/package.json'
+  - 'backend/package-lock.json'
+  - 'backend/src/utils/**'
+  - 'backend/src/services/dynamoDbService.js'
+  - 'backend/src/services/userJobService.js'
   - 'backend/src/handlers/listScraperHandler.js'
   - 'backend/src/services/letterboxdScrapingService.js'
   - 'backend/src/services/tasteMatchService.js'
@@ -52,8 +51,11 @@ _game_logic: &game_logic
   - 'infra/envs/**/lambda-container/list-scraper/**'
 
 "lambda:worker":
-  - *backend_core
-  - *shared_services
+  - 'backend/package.json'
+  - 'backend/package-lock.json'
+  - 'backend/src/utils/**'
+  - 'backend/src/services/dynamoDbService.js'
+  - 'backend/src/services/userJobService.js'
   - 'backend/src/handlers/filmScraperWorker.js'
   - 'backend/src/services/letterboxdScrapingService.js'
   - 'backend/docker/lambdas/worker/**'
