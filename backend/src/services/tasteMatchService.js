@@ -18,7 +18,7 @@ function getCombinations(array, size) {
 }
 
 /**
- * Extracts the user's favorite film slugs from their Letterboxd profile.
+ * Extracts the user's favorite films from their Letterboxd profile.
  */
 export async function fetchFavoriteSlugs(username) {
   try {
