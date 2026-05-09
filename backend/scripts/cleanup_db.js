@@ -10,8 +10,8 @@ import { DynamoDBClient, ScanCommand, BatchWriteItemCommand } from '@aws-sdk/cli
 
 const client = new DynamoDBClient({ region: process.env.AWS_REGION || 'eu-west-1' });
 
-const FILMS_TABLE = process.env.FILMS_TABLE || 'Films';
-const USER_JOBS_TABLE = process.env.USER_JOBS_TABLE || 'UserJobs';
+const FILMS_TABLE = 'Films-dev';
+const USER_JOBS_TABLE = 'UserJobs-dev';
 
 /**
  * Truncates all items from a DynamoDB table
