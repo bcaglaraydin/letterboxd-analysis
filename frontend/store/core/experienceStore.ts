@@ -147,10 +147,18 @@ export const useExperienceStore = create<ExperienceState>((set) => ({
         GAME_PHASES.HABITS,
       ].every((p) => nextCompleted.includes(p));
 
+      // Skip TASTE_MATCH if user has no favorites
+      let nextPhase: GamePhase | null = GAME_PHASES.HUB;
+      if (allDone) {
+        const { tasteMatch } = useUserStore.getState();
+        const hasFavorites = tasteMatch.userFavorites && tasteMatch.userFavorites.length > 0;
+        nextPhase = hasFavorites ? GAME_PHASES.TASTE_MATCH : GAME_PHASES.OUTRO;
+      }
+
       return {
         scores: { ...state.scores, habits: score },
         completedGames: nextCompleted,
-        currentPhase: allDone ? GAME_PHASES.TASTE_MATCH : GAME_PHASES.HUB,
+        currentPhase: nextPhase,
       };
     });
   },

@@ -255,11 +255,14 @@ export const DebugControls = () => {
                   <button
                     onClick={() =>
                       handleAction(() => {
-                        const { setTasteMatch, setUserStats } = useUserStore.getState();
-                        if (MOCK_METRICS_RESPONSE.tasteMatch) {
+                        const { tasteMatch, setTasteMatch, setUserStats } = useUserStore.getState();
+                        // Only set mock data if no real data exists in the store
+                        const hasRealData =
+                          tasteMatch.userFavorites && tasteMatch.userFavorites.length > 0;
+                        if (!hasRealData && MOCK_METRICS_RESPONSE.tasteMatch) {
                           setTasteMatch(MOCK_METRICS_RESPONSE.tasteMatch);
                         }
-                        if (MOCK_METRICS_RESPONSE.userStats) {
+                        if (!useUserStore.getState().userStats && MOCK_METRICS_RESPONSE.userStats) {
                           setUserStats(MOCK_METRICS_RESPONSE.userStats);
                         }
                         useExperienceStore.setState({ currentPhase: GAME_PHASES.TASTE_MATCH });

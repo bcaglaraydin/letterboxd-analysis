@@ -1,7 +1,7 @@
 'use client';
-/* eslint-disable @next/next/no-img-element */
 
 import React, { useState, useMemo } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink, ArrowRight, Heart } from 'lucide-react';
 import { useUserStore } from '@/store/core/userStore';
@@ -90,10 +90,11 @@ export function TasteMatchesAnalysis({ onComplete }: TasteMatchesAnalysisProps) 
                   whileHover={{ scale: 1.05, y: -10, transition: { duration: 0.3 } }}
                   className="aspect-[2/3] relative rounded-xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/10 group bg-black/20"
                 >
-                  <img
+                  <Image
                     src={film.posterUrl}
-                    alt={film.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    alt={`Poster for ${film.title}`}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
                     <p className="text-white text-sm font-bold leading-tight">{film.title}</p>
@@ -196,12 +197,13 @@ export function TasteMatchesAnalysis({ onComplete }: TasteMatchesAnalysisProps) 
                   whileHover={{ y: -8, transition: { duration: 0.2 } }}
                   className="flex items-center gap-5 bg-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] hover:bg-white/10 p-5 rounded-[2rem] border border-white/10 transition-all group backdrop-blur-md"
                 >
-                  <div className="w-20 h-20 rounded-full overflow-hidden bg-black/10 shrink-0 border-2 border-white/20 shadow-lg group-hover:border-primary/50 transition-colors duration-500">
+                  <div className="relative w-20 h-20 rounded-full overflow-hidden bg-black/10 shrink-0 border-2 border-white/20 shadow-lg group-hover:border-primary/50 transition-colors duration-500">
                     {match.avatarUrl ? (
-                      <img
+                      <Image
                         src={match.avatarUrl}
                         alt={`${match.name}'s avatar`}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        fill
+                        className="object-cover transition-transform duration-700 group-hover:scale-110"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold font-serif text-2xl">
