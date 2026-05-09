@@ -65,7 +65,7 @@ inputs = {
           "ssm:GetParameter"
         ]
         Effect   = "Allow"
-        Resource = dependency.cost_protection.outputs.ssm_parameter_arn
+        Resource = "${dependency.cost_protection.outputs.ssm_parameter_arn}*"
       }
     ]
   })
