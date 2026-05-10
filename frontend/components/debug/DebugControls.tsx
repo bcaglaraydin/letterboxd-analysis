@@ -245,7 +245,14 @@ export const DebugControls = () => {
                   <button
                     onClick={() =>
                       handleAction(() => {
-                        useExperienceStore.setState({ currentPhase: GAME_PHASES.HABITS });
+                        const { userStats, setUserStats } = useUserStore.getState();
+                        if (!userStats && MOCK_METRICS_RESPONSE.userStats) {
+                          setUserStats(MOCK_METRICS_RESPONSE.userStats);
+                        }
+                        useExperienceStore.setState({
+                          currentPhase: GAME_PHASES.HABITS,
+                          habitsPhase: 'intro',
+                        });
                       })
                     }
                     className="px-2 py-1 bg-orange-900/50 hover:bg-orange-900/80 rounded text-left"

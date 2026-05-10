@@ -14,7 +14,14 @@ interface HabitsIntroDialogueProps {
   onComplete: () => void;
 }
 
-type DialogueState = 'greeting' | 'compare' | 'early_exit' | 'mid_exit' | 'late_exit' | 'finish';
+type DialogueState =
+  | 'greeting'
+  | 'compare'
+  | 'early_exit'
+  | 'mid_exit'
+  | 'late_exit'
+  | 'experience_worse'
+  | 'finish';
 
 export const HabitsIntroDialogue: React.FC<HabitsIntroDialogueProps> = ({ onComplete }) => {
   const [dialogueState, setDialogueState] = useState<DialogueState>('greeting');
@@ -25,7 +32,10 @@ export const HabitsIntroDialogue: React.FC<HabitsIntroDialogueProps> = ({ onComp
   const userEnjoymentChoice = useExperienceStore((state) => state.userEnjoymentChoice);
   const userStats = useUserStore((state) => state.userStats);
 
-  const comparisonMovies = userStats?.comparisonMovies || [];
+  const comparisonMovies = useMemo(() => {
+    const movies = [...(userStats?.comparisonMovies || [])];
+    return movies.sort((a, b) => b.userRating - a.userRating);
+  }, [userStats?.comparisonMovies]);
 
   const forceAnimationReset = (newState: DialogueState) => {
     setIsAnimationComplete(false);
@@ -47,16 +57,24 @@ export const HabitsIntroDialogue: React.FC<HabitsIntroDialogueProps> = ({ onComp
               { text: 'What do you think now?' },
             ];
       case 'compare':
-        return [{ text: "Let's put that into perspective. Which one is worse?" }];
+        return [{ text: "Let's put that into perspective. " }, { text: 'Which one is worse?' }];
       case 'early_exit':
+        return [
+          { text: `Wait, really? You think ${exitMovieName} is worse than this?` },
+          { text: "I'm deeply honored." },
+        ];
+      case 'mid_exit':
+        return [{ text: "I'm starting to think you actually like this experience." }];
+      case 'late_exit':
+        return [
+          { text: 'I have no words.' },
+          { text: `I've officially surpassed ${exitMovieName} in your eyes. That's a win for me.` },
+        ];
+      case 'experience_worse':
         return [
           { text: "Fair enough. That's a great movie. " },
           { text: `Even I can't compete with ${exitMovieName}.` },
         ];
-      case 'mid_exit':
-        return [{ text: "I don't know how I should feel about this yet." }];
-      case 'late_exit':
-        return [{ text: 'I have no words.' }];
       case 'finish':
         return [
           { text: 'We will have a few multiple choice questions. ' },
@@ -97,11 +115,12 @@ export const HabitsIntroDialogue: React.FC<HabitsIntroDialogueProps> = ({ onComp
     else forceAnimationReset('late_exit');
   };
 
-  const handleExperienceChoice = (currentStep: number) => {
-    if (currentStep < 4 && comparisonMovies.length > currentStep + 1) {
+  const handleExperienceChoice = (movie: RatingGameMovie, currentStep: number) => {
+    setExitMovieName(movie.title);
+    if (currentStep < 3 && comparisonMovies.length > currentStep + 1) {
       setCompareStep(currentStep + 1);
     } else {
-      forceAnimationReset('late_exit');
+      forceAnimationReset('experience_worse');
     }
   };
 
@@ -117,7 +136,9 @@ export const HabitsIntroDialogue: React.FC<HabitsIntroDialogueProps> = ({ onComp
       <div className="flex flex-col items-center w-full">
         <div className="space-y-6 text-center max-w-3xl mb-12">
           <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
-            <span>Let&apos;s put that into perspective. Which one is worse?</span>
+            <span>Let&apos;s put that into perspective.</span>
+            <br />
+            <span className="font-bold">Which one is worse?</span>
           </div>
         </div>
 
@@ -157,7 +178,7 @@ export const HabitsIntroDialogue: React.FC<HabitsIntroDialogueProps> = ({ onComp
               >
                 <Button
                   variant="outline"
-                  onClick={() => handleExperienceChoice(stepIndex)}
+                  onClick={() => handleExperienceChoice(movie, stepIndex)}
                   className="w-full text-lg py-6 border-primary/20 bg-background/50 transition-all duration-300 hover:bg-primary/10 hover:text-primary hover:border-primary/50"
                 >
                   This experience
@@ -252,10 +273,11 @@ export const HabitsIntroDialogue: React.FC<HabitsIntroDialogueProps> = ({ onComp
             <div className="space-y-6 text-center max-w-3xl mb-12">
               <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
                 <motion.span variants={fadeVariants} custom={delays[0]}>
-                  Fair enough. That&apos;s a great movie.{' '}
+                  Wait, really? You think <span className="font-bold">{exitMovieName}</span> is
+                  worse than this?{' '}
                 </motion.span>
                 <motion.span variants={fadeVariants} custom={delays[1]}>
-                  Even I can&apos;t compete with <span className="font-bold">{exitMovieName}</span>.
+                  I&apos;m deeply honored.
                 </motion.span>
               </div>
             </div>
@@ -284,7 +306,7 @@ export const HabitsIntroDialogue: React.FC<HabitsIntroDialogueProps> = ({ onComp
             <div className="space-y-6 text-center max-w-3xl mb-12">
               <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
                 <motion.span variants={fadeVariants} custom={delays[0]}>
-                  I don&apos;t know how I should feel about this yet.
+                  I&apos;m starting to think you actually like this experience.
                 </motion.span>
               </div>
             </div>
@@ -314,6 +336,43 @@ export const HabitsIntroDialogue: React.FC<HabitsIntroDialogueProps> = ({ onComp
               <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
                 <motion.span variants={fadeVariants} custom={delays[0]}>
                   I have no words.
+                </motion.span>
+                <br />
+                <motion.span variants={fadeVariants} custom={delays[1]}>
+                  I&apos;ve officially surpassed <span className="font-bold">{exitMovieName}</span>{' '}
+                  in your eyes. That&apos;s a win for me.
+                </motion.span>
+              </div>
+            </div>
+
+            <motion.div
+              variants={fadeVariants}
+              custom={buttonDelay}
+              onAnimationComplete={() => setIsAnimationComplete(true)}
+            />
+
+            <motion.div variants={slideVariants} custom={buttonDelay}>
+              <Button
+                onClick={() => setDialogueState('finish')}
+                disabled={!isAnimationComplete}
+                className="px-12 py-6 h-auto text-lg font-bold tracking-widest uppercase rounded-xl"
+              >
+                Continue
+              </Button>
+            </motion.div>
+          </>
+        );
+
+      case 'experience_worse':
+        return (
+          <>
+            <div className="space-y-6 text-center max-w-3xl mb-12">
+              <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
+                <motion.span variants={fadeVariants} custom={delays[0]}>
+                  Fair enough. That&apos;s a great movie.{' '}
+                </motion.span>
+                <motion.span variants={fadeVariants} custom={delays[1]}>
+                  Even I can&apos;t compete with <span className="font-bold">{exitMovieName}</span>.
                 </motion.span>
               </div>
             </div>
