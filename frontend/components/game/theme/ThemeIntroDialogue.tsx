@@ -80,8 +80,8 @@ export const ThemeIntroDialogue: React.FC<ThemeIntroDialogueProps> = ({ onComple
       case 'start':
         return (
           <>
-            <div className="space-y-6 text-center max-w-3xl mb-12">
-              <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
+            <div className="space-y-4 md:space-y-6 text-center max-w-3xl mb-6 md:mb-12">
+              <div className="text-[clamp(1.125rem,4vh,1.875rem)] md:text-3xl font-serif text-primary leading-relaxed">
                 <motion.span variants={fadeVariants} custom={delays[0]}>
                   We all know what an Action or Comedy movie is.{' '}
                 </motion.span>
@@ -89,7 +89,7 @@ export const ThemeIntroDialogue: React.FC<ThemeIntroDialogueProps> = ({ onComple
                   That&apos;s basic cinema stuff.{' '}
                 </motion.span>
               </div>
-              <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
+              <div className="text-[clamp(1.125rem,4vh,1.875rem)] md:text-3xl font-serif text-primary leading-relaxed">
                 <motion.span variants={fadeVariants} custom={delays[2]}>
                   However... are you aware that Letterboxd assigns{' '}
                   <span className="font-bold">specific themes</span> to films?
@@ -140,38 +140,38 @@ export const ThemeIntroDialogue: React.FC<ThemeIntroDialogueProps> = ({ onComple
       case 'known':
         return (
           <>
-            <div className="space-y-6 text-center max-w-3xl mb-12">
-              <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
+            <div className="space-y-3 md:space-y-6 text-center max-w-3xl mb-6 md:mb-12 px-4">
+              <div className="text-lg md:text-3xl font-serif text-primary leading-snug md:leading-relaxed">
                 <motion.span variants={fadeVariants} custom={delays[0]}>
                   Ah, so you&apos;re familiar with themes like
                 </motion.span>
               </div>
 
-              <div className="text-xl md:text-3xl font-serif font-bold text-primary leading-relaxed">
+              <div className="text-lg md:text-3xl font-serif font-bold text-primary leading-snug md:leading-relaxed">
                 <motion.span variants={fadeVariants} custom={delays[1]}>
                   &lsquo;Intense violence and sexual transgression&rsquo;
                 </motion.span>
               </div>
 
-              <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
+              <div className="text-lg md:text-3xl font-serif text-primary leading-snug md:leading-relaxed">
                 <motion.span variants={fadeVariants} custom={delays[2]}>
                   or
                 </motion.span>
               </div>
 
-              <div className="text-xl md:text-3xl font-serif font-bold text-primary leading-relaxed">
+              <div className="text-lg md:text-3xl font-serif font-bold text-primary leading-snug md:leading-relaxed">
                 <motion.span variants={fadeVariants} custom={delays[3]}>
                   &lsquo;Surreal and thought-provoking visions of life and death&rsquo;
                 </motion.span>
               </div>
 
-              <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
+              <div className="text-lg md:text-3xl font-serif text-primary leading-snug md:leading-relaxed">
                 <motion.span variants={fadeVariants} custom={delays[4]}>
                   In this next round, I want you to{' '}
                   <span className="font-bold">guess movies based on their themes.</span>
                 </motion.span>
               </div>
-              <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
+              <div className="text-lg md:text-3xl font-serif text-primary leading-snug md:leading-relaxed">
                 <motion.span variants={fadeVariants} custom={delays[5]}>
                   If you can&apos;t, we will reveal more clues,{' '}
                   <span className="font-bold">but you will get fewer points.</span>
@@ -204,43 +204,43 @@ export const ThemeIntroDialogue: React.FC<ThemeIntroDialogueProps> = ({ onComple
       case 'unknown':
         return (
           <>
-            <div className="space-y-6 text-center max-w-3xl mb-12">
-              <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
+            <div className="space-y-3 md:space-y-6 text-center max-w-3xl mb-6 md:mb-12 px-4">
+              <div className="text-lg md:text-3xl font-serif text-primary leading-snug md:leading-relaxed">
                 <motion.span variants={fadeVariants} custom={delays[0]}>
                   Like
                 </motion.span>
               </div>
 
-              <div className="text-xl md:text-3xl font-serif font-bold text-primary leading-relaxed">
+              <div className="text-lg md:text-3xl font-serif font-bold text-primary leading-snug md:leading-relaxed">
                 <motion.span variants={fadeVariants} custom={delays[1]}>
                   &lsquo;Intense violence and sexual transgression&rsquo;
                 </motion.span>
               </div>
 
-              <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
+              <div className="text-lg md:text-3xl font-serif text-primary leading-snug md:leading-relaxed">
                 <motion.span variants={fadeVariants} custom={delays[2]}>
                   or
                 </motion.span>
               </div>
 
-              <div className="text-xl md:text-3xl font-serif font-bold text-primary leading-relaxed">
+              <div className="text-lg md:text-3xl font-serif font-bold text-primary leading-snug md:leading-relaxed">
                 <motion.span variants={fadeVariants} custom={delays[3]}>
                   &lsquo;Surreal and thought-provoking visions of life and death&rsquo;
                 </motion.span>
               </div>
 
-              <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
+              <div className="text-lg md:text-3xl font-serif text-primary leading-snug md:leading-relaxed">
                 <motion.span variants={fadeVariants} custom={delays[4]}>
                   Yes, these are real, you are going to see more of them now.
                 </motion.span>
               </div>
-              <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
+              <div className="text-lg md:text-3xl font-serif text-primary leading-snug md:leading-relaxed">
                 <motion.span variants={fadeVariants} custom={delays[5]}>
                   In this next round, I want you to{' '}
                   <span className="font-bold">guess movies based on their themes.</span>
                 </motion.span>
               </div>
-              <div className="text-xl md:text-3xl font-serif text-primary leading-relaxed">
+              <div className="text-lg md:text-3xl font-serif text-primary leading-snug md:leading-relaxed">
                 <motion.span variants={fadeVariants} custom={delays[6]}>
                   If you can&apos;t, we will reveal more clues,{' '}
                   <span className="font-bold">but you will get fewer points.</span>

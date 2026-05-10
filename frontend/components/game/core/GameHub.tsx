@@ -54,13 +54,13 @@ export const GameHub = () => {
         className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-12"
         top={null}
         middle={
-          <div className="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden">
-            <div className="flex min-h-full flex-col justify-start md:justify-center gap-6 md:gap-12 w-full max-w-6xl mx-auto items-center py-4 md:py-0">
+          <div className="flex-1 w-full overflow-y-auto overflow-x-hidden no-scrollbar">
+            <div className="flex flex-col justify-start md:justify-center gap-6 md:gap-12 w-full max-w-6xl mx-auto items-center py-4 md:py-12 px-4">
               <motion.div
                 variants={container}
                 initial="hidden"
                 animate="show"
-                className="grid w-full max-w-[calc(100vw-2rem)] sm:max-w-3xl grid-cols-1 gap-3 sm:grid-cols-2 md:gap-6"
+                className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 md:gap-6"
               >
                 {/* Rating Game Card */}
                 {ratingGameStatus === 'COMPLETED' && (
@@ -122,71 +122,70 @@ export const GameHub = () => {
                   />
                 )}
               </motion.div>
-
-              {/* Render UNLOCKED game as a bottom button */}
-              <div className="w-full flex justify-center">
-                {allCompleted ? (
-                  <button
-                    onClick={startOutro}
-                    className="w-full max-w-sm h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2 group"
-                  >
-                    <Award className="w-5 h-5 group-hover:scale-110 group-hover:rotate-3 transition-transform" />
-                    Reveal Cinematic Identity
-                  </button>
-                ) : (
-                  <>
-                    {ratingGameStatus === 'UNLOCKED' && (
-                      <button
-                        onClick={startRatingGame}
-                        className="w-full max-w-sm h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2 group"
-                      >
-                        Continue
-                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                      </button>
-                    )}
-                    {genreGameStatus === 'UNLOCKED' && (
-                      <button
-                        onClick={startGenreGame}
-                        className="w-full max-w-sm h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2 group"
-                      >
-                        Continue
-                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                      </button>
-                    )}
-                    {themeGameStatus === 'UNLOCKED' && (
-                      <button
-                        onClick={startThemeExperience}
-                        className="w-full max-w-sm h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2 group"
-                      >
-                        Continue
-                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                      </button>
-                    )}
-                    {tasteGameStatus === 'UNLOCKED' && (
-                      <button
-                        onClick={startTastePositioning}
-                        className="w-full max-w-sm h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2 group"
-                      >
-                        Continue
-                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                      </button>
-                    )}
-                    {habitsGameStatus === 'UNLOCKED' && (
-                      <button
-                        onClick={startHabitsExperience}
-                        className="w-full max-w-sm h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2"
-                      >
-                        Continue
-                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                      </button>
-                    )}
-                  </>
-                )}
-              </div>
             </div>
           </div>
         }
-        bottom={null}
+        bottom={
+          <div className="w-full flex justify-center p-6 md:p-12 shrink-0">
+            {allCompleted ? (
+              <button
+                onClick={startOutro}
+                className="w-full max-w-sm h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2 group"
+              >
+                <Award className="w-5 h-5 group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                Reveal Cinematic Identity
+              </button>
+            ) : (
+              <div className="w-full max-w-sm">
+                {ratingGameStatus === 'UNLOCKED' && (
+                  <button
+                    onClick={startRatingGame}
+                    className="w-full h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2 group"
+                  >
+                    Continue
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                )}
+                {genreGameStatus === 'UNLOCKED' && (
+                  <button
+                    onClick={startGenreGame}
+                    className="w-full h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2 group"
+                  >
+                    Continue
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                )}
+                {themeGameStatus === 'UNLOCKED' && (
+                  <button
+                    onClick={startThemeExperience}
+                    className="w-full h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2 group"
+                  >
+                    Continue
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                )}
+                {tasteGameStatus === 'UNLOCKED' && (
+                  <button
+                    onClick={startTastePositioning}
+                    className="w-full h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2 group"
+                  >
+                    Continue
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                )}
+                {habitsGameStatus === 'UNLOCKED' && (
+                  <button
+                    onClick={startHabitsExperience}
+                    className="w-full h-14 rounded-full bg-primary text-primary-foreground font-bold tracking-widest uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2 group"
+                  >
+                    Continue
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        }
       />
     </GameBackground>
   );
