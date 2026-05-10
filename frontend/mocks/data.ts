@@ -1110,28 +1110,28 @@ export const MOCK_METRICS_RESPONSE: MetricsResponse = {
     ],
     userFavorites: [
       {
-        slug: 'my-neighbor-totoro',
-        title: 'My Neighbor Totoro',
+        slug: 'sherlock-holmes-a-game-of-shadows',
+        title: 'Sherlock Holmes: A Game of Shadows',
         posterUrl:
-          'https://a.ltrbxd.com/resized/film-poster/4/6/9/8/3/46983-my-neighbor-totoro-0-230-0-345-crop.jpg',
+          'https://a.ltrbxd.com/resized/sm/upload/sh/7g/r1/5p/y0VDbFfEE2ehlCysjIihgNBzmA3-0-230-0-345-crop.jpg?v=e20a541915',
       },
       {
-        slug: 'autumn-sonata',
-        title: 'Autumn Sonata',
+        slug: 'three-billboards-outside-ebbing-missouri',
+        title: 'Three Billboards Outside Ebbing, Missouri',
         posterUrl:
-          'https://a.ltrbxd.com/resized/film-poster/5/1/5/7/0/51570-autumn-sonata-0-230-0-345-crop.jpg',
+          'https://a.ltrbxd.com/resized/film-poster/2/9/1/6/1/0/291610-three-billboards-outside-ebbing-missouri-0-230-0-345-crop.jpg?v=26123017e3',
       },
       {
-        slug: 'the-fall',
-        title: 'The Fall',
+        slug: 'the-mask-1994',
+        title: 'The Mask',
         posterUrl:
-          'https://a.ltrbxd.com/resized/film-poster/4/4/5/9/2/44592-the-fall-0-230-0-345-crop.jpg',
+          'https://a.ltrbxd.com/resized/film-poster/5/1/2/9/8/51298-the-mask-0-230-0-345-crop.jpg?v=0b7bc0d127',
       },
       {
-        slug: 'birdman',
-        title: 'Birdman',
+        slug: 'harry-potter-and-the-order-of-the-phoenix',
+        title: 'Harry Potter and the Order of the Phoenix',
         posterUrl:
-          'https://a.ltrbxd.com/resized/film-poster/1/1/6/7/1/2/116712-birdman-or-the-unexpected-virtue-of-ignorance-0-230-0-345-crop.jpg',
+          'https://a.ltrbxd.com/resized/sm/upload/wd/w4/n0/yj/g6n8G0xPnBVUIKKK41sNmbZB5h4-0-230-0-345-crop.jpg?v=57af08b652',
       },
     ],
     matchCount: 3,
