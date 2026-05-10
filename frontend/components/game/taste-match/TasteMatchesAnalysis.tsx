@@ -60,23 +60,23 @@ export function TasteMatchesAnalysis({ onComplete }: TasteMatchesAnalysisProps) 
   if (step === 'favorites') {
     return (
       <GameBackground>
-        <div className="flex flex-col items-center justify-center w-full min-h-screen p-6 text-center">
+        <div className="flex flex-col items-center justify-center w-full min-h-screen p-4 md:p-6 text-center overflow-hidden">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-            className="max-w-5xl w-full flex flex-col items-center justify-center gap-4 md:gap-8"
+            className="max-w-5xl w-full flex flex-col items-center justify-center gap-6 md:gap-12"
           >
             <motion.h2
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2, duration: 1 }}
-              className="text-[clamp(1.5rem,5vh,3rem)] md:text-5xl font-serif text-primary leading-tight tracking-tight px-4"
+              className="text-[clamp(1.5rem,7vw,2.5rem)] md:text-5xl font-serif text-primary leading-tight tracking-tight px-4"
             >
               Do these films look familiar to you?
             </motion.h2>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-8 w-full max-w-4xl max-h-[50vh] md:max-h-none overflow-visible px-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 w-full max-w-[250px] md:max-w-4xl overflow-visible px-2">
               {userFavorites.map((film, i) => (
                 <motion.div
                   key={film.slug}
@@ -109,12 +109,12 @@ export function TasteMatchesAnalysis({ onComplete }: TasteMatchesAnalysisProps) 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.2, duration: 0.8 }}
-              className="w-full max-w-xs px-4"
+              className="w-full max-w-[220px] md:max-w-xs px-4 mt-4"
             >
               <Button
                 size="lg"
                 onClick={() => setStep('searching')}
-                className="w-full py-6 md:py-8 h-auto text-lg md:text-xl font-bold tracking-[0.2em] uppercase rounded-xl md:rounded-2xl shadow-2xl hover:scale-105 transition-all bg-primary text-primary-foreground group"
+                className="w-full py-5 md:py-8 h-auto text-base md:text-xl font-bold tracking-[0.2em] uppercase rounded-xl md:rounded-2xl shadow-2xl hover:scale-105 transition-all bg-primary text-primary-foreground group"
               >
                 <span className="relative z-10">Yes!</span>
               </Button>
