@@ -112,7 +112,7 @@ const RecapCard = React.forwardRef<HTMLDivElement, RecapCardProps>(
     const themeMax = 200; // Fixed max for theme game
     const ratingMax = 100;
     const tasteMax = 100;
-    const habitsMax = 100;
+    const habitsMax = 60; // ACHIEVABLE MAX: Actor(30) + Duration(30)
 
     const scaledRating = (scores.rating / ratingMax) * 100;
     const scaledGenre = (scores.genre / genreMax) * 100;
@@ -662,11 +662,11 @@ const RecapCard = React.forwardRef<HTMLDivElement, RecapCardProps>(
         <div className="flex items-start gap-0 pt-5 pb-1">
           <div className="flex-1 grid grid-cols-5 gap-2">
             {[
-              { label: 'Rating', val: Math.round(scaledRating), max: 100 },
-              { label: 'Genre', val: Math.round(scaledGenre), max: 100 },
-              { label: 'Theme', val: Math.round(scaledTheme), max: 100 },
-              { label: 'Taste', val: Math.round(scaledTaste), max: 100 },
-              { label: 'Habits', val: Math.round(scaledHabits), max: 100 },
+              { label: 'Rating', val: Math.round(scores.rating), max: ratingMax },
+              { label: 'Genre', val: Math.round(scores.genre), max: genreMax },
+              { label: 'Theme', val: Math.round(scores.theme), max: themeMax },
+              { label: 'Taste', val: Math.round(scores.taste), max: tasteMax },
+              { label: 'Habits', val: Math.round(scores.habits), max: habitsMax },
             ].map((s) => (
               <div key={s.label} className="text-center">
                 <p
@@ -684,7 +684,7 @@ const RecapCard = React.forwardRef<HTMLDivElement, RecapCardProps>(
                   )}
                   style={getScoreColor((s.val / s.max) * 100)}
                 >
-                  {Math.round(s.val)}
+                  {s.val}
                 </p>
                 <p
                   className={cn(

@@ -327,7 +327,7 @@ export function DurationBatchRound({
           score={localTotalScore}
           pointsEarned={pointsEarned}
           flyFromPosition={flyPosition}
-          maxScore={100}
+          maxScore={60}
           size="lg"
           position="static"
           showMaxScore={true}

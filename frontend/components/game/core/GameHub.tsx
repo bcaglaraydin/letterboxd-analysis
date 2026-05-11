@@ -116,7 +116,7 @@ export const GameHub = () => {
                     title="Viewing Habits"
                     status={habitsGameStatus}
                     score={scores.habits}
-                    maxScore={100}
+                    maxScore={60}
                     icon={<Activity className="w-5 h-5 md:w-6 md:h-6 fill-current" />}
                     onClick={undefined}
                   />
