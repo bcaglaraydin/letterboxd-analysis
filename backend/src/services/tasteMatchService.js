@@ -80,9 +80,14 @@ export async function fetchSoulmates(username, favoriteSlugs) {
             const url = nameEl.attr('href');
             const avatarUrl = $s(el).find('img').first().attr('src');
 
-            if (url && !url.includes(`/${username}/`) && !uniqueMatches.has(url)) {
-              if (uniqueMatches.size === 0) highestMatchCount = level;
-              uniqueMatches.set(url, { name, url, avatarUrl });
+            if (url && !uniqueMatches.has(url)) {
+              const urlLower = url.toLowerCase();
+              const usernameLower = username.toLowerCase();
+
+              if (!urlLower.includes(`/${usernameLower}/`)) {
+                if (uniqueMatches.size === 0) highestMatchCount = level;
+                uniqueMatches.set(url, { name, url, avatarUrl });
+              }
             }
           });
         } catch (searchErr) {
