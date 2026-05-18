@@ -122,7 +122,7 @@ export const handler = async (event, context) => {
 
       if (isRated) {
         totalRatedFilms++;
-        if (meta && meta.year && meta.year !== '????') {
+        if (meta && (meta.status === 'failed' || (meta.year && meta.year !== '????'))) {
           ratedFilmsWithMetadata++;
         }
       }

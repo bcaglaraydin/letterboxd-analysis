@@ -53,15 +53,21 @@ async function handleBatchFilmScrape(slugs) {
   if (!slugs || slugs.length === 0) return;
 
   Logger.info(`Starting Batch Scrape for ${slugs.length} films...`);
+  let hasError = false;
 
   for (const slug of slugs) {
     try {
       await handleFilmScrape(slug);
     } catch (err) {
       Logger.error(`Failed to scrape ${slug} in batch`, err, { slug });
-      // Continue to next film in batch
+      hasError = true;
     }
   }
+
+  if (hasError) {
+    throw new Error('One or more films in the batch failed to scrape (transient error). Failing SQS message for retry.');
+  }
+
   Logger.info(`Batch Scrape Complete.`);
 }
 
@@ -71,10 +77,10 @@ async function handleBatchFilmScrape(slugs) {
 async function handleFilmScrape(slug) {
   const url = `https://letterboxd.com/film/${slug}/`;
 
-  // 1. Check if film already exists with valid metadata
+  // 1. Check if film already exists with valid metadata or is permanently failed
   if (FILMS_TABLE) {
     const existing = await getItem(FILMS_TABLE, { slug });
-    if (existing && existing.year && existing.year !== '????') {
+    if (existing && (existing.status === 'failed' || (existing.year && existing.year !== '????'))) {
       Logger.info(`Film already exists (Skipping): ${slug}`, { slug });
       return;
     }
@@ -82,7 +88,21 @@ async function handleFilmScrape(slug) {
 
   // 2. Scrape film details
   Logger.info(`Scraping details for: ${slug}`, { slug });
-  const filmDetails = await scrapeFilmDetails(slug, url);
+  let filmDetails;
+  try {
+    filmDetails = await scrapeFilmDetails(slug, url);
+  } catch (err) {
+    const status = err.response?.status;
+    if (status === 404 || status === 403) {
+      Logger.warn(`Permanent failure (${status}) for ${slug}. Caching as failed.`, { slug });
+      if (FILMS_TABLE) {
+        const ttl = Math.floor(Date.now() / 1000) + TTL_HOURS * 60 * 60;
+        await putItem(FILMS_TABLE, { slug, status: 'failed', ttl });
+      }
+      return; // Do not throw, so the batch continues and this film is counted as processed
+    }
+    throw err; // Re-throw transient errors (like timeouts)
+  }
 
   // 3. Store in DynamoDB with TTL
   const ttl = Math.floor(Date.now() / 1000) + TTL_HOURS * 60 * 60;
