@@ -12,7 +12,6 @@ import { GAME_PHASES } from '@/lib/gameTypes';
 import { Bug, ChevronDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { MOCK_METRICS_RESPONSE, MOCK_RATING_MOVIES } from '@/mocks/data';
-
 export const DebugControls = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);

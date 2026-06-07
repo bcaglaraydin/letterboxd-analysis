@@ -119,7 +119,7 @@ export default function HomePage() {
       className="flex flex-col items-center text-center w-full max-w-2xl mx-auto overflow-hidden"
       style={{ gap: 'clamp(1.25rem, 4vw, 1.75rem)' }}
     >
-      <h1 className="font-serif leading-none flex flex-col items-center w-full min-w-0 overflow-hidden">
+      <h1 className="font-display leading-none flex flex-col items-center w-full min-w-0 overflow-hidden">
         <motion.div
           initial={{ scale: 0.92, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -203,7 +203,7 @@ export default function HomePage() {
           value={usernameInput}
           onChange={(e) => setUsernameInput(e.target.value)}
           placeholder="Enter your Letterboxd username"
-          className="w-full px-4 bg-white/50 border-2 border-primary/10 rounded-xl text-center placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/50 focus:bg-white/80 transition-all duration-300 text-primary font-serif"
+          className="w-full px-4 bg-white/50 border-2 border-primary/10 rounded-xl text-center placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/50 focus:bg-white/80 transition-all duration-300 text-primary font-display"
           style={{
             height: 'clamp(2.75rem, 8vw, 3.5rem)',
             fontSize: 'clamp(0.875rem, 3vw, 1.125rem)',

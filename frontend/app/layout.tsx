@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Playfair_Display, DM_Sans } from 'next/font/google';
+import { Playfair_Display, DM_Sans, Lora } from 'next/font/google';
 import { GoogleTagManager } from '@next/third-parties/google';
 import './globals.css';
 import { cn } from '@/lib/utils';
@@ -7,6 +7,12 @@ import { DebugControls } from '@/components/debug/DebugControls';
 import { StateBridge } from '@/components/debug/StateBridge';
 
 const playfair = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-display',
+  display: 'swap',
+});
+
+const lora = Lora({
   subsets: ['latin'],
   variable: '--font-serif',
   display: 'swap',
@@ -51,6 +57,7 @@ export default function RootLayout({
         className={cn(
           'h-[100dvh] overflow-hidden bg-background font-sans antialiased',
           playfair.variable,
+          lora.variable,
           dmSans.variable,
         )}
       >

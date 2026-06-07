@@ -120,11 +120,6 @@ export const RankingItem = ({
       className={cn(variantStyles[variant], className)}
       style={{
         borderColor: getBorderColor(),
-        ...(variant !== 'actual-slot' && {
-          borderLeftColor: color,
-          borderLeftWidth: '3px',
-          borderLeftStyle: 'solid',
-        }),
         backgroundColor: getBackgroundColor(),
         ...style,
       }}
