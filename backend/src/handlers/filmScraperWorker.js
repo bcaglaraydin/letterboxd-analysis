@@ -65,7 +65,9 @@ async function handleBatchFilmScrape(slugs) {
   }
 
   if (hasError) {
-    throw new Error('One or more films in the batch failed to scrape (transient error). Failing SQS message for retry.');
+    throw new Error(
+      'One or more films in the batch failed to scrape (transient error). Failing SQS message for retry.'
+    );
   }
 
   Logger.info(`Batch Scrape Complete.`);

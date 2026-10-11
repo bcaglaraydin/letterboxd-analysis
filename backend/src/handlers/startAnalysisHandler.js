@@ -90,8 +90,9 @@ const baseHandler = async (event, context) => {
     }
 
     // 2. Quick Existence Check (FIXED: Return 503 on upstream failure)
+    // Use RSS endpoint to avoid Cloudflare managed challenges that block raw HTTP on profile pages
     try {
-      await fetchWithRetry(`https://letterboxd.com/${username}/`, {}, 1);
+      await fetchWithRetry(`https://letterboxd.com/${username}/rss/`, {}, 1);
     } catch (err) {
       if (err.response?.status === 404) {
         Logger.warn(`User not found: ${username}`);
