@@ -12,9 +12,9 @@ COPY package*.json ./
 RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 ARG GH_PAT
 RUN if [ -n "$GH_PAT" ]; then \
-      git config --global url."https://${GH_PAT}@github.com/".insteadOf "ssh://git@github.com/"; \
-      git config --global url."https://${GH_PAT}@github.com/".insteadOf "git@github.com:"; \
-      git config --global url."https://${GH_PAT}@github.com/".insteadOf "https://github.com/"; \
+      git config --global --add url."https://${GH_PAT}@github.com/".insteadOf "ssh://git@github.com/"; \
+      git config --global --add url."https://${GH_PAT}@github.com/".insteadOf "git@github.com:"; \
+      git config --global --add url."https://${GH_PAT}@github.com/".insteadOf "https://github.com/"; \
     fi
 RUN npm ci --omit=dev && npm cache clean --force
 
