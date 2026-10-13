@@ -1,14 +1,7 @@
 /**
- * Browser Session Manager for Lambda Container Images
- * ====================================================
- * This module manages a shared Chromium browser session for web scraping.
- *
- * Architecture:
- * - Uses playwright-extra with stealth plugin for anti-bot bypass
- * - In Lambda containers: uses pre-installed Chromium at CHROMIUM_PATH
- * - In local dev: uses Playwright's bundled browser
- * - Implements page pooling for concurrent requests
- * - Shares cookies/session after first Cloudflare bypass
+ * Browser Session Manager for Lambda Container Images and Local Dev
+ * =================================================================
+ * Manages shared Chromium browser sessions with anti-bot stealth and Cloudflare Turnstile handling.
  */
 
 import { existsSync, readdirSync } from 'fs';
@@ -23,22 +16,17 @@ if (process.env.DISABLE_STEALTH !== 'true') {
   console.log('[Browser] Stealth plugin disabled');
 }
 
-// Timeout and delay constants
-const WARM_SESSION_TIMEOUT_MS = 5000;
-const COLD_SESSION_TIMEOUT_MS = 20000;
-const CHALLENGE_WAIT_BASE_MS = 5000;
+// Timeout constants
+const CHALLENGE_WAIT_BASE_MS = 3000;
 const CHALLENGE_SELECTOR_TIMEOUT_MS = 10000;
 const MAX_CHALLENGE_ATTEMPTS = 3;
 
-// Selectors that indicate the page has fully loaded (Cloudflare challenge passed)
-const LETTERBOXD_READY_SELECTORS = '.poster-grid, .site-body, .navitem';
+// Ready selectors indicating full page load
+export const LETTERBOXD_READY_SELECTORS =
+  '.poster-grid, .site-body, .navitem, .griditem, .films-list';
 
 /**
  * Resolves the Chromium executable path in container environments.
- * In Lambda containers, Chromium is pre-installed at /opt/browsers/chromium-xxx/chrome-linux/chrome
- * Locally, returns null to use Playwright's bundled browser.
- *
- * @returns {(string|null)} Path to Chromium executable or null for bundled browser
  */
 function getChromiumPath() {
   const browsersDir = process.env.CHROMIUM_PATH || '/opt/browsers';
@@ -54,8 +42,6 @@ function getChromiumPath() {
     }
 
     const chromiumDir = join(browsersDir, dirs[0]);
-
-    // Try different path structures used by Playwright on different architectures
     const pathsToTry = [
       join(chromiumDir, 'chrome-linux', 'chrome'), // arm64
       join(chromiumDir, 'chrome-linux64', 'chrome'), // amd64/x86_64
@@ -77,7 +63,6 @@ function getChromiumPath() {
 
 /**
  * Shared browser session with page pool for parallel requests.
- * All pages share cookies/session after first Cloudflare bypass.
  */
 class BrowserSession {
   constructor() {
@@ -88,15 +73,9 @@ class BrowserSession {
     this.isWarm = false;
   }
 
-  /**
-   * Gets or creates a browser instance.
-   * Implements health check to detect and recover from crashed browsers.
-   */
   async getBrowser() {
-    // Health check: verify existing browser is still alive
     if (this.browser) {
       try {
-        // Quick health check - try to get browser contexts
         const contexts = this.browser.contexts();
         if (contexts) {
           return this.browser;
@@ -120,73 +99,33 @@ class BrowserSession {
         (execPath ? ` (Chromium: ${execPath})` : ' (bundled browser)')
     );
 
-    // Browser launch arguments optimized for Lambda containers
-    // Based on best practices for running Chromium in Docker/Lambda
+    // Optimized anti-detect args without single-process
     const args = [
-      // Required for Lambda/Docker environments (no sandbox available)
       '--no-sandbox',
       '--disable-setuid-sandbox',
-
-      // Use /tmp for shared memory (Lambda has limited /dev/shm)
       '--disable-dev-shm-usage',
-
-      // Disable GPU (not available in Lambda)
       '--disable-gpu',
       '--disable-software-rasterizer',
-
-      // Anti-detection flags
       '--disable-blink-features=AutomationControlled',
       '--disable-infobars',
       '--exclude-switches=enable-automation',
-
-      // Performance optimizations for Lambda
-      '--disable-background-timer-throttling',
-      '--disable-backgrounding-occluded-windows',
-      '--disable-renderer-backgrounding',
-      '--disable-renderer-backgrounding',
-      '--disable-background-networking',
-      '--single-process', // Required for Lambda stability (avoids IPC/PID limits)
-
-      // Memory optimization
-      '--disable-extensions',
-      '--disable-component-extensions-with-background-pages',
-      '--disable-default-apps',
-      '--disable-hang-monitor',
-      '--disable-ipc-flooding-protection',
-      '--disable-popup-blocking',
-      '--disable-prompt-on-repost',
-      '--disable-sync',
-      '--disable-translate',
-
-      // Media handling (for stealth)
-      '--use-fake-ui-for-media-stream',
-      '--use-fake-device-for-media-stream',
-      '--autoplay-policy=user-gesture-required',
-
-      // Window size
       '--window-size=1920,1080',
     ];
 
     if (isLambda && execPath) {
-      // Lambda container: use pre-installed Chromium
       console.log('[Browser] Using pre-installed Chromium from base image.');
       this.browser = await playwrightExtra.launch({
         args,
         executablePath: execPath,
         headless: true,
-        dumpio: true, // Log Chromium stdout/stderr
+        dumpio: false,
       });
     } else {
-      // Local development: use Playwright's bundled browser
       try {
         console.log('[Browser] Using bundled local chromium with stealth plugin.');
         this.browser = await playwrightExtra.launch({
           headless: true,
-          args: [
-            '--disable-blink-features=AutomationControlled',
-            '--window-size=1920,1080',
-            '--no-sandbox',
-          ],
+          args,
         });
       } catch (e) {
         console.error('Failed to launch local playwright.', e);
@@ -194,7 +133,6 @@ class BrowserSession {
       }
     }
 
-    // Create browser context with realistic settings
     this.context = await this.browser.newContext({
       viewport: { width: 1920, height: 1080 },
       deviceScaleFactor: 1,
@@ -205,40 +143,39 @@ class BrowserSession {
       extraHTTPHeaders: {
         'Accept-Language': 'en-US,en;q=0.9',
         Accept:
-          'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+          'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
       },
     });
 
     return this.browser;
   }
 
-  /**
-   * Gets a page from the pool, waiting if necessary for an available slot.
-   * Pages share cookies via the browser context for Cloudflare session reuse.
-   */
   async getPage() {
     await this.getBrowser();
 
-    // Wait for available slot in the pool
     while (this.activeFetches >= this.maxConcurrentPages) {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
     this.activeFetches++;
 
-    // Create new page for this request (shares context cookies)
     const page = await this.context.newPage();
 
-    // Block images/fonts to save bandwidth (keep CSS for Cloudflare)
-    await page.route('**/*.{png,jpg,jpeg,gif,svg,woff,woff2}', (route) => route.abort());
+    // Selectively block heavy resized posters, but NEVER block Cloudflare assets or styles
+    await page.route('**/*', (route) => {
+      const reqUrl = route.request().url();
+      if (reqUrl.includes('challenges.cloudflare.com') || reqUrl.includes('cloudflare.com')) {
+        return route.continue();
+      }
+      if (reqUrl.includes('a.ltrbxd.com/resized/')) {
+        return route.abort();
+      }
+      return route.continue();
+    });
 
     return page;
   }
 
-  /**
-   * Releases a page back to the pool.
-   */
   async releasePage(page) {
-    // Close the page to free resources
     try {
       if (page && !page.isClosed()) {
         await page.close();
@@ -249,9 +186,6 @@ class BrowserSession {
     this.activeFetches--;
   }
 
-  /**
-   * Closes the browser session.
-   */
   async close() {
     if (this.browser) {
       console.log('[Browser] Closing shared browser...');
@@ -268,13 +202,9 @@ class BrowserSession {
   }
 }
 
-// Global session instance (singleton per Lambda container)
+// Global session singleton
 let globalSession = null;
 
-/**
- * Gets or creates a shared browser session.
- * @returns {BrowserSession}
- */
 export function getBrowserSession() {
   if (!globalSession) {
     globalSession = new BrowserSession();
@@ -282,10 +212,6 @@ export function getBrowserSession() {
   return globalSession;
 }
 
-/**
- * Closes the global browser session.
- * Call this at the end of Lambda execution to clean up.
- */
 export async function closeBrowserSession() {
   if (globalSession) {
     await globalSession.close();
@@ -294,36 +220,101 @@ export async function closeBrowserSession() {
 }
 
 /**
- * Simulates human-like mouse movements to trick anti-bot scripts.
- * Performs random mouse movements, clicks, and scrolling for entropy.
- * @param {import('playwright-core').Page} page - Playwright page instance.
- * @returns {Promise<void>}
+ * Attempts to detect and solve Cloudflare Turnstile if present on the page.
  */
-async function simulateHumanInteraction(page) {
+export async function solveTurnstileIfPresent(page) {
   try {
-    const x = Math.floor(Math.random() * 400) + 400;
-    const y = Math.floor(Math.random() * 300) + 200;
+    const iframeSelector = 'iframe[src*="challenges.cloudflare.com"]';
+    const iframeHandle = await page.$(iframeSelector);
 
-    await page.mouse.move(x, y, { steps: 5 });
-
-    if (Math.random() > 0.5) {
-      await page.mouse.down();
-      await page.waitForTimeout(Math.floor(Math.random() * 100) + 50);
-      await page.mouse.up();
+    if (!iframeHandle) {
+      return false;
     }
 
-    await page.mouse.wheel(0, Math.floor(Math.random() * 100) + 50);
-    await page.waitForTimeout(Math.floor(Math.random() * 1000) + 500);
+    console.log('[Browser] Cloudflare Turnstile iframe detected. Attempting solve...');
+    const frame = await iframeHandle.contentFrame();
+    if (!frame) return false;
+
+    const clicked = await frame.evaluate(() => {
+      /* global document */
+      try {
+        function findElementDeep(root, selector) {
+          let found = root.querySelector(selector);
+          if (found) return found;
+          for (const el of root.querySelectorAll('*')) {
+            if (el.shadowRoot) {
+              found = findElementDeep(el.shadowRoot, selector);
+              if (found) return found;
+            }
+          }
+          return null;
+        }
+
+        const target =
+          findElementDeep(document, 'input[type="checkbox"]') ||
+          findElementDeep(document, '.cb-lb') ||
+          findElementDeep(document, '#challenge-stage');
+
+        if (target) {
+          target.click();
+          return true;
+        }
+        return false;
+      } catch {
+        return false;
+      }
+    });
+
+    if (clicked) {
+      console.log('[Browser] Successfully triggered click on Turnstile widget.');
+      await page.waitForTimeout(2500);
+      return true;
+    }
   } catch (err) {
-    console.warn('[Browser] Interaction simulation failed (ignoring):', err.message);
+    console.warn('[Browser] Turnstile interaction note:', err.message);
+  }
+  return false;
+}
+
+/**
+ * Handles potential Cloudflare challenge on an already navigated page.
+ */
+export async function handlePotentialChallenge(page, readySelector = LETTERBOXD_READY_SELECTORS) {
+  try {
+    await page.waitForSelector(readySelector, { timeout: 3000 });
+    return true;
+  } catch {
+    const content = await page.content();
+    const isChallenge =
+      content.includes('Just a moment') ||
+      content.includes('Checking your browser') ||
+      content.includes('challenges.cloudflare.com');
+
+    if (!isChallenge) {
+      return false;
+    }
+
+    console.log('[Browser] Challenge detected. Waiting and attempting resolution...');
+    for (let attempt = 1; attempt <= MAX_CHALLENGE_ATTEMPTS; attempt++) {
+      await solveTurnstileIfPresent(page);
+      await page.waitForTimeout(CHALLENGE_WAIT_BASE_MS * attempt);
+
+      try {
+        await page.waitForSelector(readySelector, { timeout: CHALLENGE_SELECTOR_TIMEOUT_MS });
+        console.log('[Browser] Challenge successfully passed.');
+        return true;
+      } catch {
+        console.warn(
+          `[Browser] Challenge attempt ${attempt}/${MAX_CHALLENGE_ATTEMPTS} still pending...`
+        );
+      }
+    }
+    return false;
   }
 }
 
 /**
  * Fetches HTML content using a headless browser (Playwright with Stealth).
- * Reuses a shared browser instance.
- * @param {string} url - The URL to fetch.
- * @returns {Promise<string>} - The HTML content.
  */
 export async function fetchHtmlWithBrowser(url, options = {}) {
   const session = getBrowserSession();
@@ -331,85 +322,27 @@ export async function fetchHtmlWithBrowser(url, options = {}) {
 
   try {
     page = await session.getPage();
+    const readySelector = options.waitForSelector || LETTERBOXD_READY_SELECTORS;
 
     console.log(`[Browser] Navigating to ${url}... (Warm: ${!!session.isWarm})`);
-    await page.goto(url, { waitUntil: options.waitUntil || 'domcontentloaded', timeout: 30000 });
+    await page.goto(url, {
+      waitUntil: options.waitUntil || 'domcontentloaded',
+      timeout: options.timeout || 30000,
+    });
 
-    // Logic to handle potential challenge even if warm
-    let passed = false;
-    try {
-      const timeout = session.isWarm ? WARM_SESSION_TIMEOUT_MS : COLD_SESSION_TIMEOUT_MS;
-      const selector = options.waitForSelector || LETTERBOXD_READY_SELECTORS;
-      await page.waitForSelector(selector, { timeout });
-      passed = true;
-    } catch {
-      if (session.isWarm) {
-        console.warn('[Browser] Warm session challenge verification failed. Retrying as cold...');
-        session.isWarm = false;
-      }
-    }
-
+    const passed = await handlePotentialChallenge(page, readySelector);
     if (!passed) {
-      // Check for 404 or error pages BEFORE assuming Cloudflare challenge
-      const pageContent = await page.content();
       const pageTitle = await page.title();
-
-      // Detect 404/error pages (Letterboxd shows specific patterns for non-existent users/pages)
-      const is404 =
-        pageContent.includes('Page Not Found') ||
-        pageContent.includes('Error 404') ||
-        pageContent.includes('Sorry, we could not find') ||
-        pageTitle.includes('Not Found') ||
-        pageTitle.includes('404');
-
-      if (is404) {
+      if (pageTitle.includes('404') || pageTitle.includes('Not Found')) {
         throw new Error(`Page not found (404): ${url}`);
       }
-
-      // Detect Cloudflare challenge page specifically
-      const isCloudflareChallenge =
-        pageContent.includes('Just a moment') ||
-        pageContent.includes('Checking your browser') ||
-        pageContent.includes('cf-browser-verification') ||
-        pageContent.includes('Cloudflare');
-
-      if (!isCloudflareChallenge) {
-        // Unknown error state - not 404 and not Cloudflare challenge
-        console.warn('[Browser] Unknown page state - not 404 and not Cloudflare challenge');
-        throw new Error(`Unexpected page state (no expected content found): ${url}`);
-      }
-
-      for (let attempt = 1; attempt <= MAX_CHALLENGE_ATTEMPTS; attempt++) {
-        console.log(
-          `[Browser] Waiting for Cloudflare challenge (Attempt ${attempt}/${MAX_CHALLENGE_ATTEMPTS})...`
-        );
-        await page.waitForTimeout(CHALLENGE_WAIT_BASE_MS * attempt);
-        await simulateHumanInteraction(page);
-
-        try {
-          const selector = options.waitForSelector || LETTERBOXD_READY_SELECTORS;
-          await page.waitForSelector(selector, {
-            timeout: CHALLENGE_SELECTOR_TIMEOUT_MS,
-          });
-          console.log('[Browser] Cloudflare challenge passed.');
-          passed = true;
-          session.isWarm = true;
-          break;
-        } catch {
-          console.warn(`[Browser] Attempt ${attempt} failed. Retrying...`);
-        }
-      }
-
-      if (!passed) {
-        throw new Error(`Cloudflare challenge failed after ${MAX_CHALLENGE_ATTEMPTS} attempts.`);
-      }
-    } else if (!session.isWarm) {
-      console.log('[Browser] Cloudflare challenge passed. Session marked as warm.');
-      session.isWarm = true;
+      throw new Error(
+        `Cloudflare challenge failed after ${MAX_CHALLENGE_ATTEMPTS} attempts: ${url}`
+      );
     }
 
-    const content = await page.content();
-    return content;
+    session.isWarm = true;
+    return await page.content();
   } catch (err) {
     console.error('[Browser] Error fetching page:', err);
     throw err;
