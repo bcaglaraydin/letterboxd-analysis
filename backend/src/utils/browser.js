@@ -99,33 +99,55 @@ class BrowserSession {
         (execPath ? ` (Chromium: ${execPath})` : ' (bundled browser)')
     );
 
-    // Optimized anti-detect args without single-process
-    const args = [
+    const lambdaArgs = [
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--disable-dev-shm-usage',
       '--disable-gpu',
       '--disable-software-rasterizer',
+      '--no-zygote',
+      '--single-process',
       '--disable-blink-features=AutomationControlled',
       '--disable-infobars',
       '--exclude-switches=enable-automation',
+      '--disable-background-timer-throttling',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-renderer-backgrounding',
+      '--disable-background-networking',
+      '--disable-extensions',
+      '--disable-component-extensions-with-background-pages',
+      '--disable-default-apps',
+      '--disable-hang-monitor',
+      '--disable-ipc-flooding-protection',
+      '--disable-popup-blocking',
+      '--disable-prompt-on-repost',
+      '--disable-sync',
+      '--disable-translate',
+      '--use-fake-ui-for-media-stream',
+      '--use-fake-device-for-media-stream',
+      '--autoplay-policy=user-gesture-required',
       '--window-size=1920,1080',
     ];
 
     if (isLambda && execPath) {
       console.log('[Browser] Using pre-installed Chromium from base image.');
       this.browser = await playwrightExtra.launch({
-        args,
+        args: lambdaArgs,
         executablePath: execPath,
         headless: true,
-        dumpio: false,
+        chromiumSandbox: false,
+        dumpio: true,
       });
     } else {
       try {
         console.log('[Browser] Using bundled local chromium with stealth plugin.');
         this.browser = await playwrightExtra.launch({
           headless: true,
-          args,
+          args: [
+            '--disable-blink-features=AutomationControlled',
+            '--window-size=1920,1080',
+            '--no-sandbox',
+          ],
         });
       } catch (e) {
         console.error('Failed to launch local playwright.', e);
@@ -158,7 +180,18 @@ class BrowserSession {
     }
     this.activeFetches++;
 
-    const page = await this.context.newPage();
+    let page;
+    try {
+      page = await this.context.newPage();
+    } catch (err) {
+      console.warn(
+        '[Browser] Failed to create new page on existing context, recycling browser...',
+        err.message
+      );
+      await this.close();
+      await this.getBrowser();
+      page = await this.context.newPage();
+    }
 
     // Selectively block heavy resized posters, but NEVER block Cloudflare assets or styles
     await page.route('**/*', (route) => {
@@ -183,7 +216,7 @@ class BrowserSession {
     } catch {
       // Ignore close errors
     }
-    this.activeFetches--;
+    this.activeFetches = Math.max(0, this.activeFetches - 1);
   }
 
   async close() {
