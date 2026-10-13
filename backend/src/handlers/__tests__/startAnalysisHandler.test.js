@@ -24,6 +24,7 @@ vi.mock('../../services/userJobService.js', () => ({
   putUserJob: vi.fn(),
   getUserJob: vi.fn(),
   updateUserJob: vi.fn(),
+  deleteUserJob: vi.fn().mockResolvedValue(true),
 }));
 
 vi.mock('../../services/dynamoDbService.js', () => ({

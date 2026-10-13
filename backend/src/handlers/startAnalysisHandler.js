@@ -87,6 +87,7 @@ const baseHandler = async (event, context) => {
 
       // FAILED: Fall through to create a new job
       Logger.info(`Previous job failed for ${username}. Restarting.`, { username });
+      await deleteUserJob(username);
     }
 
     // 2. Quick Existence Check (FIXED: Return 503 on upstream failure)
