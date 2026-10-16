@@ -23,7 +23,9 @@ function getCombinations(array, size) {
 export async function fetchFavoriteSlugs(username) {
   try {
     Logger.info(`[TasteMatch] Fetching profile for ${username} to extract favorite slugs...`);
-    const profileHtml = await fetchHtmlWithBrowser(`https://letterboxd.com/${username}/`);
+    const profileHtml = await fetchHtmlWithBrowser(`https://letterboxd.com/${username}/`, {
+      waitForSelector: '#favourites, .profile-name, .site-body',
+    });
     const $ = load(profileHtml);
 
     const slugs = [];
@@ -31,6 +33,13 @@ export async function fetchFavoriteSlugs(username) {
       const slug = $(el).attr('data-item-slug');
       if (slug) slugs.push(slug);
     });
+
+    if (slugs.length === 0) {
+      $('#favourites [data-item-slug], #favourites [data-film-slug]').each((_, el) => {
+        const slug = $(el).attr('data-item-slug') || $(el).attr('data-film-slug');
+        if (slug && !slugs.includes(slug)) slugs.push(slug);
+      });
+    }
 
     Logger.info(`[TasteMatch] Favorite slugs for ${username}:`, { slugs });
     return slugs;
@@ -69,7 +78,7 @@ export async function fetchSoulmates(username, favoriteSlugs) {
         const searchUrl = `https://letterboxd.com/s/search/members/${encodeURIComponent(query)}/`;
 
         try {
-          const searchHtml = await fetchHtmlWithBrowser(searchUrl, { waitForSelector: '.results' });
+          const searchHtml = await fetchHtmlWithBrowser(searchUrl, { waitForSelector: 'body' });
           const $s = load(searchHtml);
 
           $s('.person-summary').each((_, el) => {
