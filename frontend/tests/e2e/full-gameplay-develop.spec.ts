@@ -10,7 +10,8 @@ import * as fs from 'fs';
  * capturing sequential screenshots at every key phase and recording video.
  */
 
-const SCREENSHOTS_DIR = path.resolve(process.cwd(), 'playwright-artifacts', 'screenshots');
+const screenshotsSubfolder = process.env.PLAYWRIGHT_SCREENSHOTS_DIR || 'screenshots';
+const SCREENSHOTS_DIR = path.resolve(process.cwd(), 'playwright-artifacts', screenshotsSubfolder);
 
 async function snap(page: Page, stepNumber: number, stepName: string) {
   const prefix = String(stepNumber).padStart(2, '0');

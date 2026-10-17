@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+process.env.PLAYWRIGHT_SCREENSHOTS_DIR = 'screenshots-dev';
+
 export default defineConfig({
   testDir: './tests/e2e',
   testMatch: 'full-gameplay-develop.spec.ts',
