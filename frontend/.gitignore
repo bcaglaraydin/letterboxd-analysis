@@ -42,3 +42,10 @@ yarn-error.log*
 next-env.d.ts
 
 /app/playground/
+
+# playwright & testing artifacts
+/playwright-report/
+/playwright-report-*/
+/playwright-artifacts/
+/test-results/
+*.webm

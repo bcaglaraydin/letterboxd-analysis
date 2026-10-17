@@ -52,11 +52,16 @@ yarn-error.log*
 frontend/DESIGN_SYSTEM.md
 
 frontend/playwright-report/
+frontend/playwright-report-*/
+frontend/playwright-artifacts/
 frontend/test-results/
 
 # Playwright
 /test-results/
 /playwright-report/
+/playwright-report-*/
+/playwright-artifacts/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+*.webm

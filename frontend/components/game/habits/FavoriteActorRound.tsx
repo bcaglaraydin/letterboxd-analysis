@@ -182,7 +182,9 @@ export function FavoriteActorRound({
                               fill
                               className="object-cover"
                               sizes="(max-width: 768px) 50vw, 25vw"
-                              onError={() => setFailedImages((prev) => ({ ...prev, [actor.id]: true }))}
+                              onError={() =>
+                                setFailedImages((prev) => ({ ...prev, [actor.id]: true }))
+                              }
                             />
                             {/* Warm vignette overlay — analog photo feel */}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-black/10 pointer-events-none" />

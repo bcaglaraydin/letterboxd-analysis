@@ -6,7 +6,15 @@ import prettierPlugin from 'eslint-plugin-prettier';
 
 const eslintConfig = [
   {
-    ignores: ['**/.next/**', '**/out/**', '**/node_modules/**'],
+    ignores: [
+      '**/.next/**',
+      '**/out/**',
+      '**/node_modules/**',
+      '**/playwright-report/**',
+      '**/playwright-report-develop/**',
+      '**/playwright-artifacts/**',
+      '**/test-results/**',
+    ],
   },
 
   ...nextCoreWebVitals,
