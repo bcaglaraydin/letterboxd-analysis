@@ -661,16 +661,22 @@ test.describe('Letterboxd Taste Test - Full End-to-End Live Game Run', () => {
       console.log('Playing Favorite Actor Round...');
       await snap(page, stepCountRef.current++, 'habits-actor-round');
       await actorCard.click();
-      const actorContinue1 = page
-        .locator('button:has-text("Continue")')
+      await page.waitForTimeout(600);
+      await snap(page, stepCountRef.current++, 'habits-actor-guessed');
+
+      const seeTop8Btn = page
+        .locator('button:has-text("See Top 8"), button:has-text("Continue")')
         .filter({ visible: true })
         .first();
-      await waitAndClickEnabled(actorContinue1, 15000);
+      await waitAndClickEnabled(seeTop8Btn, 20000);
+      await page.waitForTimeout(600);
+      await snap(page, stepCountRef.current++, 'habits-actor-top8-revealed');
+
       const actorContinue2 = page
         .locator('button:has-text("Continue")')
         .filter({ visible: true })
         .first();
-      await waitAndClickEnabled(actorContinue2, 15000);
+      await waitAndClickEnabled(actorContinue2, 20000);
     }
 
     // Duration Batch Round:

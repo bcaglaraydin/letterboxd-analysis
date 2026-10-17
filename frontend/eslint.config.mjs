@@ -11,7 +11,7 @@ const eslintConfig = [
       '**/out/**',
       '**/node_modules/**',
       '**/playwright-report/**',
-      '**/playwright-report-develop/**',
+      '**/playwright-report-*/**',
       '**/playwright-artifacts/**',
       '**/test-results/**',
     ],

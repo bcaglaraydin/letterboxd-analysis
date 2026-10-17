@@ -1,7 +1,6 @@
 node_modules
 .next
 out
-playwright-report
-playwright-report-develop
+playwright-report*
 playwright-artifacts
 test-results
