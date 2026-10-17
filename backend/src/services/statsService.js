@@ -14,8 +14,11 @@ const DURATION_BUCKETS = [
 export async function calculateTopActors(films) {
   const actorCounts = {};
 
+  // If the user has rated films, prefer rated films; otherwise count all watched films
+  const hasRatedFilms = films.some((f) => f.userRating != null);
+
   films.forEach((film) => {
-    if (film.userRating == null) return; // Only count movies the user watched & rated
+    if (hasRatedFilms && film.userRating == null) return;
 
     if (film.cast && Array.isArray(film.cast)) {
       film.cast.forEach((actor) => {
@@ -31,19 +34,19 @@ export async function calculateTopActors(films) {
         if (actorCounts[actor].movies.length < 5) {
           actorCounts[actor].movies.push({
             title: film.title,
-            posterUrl: film.poster || '',
+            posterUrl: film.posterUrl || film.poster || '',
           });
         }
       });
     }
   });
 
-  // Sort by count descending
+  // Sort by count descending and take top 12 (top 8 + up to 4 decoys for habit games)
   const sortedActors = Object.values(actorCounts)
     .sort((a, b) => b.count - a.count)
-    .slice(0, 8); // Take top 8
+    .slice(0, 12);
 
-  // Fetch TMDB photos for top 8
+  // Fetch TMDB photos for top actors
   const topCastPromises = sortedActors.map(async (actor) => {
     const photoUrl = await getActorPhotoUrl(actor.name);
     return { ...actor, photoUrl };

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FavoriteActorRound } from './FavoriteActorRound';
 import { DurationBatchRound } from './DurationBatchRound';
@@ -8,7 +8,6 @@ import { WorldMapRound } from './WorldMapRound';
 import { HabitsIntroDialogue } from './HabitsIntroDialogue';
 import { useUserStore } from '@/store/core/userStore';
 import { useExperienceStore } from '@/store/core/experienceStore';
-import { mockActors, mockActorWaitlist } from '@/mocks/data';
 import type { TopActor } from '@/lib/api';
 import { MapIntroDialogue } from './MapIntroDialogue';
 
@@ -44,17 +43,17 @@ function buildActorData(topActors: TopActor[]) {
     })),
   }));
 
-  // Build waitlist: top8 + 3 decoys from the bottom of the list (or mock fallbacks)
+  // Build waitlist: top8 + decoys strictly from remaining real actors (no mock actors)
   const decoys =
     topActors.length > 8
-      ? topActors.slice(8, 11).map((actor, idx) => ({
+      ? topActors.slice(8, 12).map((actor, idx) => ({
           id: `actor-decoy-${idx}`,
           name: actor.name,
           photoUrl: actor.photoUrl || '',
           watchCount: actor.count,
           moviesWatched: [] as { id: string; title: string; rating: number; posterUrl: string }[],
         }))
-      : mockActorWaitlist.slice(8, 11); // fallback decoys from mocks
+      : [];
 
   return { top8, waitlist: shuffleActors([...top8, ...decoys]) };
 }
@@ -64,14 +63,24 @@ export function ViewingHabitsOrchestration({ onGameComplete }: ViewingHabitsOrch
   const userStats = useUserStore((s) => s.userStats);
   const { habitsPhase: phase, setHabitsPhase: setPhase } = useExperienceStore();
 
-  // Use real data if available, otherwise fall back to mocks
-  const hasRealActors = userStats?.topActors && userStats.topActors.length > 0;
-  const actorData = hasRealActors
-    ? buildActorData(userStats.topActors!)
-    : { top8: mockActors, waitlist: mockActorWaitlist };
+  // If actors cannot be fetched or not enough actors exist for a question, skip the actor round completely.
+  // Mock actors must NEVER be shown.
+  const hasRealActors = Boolean(userStats?.topActors && userStats.topActors.length >= 4);
+  const actorData = hasRealActors ? buildActorData(userStats!.topActors!) : null;
+
+  // Auto-skip actor phase if reached without sufficient real actors
+  useEffect(() => {
+    if (phase === 'actor' && !hasRealActors) {
+      setPhase('duration');
+    }
+  }, [phase, hasRealActors, setPhase]);
 
   const handleLevelComplete = () => {
-    setPhase('actor');
+    if (hasRealActors) {
+      setPhase('actor');
+    } else {
+      setPhase('duration');
+    }
   };
 
   const handleActorComplete = (roundScore: number) => {
@@ -79,7 +88,10 @@ export function ViewingHabitsOrchestration({ onGameComplete }: ViewingHabitsOrch
     setPhase('duration');
   };
 
-  const totalRounds = 3;
+  // Adjust total rounds and numbering dynamically if actor round is skipped
+  const totalRounds = hasRealActors ? 3 : 2;
+  const durationRoundNumber = hasRealActors ? 2 : 1;
+  const mapRoundNumber = hasRealActors ? 3 : 2;
 
   const handleDurationComplete = (roundScore: number) => {
     const newScore = score + roundScore;
@@ -111,7 +123,7 @@ export function ViewingHabitsOrchestration({ onGameComplete }: ViewingHabitsOrch
           </motion.div>
         )}
 
-        {phase === 'actor' && (
+        {phase === 'actor' && hasRealActors && actorData && (
           <motion.div
             key="actor-round"
             initial={{ opacity: 0, scale: 0.95 }}
@@ -143,7 +155,7 @@ export function ViewingHabitsOrchestration({ onGameComplete }: ViewingHabitsOrch
             <DurationBatchRound
               onComplete={handleDurationComplete}
               currentScore={score}
-              roundNumber={2}
+              roundNumber={durationRoundNumber}
               totalRounds={totalRounds}
               distributionGraphs={userStats?.durationDistribution}
             />
@@ -175,7 +187,7 @@ export function ViewingHabitsOrchestration({ onGameComplete }: ViewingHabitsOrch
             <WorldMapRound
               onComplete={handleMapComplete}
               currentScore={score}
-              roundNumber={3}
+              roundNumber={mapRoundNumber}
               totalRounds={totalRounds}
               countryStats={userStats?.countryStats || []}
             />

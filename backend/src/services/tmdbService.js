@@ -9,7 +9,8 @@ const TMDB_HEADERS = {
 };
 
 export async function getActorPhotoUrl(actorName) {
-  if (!process.env.API_READ_ACCESS_TOKEN) {
+  const token = process.env.API_READ_ACCESS_TOKEN;
+  if (!token) {
     Logger.warn('TMDB API_READ_ACCESS_TOKEN not set. Skipping photo fetch.');
     return null; // fallback
   }
@@ -22,7 +23,11 @@ export async function getActorPhotoUrl(actorName) {
         language: 'en-US',
         page: 1,
       },
-      headers: TMDB_HEADERS,
+      headers: {
+        accept: 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      timeout: 6000,
     });
 
     if (response.data.results && response.data.results.length > 0) {
@@ -33,7 +38,7 @@ export async function getActorPhotoUrl(actorName) {
     }
     return null;
   } catch (err) {
-    Logger.error(`Failed to fetch TMDB data for "${actorName}"`, err);
+    Logger.error(`Failed to fetch TMDB data for "${actorName}": ${err.message}`);
     return null;
   }
 }

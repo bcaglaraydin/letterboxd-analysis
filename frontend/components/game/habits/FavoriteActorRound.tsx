@@ -33,6 +33,7 @@ export function FavoriteActorRound({
   const [phase, setPhase] = useState<RoundPhase>('question');
   const [selectedActorId, setSelectedActorId] = useState<string | null>(null);
   const [showActualFavorite, setShowActualFavorite] = useState(false);
+  const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
 
   // Score tracking
   const [pointsEarned, setPointsEarned] = useState<number | null>(null);
@@ -173,7 +174,7 @@ export function FavoriteActorRound({
                     >
                       {/* Photo area with vintage vignette */}
                       <div className="w-full aspect-[3/4] relative bg-muted shrink-0 overflow-hidden">
-                        {actor.photoUrl ? (
+                        {actor.photoUrl && !failedImages[actor.id] ? (
                           <>
                             <Image
                               src={actor.photoUrl}
@@ -181,14 +182,20 @@ export function FavoriteActorRound({
                               fill
                               className="object-cover"
                               sizes="(max-width: 768px) 50vw, 25vw"
+                              onError={() => setFailedImages((prev) => ({ ...prev, [actor.id]: true }))}
                             />
                             {/* Warm vignette overlay — analog photo feel */}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-black/10 pointer-events-none" />
                             <div className="absolute inset-0 shadow-[inset_0_0_20px_rgba(0,0,0,0.15)] pointer-events-none rounded-t-lg" />
                           </>
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">
-                            No Photo
+                          <div className="w-full h-full flex flex-col items-center justify-center bg-muted/60 text-foreground/50 p-2">
+                            <span className="font-serif text-2xl sm:text-3xl font-bold opacity-30 select-none">
+                              {actor.name.charAt(0)}
+                            </span>
+                            <span className="text-[8px] sm:text-[9px] uppercase tracking-wider text-muted-foreground/60 font-sans mt-1 text-center line-clamp-1">
+                              {actor.name.split(' ').slice(-1)[0]}
+                            </span>
                           </div>
                         )}
                       </div>

@@ -117,3 +117,60 @@ describe('calculateGenreStats', () => {
     expect(hidden.tag.type).toBe('hidden_gem');
   });
 });
+
+describe('calculateTopActors', () => {
+  it('should calculate top actors with photoUrl and movie posters', async () => {
+    const { calculateTopActors } = await import('../statsService.js');
+    const films = [
+      {
+        title: 'Film 1',
+        userRating: 4.5,
+        posterUrl: 'https://example.com/poster1.jpg',
+        cast: ['Actor A', 'Actor B'],
+      },
+      {
+        title: 'Film 2',
+        userRating: 4.0,
+        poster: 'https://example.com/poster2.jpg',
+        cast: ['Actor A', 'Actor C'],
+      },
+      {
+        title: 'Film 3',
+        userRating: null, // Unrated but user watched
+        posterUrl: 'https://example.com/poster3.jpg',
+        cast: ['Actor A', 'Actor D'],
+      },
+    ];
+
+    const result = await calculateTopActors(films);
+    expect(result.length).toBeGreaterThan(0);
+    // Actor A should be #1 with count 2 (from rated films)
+    expect(result[0].name).toBe('Actor A');
+    expect(result[0].count).toBe(2);
+    expect(result[0].photoUrl).toBe('mock-url.jpg');
+    expect(result[0].movies[0].posterUrl).toBe('https://example.com/poster1.jpg');
+  });
+
+  it('should fallback to all films if user has no rated films', async () => {
+    const { calculateTopActors } = await import('../statsService.js');
+    const films = [
+      {
+        title: 'Film 1',
+        userRating: null,
+        posterUrl: 'https://example.com/poster1.jpg',
+        cast: ['Actor X', 'Actor Y'],
+      },
+      {
+        title: 'Film 2',
+        userRating: null,
+        posterUrl: 'https://example.com/poster2.jpg',
+        cast: ['Actor X'],
+      },
+    ];
+
+    const result = await calculateTopActors(films);
+    expect(result.length).toBe(2);
+    expect(result[0].name).toBe('Actor X');
+    expect(result[0].count).toBe(2);
+  });
+});

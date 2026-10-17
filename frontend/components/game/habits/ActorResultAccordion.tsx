@@ -21,6 +21,8 @@ export function ActorResultAccordion({
   delay,
 }: ActorResultAccordionProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [photoError, setPhotoError] = useState(false);
+  const [failedPosters, setFailedPosters] = useState<Record<string, boolean>>({});
   const controls = useAnimation();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -73,15 +75,22 @@ export function ActorResultAccordion({
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: isOpen ? 1 : 0, scale: isOpen ? 1 : 0.9 }}
               transition={{ delay: isOpen ? i * 0.05 : 0 }}
-              className="relative h-[90%] aspect-[2/3] shrink-0 rounded-md overflow-hidden shadow-md bg-black/20"
+              className="relative h-[90%] aspect-[2/3] shrink-0 rounded-md overflow-hidden shadow-md bg-muted"
             >
-              <Image
-                src={movie.posterUrl}
-                alt={movie.title}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              />
+              {movie.posterUrl && !failedPosters[movie.id] ? (
+                <Image
+                  src={movie.posterUrl}
+                  alt={movie.title}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  onError={() => setFailedPosters((prev) => ({ ...prev, [movie.id]: true }))}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-center p-1 bg-muted/80 text-[10px] font-sans text-muted-foreground/80 line-clamp-3">
+                  {movie.title}
+                </div>
+              )}
             </motion.div>
           ))
         ) : (
@@ -115,17 +124,20 @@ export function ActorResultAccordion({
       >
         <div className="h-[calc(100%-0.5rem)] aspect-[3/4] shrink-0 relative">
           <div className="w-full h-full rounded-lg sm:rounded-xl overflow-hidden bg-muted border border-border relative">
-            {actor.photoUrl ? (
+            {actor.photoUrl && !photoError ? (
               <Image
                 src={actor.photoUrl}
                 alt={actor.name}
                 fill
                 className="object-cover"
                 sizes="64px"
+                onError={() => setPhotoError(true)}
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-[10px] text-center text-muted-foreground p-1 leading-tight">
-                No photo
+              <div className="w-full h-full flex flex-col items-center justify-center bg-muted/60 text-foreground/50 p-1">
+                <span className="font-serif text-lg sm:text-xl font-bold opacity-30 select-none">
+                  {actor.name.charAt(0)}
+                </span>
               </div>
             )}
           </div>
